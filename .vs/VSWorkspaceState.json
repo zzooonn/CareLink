@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\backend",
+    "\\backend\\healthcare-server",
+    "\\backend\\healthcare-server\\src",
+    "\\backend\\healthcare-server\\src\\main",
+    "\\backend\\healthcare-server\\src\\main\\java",
+    "\\backend\\healthcare-server\\src\\main\\java\\com",
+    "\\backend\\healthcare-server\\src\\main\\java\\com\\example",
+    "\\backend\\healthcare-server\\src\\main\\java\\com\\example\\demo",
+    "\\backend\\healthcare-server\\src\\main\\java\\com\\example\\demo\\controller"
+  ],
+  "SelectedNode": "\\backend\\healthcare-server\\src\\main\\java\\com\\example\\demo\\controller\\AuthController.java",
+  "PreviewInSolutionExplorer": false
+}
