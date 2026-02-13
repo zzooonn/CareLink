@@ -1,0 +1,13 @@
+// dto/user/UserUpdateRequest.java
+package com.example.demo.dto.auth;
+
+import java.time.LocalDate;
+
+public record UserUpdateRequest(
+        String name,
+        String gender,
+        LocalDate birthDate,
+        String phone,
+        String address,
+        Integer profileImageId 
+) {}

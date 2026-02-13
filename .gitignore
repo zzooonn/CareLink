@@ -1,0 +1,22 @@
+# 가상환경 무시
+ai/venv/
+ai/data/
+venv/
+
+# 데이터셋 무시 (raw 전체 및 하위 폴더)
+ai/data/raw/
+
+# 파이썬 캐시 파일 무시
+**/__pycache__/
+
+# 기타 불필요한 설정 파일
+.vscode/
+.idea/
+
+# AI 모델 파일 및 대용량 데이터 확장자 차단
+*.pth
+*.dat
+*.hea
+*.csv
+*.npy
+*.pk
