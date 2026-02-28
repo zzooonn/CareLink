@@ -1,5 +1,3 @@
----
-
 # 📱 CareLink Frontend: Mobile App
 
 > **React Native & Expo 기반의 사용자 헬스케어 대시보드**
