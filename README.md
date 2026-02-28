@@ -14,12 +14,14 @@ CareLink는 단순한 건강 기록 앱을 넘어, **딥러닝 기반의 ECG(심
 
 ## 🛠 2. 기술 스택 (Tech Stack)
 
-구분,기술 환경
-Frontend,"React Native,  Expo,  TypeScript, Axios, Expo Router"
-Backend,"Spring Boot 3,  Spring Security,  PostgreSQL, JPA, JWT"
-AI Server,"FastAPI,  PyTorch,  NumPy, SciPy"
-Pipeline,"PTB-XL Dataset, Band-pass Filtering, Z-score Normalization"
+| 구분 | 기술 환경 |
+| --- | --- |
+| **Frontend** | **React Native**,  **Expo**,  **TypeScript**, Axios, Expo Router |
+| **Backend** | **Spring Boot 3**,  **Spring Security**,  **PostgreSQL**, JPA, JWT |
+| **AI Server** | **FastAPI**,  **PyTorch**,  **NumPy**, SciPy |
+| **Pipeline** | **PTB-XL Dataset**, **Band-pass Filtering**, **Z-score Normalization** |
 
+---
 
 
 ## 🧠 3. 핵심 경쟁력: CNN–CBAM–GRU 모델
