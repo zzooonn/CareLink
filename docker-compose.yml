@@ -1,0 +1,40 @@
+services:
+
+  # ── Spring Boot 백엔드 ───────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend/healthcare-server
+      dockerfile: Dockerfile
+    container_name: carelink-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: ${DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      NEWS_API_KEY: ${NEWS_API_KEY}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Linux EC2에서 host-gateway 필수
+    restart: unless-stopped
+
+  # ── FastAPI AI 서버 ──────────────────────────────────────────────
+  ai:
+    build:
+      context: ./ai
+      dockerfile: Dockerfile
+    container_name: carelink-ai
+    ports:
+      - "8000:8000"
+    volumes:
+      # 모델 파일 마운트 (EC2 경로 → 컨테이너 경로)
+      - ./ai/models:/app/models
+      - ./ai/data:/app/data
+      - ./ai/samples:/app/samples
+    environment:
+      MODEL_PATH: /app/models/best_model_multilabel.pth
+      SAMPLE_DIR: /app/samples
+    restart: unless-stopped
