@@ -2,7 +2,6 @@
 import React, { useCallback, useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
   Dimensions,
   Image,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";

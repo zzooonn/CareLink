@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
+import { View, Image, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
+import { ScaledText as Text } from "../../components/ScaledText";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

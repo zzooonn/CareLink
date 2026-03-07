@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -9,6 +8,7 @@ import {
   Dimensions,
   Alert,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter, Stack } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -149,6 +149,12 @@ export default function Login() {
           <TouchableOpacity onPress={() => router.push("/(tabs)/auth/forgot-password")} disabled={loading}>
             <Text style={[styles.forgotText, loading && { opacity: 0.6 }]}>Forgot Password?</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push("/(tabs)/auth/data-agreement")} disabled={loading} style={{ marginTop: height * 0.02 }}>
+            <Text style={[styles.signupText, loading && { opacity: 0.6 }]}>
+              Don't have an account? <Text style={{ fontWeight: "bold" }}>Sign Up</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </>
@@ -224,5 +230,10 @@ const styles = StyleSheet.create({
     color: "#0ea5e9",
     fontSize: width * 0.04,
     marginTop: height * 0.015,
+  },
+  signupText: {
+    color: "#6b7280",
+    fontSize: width * 0.038,
+    textAlign: "center",
   },
 });

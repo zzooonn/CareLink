@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   TextInput,
@@ -13,6 +12,7 @@ import {
   useWindowDimensions,
   Platform,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";

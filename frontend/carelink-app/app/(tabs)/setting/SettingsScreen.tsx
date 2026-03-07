@@ -2,17 +2,19 @@
 import React from "react";
 import {
   View,
-  Text,
   StyleSheet,
   Image,
   TouchableOpacity,
   Dimensions,
   Alert,
+  ScrollView,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFontSize, type FontScale } from "../../../contexts/FontSizeContext";
 
 const { width: W, height: H } = Dimensions.get("window");
 
@@ -31,7 +33,7 @@ const R_BTN = W * 0.035;
 const PAD_BTN_H = W * 0.03;
 
 const GRID_TOP = H * 0.02;
-const GRID_BOTTOM = H * 0.02; // ✅ 스크롤 제거하니 아래 여백 줄임
+const GRID_BOTTOM = H * 0.02; 
 const GRID_V_GAP = H * 0.02;
 
 const BORDER = Math.max(1, W * 0.0025);
@@ -42,6 +44,7 @@ const BTN_H = Math.min(H * 0.12, 92);
 export default function SettingsScreen() {
   const router = useRouter();
   const go = (path: Href) => router.push(path);
+  const { fontScale, setFontScale } = useFontSize();
 
   const handleLogout = () => {
     Alert.alert(
@@ -77,10 +80,13 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
-      {/* ✅ ScrollView 제거: 스크롤 자체가 안 됨 */}
-      <View style={styles.container}>
+      {/* ✅ ScrollView 적용: flexGrow를 통해 화면 전체를 채우면서 스크롤 지원 */}
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* 위 영역(타이틀/프로필/그리드) */}
-        <View>
+        <View style={styles.topSection}>
           {/* Title */}
           <Text style={styles.title}>Settings</Text>
           <View style={styles.separator} />
@@ -103,8 +109,33 @@ export default function SettingsScreen() {
             <FeatureButton label="Brain Training" onPress={() => go("/(tabs)/setting/BrainTraining")} />
             <FeatureButton label="Manage Caregivers" onPress={() => go("/(tabs)/Home/Caregivers")} />
           </View>
+
+          {/* Text Size Selector */}
+          <View style={styles.fontSizeSection}>
+            <Text style={styles.fontSizeLabel}>Text Size</Text>
+            <View style={styles.fontSizeRow}>
+              {(["small", "normal", "large"] as FontScale[]).map((scale) => (
+                <TouchableOpacity
+                  key={scale}
+                  style={[styles.fontSizeBtn, fontScale === scale && styles.fontSizeBtnActive]}
+                  onPress={() => setFontScale(scale)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.fontSizeBtnText, fontScale === scale && styles.fontSizeBtnTextActive, { fontSize: scale === "small" ? W * 0.04 : scale === "normal" ? W * 0.052 : W * 0.065 }]}>
+                    A
+                  </Text>
+                  <Text style={[styles.fontSizeSubText, fontScale === scale && styles.fontSizeBtnTextActive]}>
+                    {scale === "small" ? "Small" : scale === "normal" ? "Normal" : "Large"}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         </View>
 
+        {/* ✅ 동적 여백: 내용이 꽉 차도 로그아웃 버튼 위에 최소한의 공간을 보장 */}
+        <View style={{ height: H * 0.04 }} />
+        
         {/* 아래 영역(Log out 고정 느낌) */}
         <TouchableOpacity
           onPress={handleLogout}
@@ -114,7 +145,7 @@ export default function SettingsScreen() {
           <Ionicons name="log-out-outline" size={FS_LOGOUT * 1.1} color="#ef4444" />
           <Text style={styles.logoutText}>Log out</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -133,13 +164,17 @@ function FeatureButton({ label, onPress }: { label: string; onPress: () => void 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
 
-  /* ✅ 한 화면에 무조건 보이게: 위/아래 영역을 space-between으로 배치 */
-  container: {
-    flex: 1,
+  /* ✅ ScrollView 컨텐츠 스타일 설정 */
+  scrollContent: {
+    flexGrow: 1, // 화면에 꽉 차지 않아도 전체 높이를 차지하도록 설정
     paddingHorizontal: HP,
     paddingTop: H * 0.01,
     paddingBottom: H * 0.03,
-    justifyContent: "space-between",
+    justifyContent: "space-between", // topSection과 로그아웃 버튼을 위아래로 분리
+  },
+
+  topSection: {
+    // 위쪽 컨텐츠들을 하나로 묶어주는 역할
   },
 
   title: {
@@ -170,7 +205,6 @@ const styles = StyleSheet.create({
     marginBottom: H * 0.02,
   },
 
-  /* ✅ 2열 유지: rowGap/columnGap 사용 안 함 */
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -204,7 +238,48 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  /* ✅ Log out 버튼 꾸미기 */
+  fontSizeSection: {
+    marginTop: H * 0.015,
+  },
+  fontSizeLabel: {
+    fontSize: W * 0.038,
+    fontWeight: "700",
+    color: "#374151",
+    marginBottom: H * 0.012,
+  },
+  fontSizeRow: {
+    flexDirection: "row",
+    gap: W * 0.03,
+  },
+  fontSizeBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: H * 0.012,
+    borderRadius: W * 0.03,
+    borderWidth: 1.5,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#f9fafb",
+    gap: H * 0.004,
+  },
+  fontSizeBtnActive: {
+    borderColor: "#0ea5e9",
+    backgroundColor: "#e0f2fe",
+  },
+  fontSizeBtnText: {
+    color: "#6b7280",
+    fontWeight: "700",
+  },
+  fontSizeBtnTextActive: {
+    color: "#0284c7",
+  },
+  fontSizeSubText: {
+    fontSize: W * 0.028,
+    color: "#9ca3af",
+    fontWeight: "500",
+  },
+
+  /* ✅ Log out 버튼: 자동 마진으로 항상 제일 아래로 밀어냄 */
   logoutBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -219,6 +294,8 @@ const styles = StyleSheet.create({
     borderColor: "#ef4444",
 
     backgroundColor: "#fff5f5",
+    
+    marginTop: "auto", // 스크롤 안에서 하단 고정 역할을 함
   },
   logoutText: {
     color: "#ef4444",

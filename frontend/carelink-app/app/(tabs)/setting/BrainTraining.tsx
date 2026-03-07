@@ -3,7 +3,6 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   SafeAreaView,
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Dimensions,
@@ -12,6 +11,7 @@ import {
   Easing,
   ScrollView,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 type IconName = keyof typeof Ionicons.glyphMap;

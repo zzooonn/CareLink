@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -13,8 +12,11 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter } from "expo-router";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 
 const { width, height } = Dimensions.get("window");
 
@@ -52,43 +54,39 @@ function formatDate(d: Date) {
 }
 
 function isValidBirthDate(v: string) {
-  if (!v) return false;
+  if (!v) return true;
   return /^\d{4}-\d{2}-\d{2}$/.test(v);
 }
 
-// ??간단 비�?번호 규칙 (?�요?�면 강화 가??
 function isStrongPassword(pw: string) {
-  // 최소 6???�시 (?�하�?8??+ ?�수문자 ?�으�?바꿔줄게)
   return pw.length >= 6;
 }
 
 export default function SignUp() {
   const router = useRouter();
 
-  // input fields
   const [userId, setUserId] = useState("");
   const [name, setName] = useState("");
   const [gender, setGender] = useState<GenderOption>("UNKNOWN");
-  const [birthDate, setBirthDate] = useState(formatDate(new Date(2000, 0, 1)));
+  const [birthDate, setBirthDate] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [guardianId, setGuardianId] = useState("");
 
-  // ??비�?번호 추�?
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [pwVisible, setPwVisible] = useState(false);
   const [pwConfirmVisible, setPwConfirmVisible] = useState(false);
 
-  // 체크박스/?�바?�
   const [isGuardian, setIsGuardian] = useState(false);
   const [selectedAvatarId, setSelectedAvatarId] = useState<number>(1);
 
   const [signUpLoading, setSignUpLoading] = useState(false);
 
-  // DatePicker ?�태
   const [showBirthPicker, setShowBirthPicker] = useState(false);
-  const [birthPickerValue, setBirthPickerValue] = useState<Date>(new Date(2000, 0, 1));
+  const [birthPickerValue, setBirthPickerValue] = useState<Date>(
+    new Date(2000, 0, 1)
+  );
 
   const currentAvatar = useMemo(
     () =>
@@ -97,9 +95,21 @@ export default function SignUp() {
     [selectedAvatarId]
   );
 
-  const onBirthChange = (event: any, selected?: Date) => {
-    if (Platform.OS === "android") setShowBirthPicker(false);
-    if (event?.type === "dismissed") return;
+  const openBirthPicker = () => {
+    setShowBirthPicker(true);
+  };
+
+  const onBirthChange = (event: DateTimePickerEvent, selected?: Date) => {
+    if (Platform.OS === "android") {
+      setShowBirthPicker(false);
+
+      if (event.type === "dismissed") return;
+      if (selected) {
+        setBirthPickerValue(selected);
+        setBirthDate(formatDate(selected));
+      }
+      return;
+    }
 
     if (selected) {
       setBirthPickerValue(selected);
@@ -109,58 +119,56 @@ export default function SignUp() {
 
   const handleSignUp = async () => {
     if (!API_BASE_URL) {
-      Alert.alert("Missing env var", "EXPO_PUBLIC_API_BASE_URL �??�정?�고 ?�을 ?�시?�하?�요.");
+      Alert.alert(
+        "Missing env var",
+        "EXPO_PUBLIC_API_BASE_URL 를 설정하고 앱을 재시작하세요."
+      );
       return;
     }
 
-    // ?�수�?체크
     if (!userId.trim() || !name.trim() || !phone.trim()) {
-      Alert.alert("?�림", "?�이?? ?�름, ?�화번호???�수 ?�력?�항?�니??");
+      Alert.alert("알림", "아이디, 이름, 전화번호는 필수 입력사항입니다.");
       return;
     }
 
-    // ??비�?번호 체크
     if (!password.trim()) {
-      Alert.alert("?�림", "비�?번호�??�력?�주?�요.");
-      return;
-    }
-    if (!isStrongPassword(password.trim())) {
-      Alert.alert("?�림", "비�?번호??최소 6???�상?�어???�니??");
-      return;
-    }
-    if (password !== passwordConfirm) {
-      Alert.alert("?�림", "비�?번호 ?�인???�치?��? ?�습?�다.");
+      Alert.alert("알림", "비밀번호를 입력해주세요.");
       return;
     }
 
-    // ?�년?�일 ?�식 체크
+    if (!isStrongPassword(password.trim())) {
+      Alert.alert("알림", "비밀번호는 최소 6자 이상이어야 합니다.");
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      Alert.alert("알림", "비밀번호 확인이 일치하지 않습니다.");
+      return;
+    }
+
     if (!isValidBirthDate(birthDate.trim())) {
-      Alert.alert("?�림", "?�년?�일 ?�식???�바르�? ?�습?�다. (YYYY-MM-DD)");
+      Alert.alert("알림", "생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)");
       return;
     }
 
     const role = isGuardian ? "GUARDIAN" : "PATIENT";
-    if (!birthDate.trim()) {
-      Alert.alert("�˸�", "��������� ������ �ּ���.");
-      return;
-    }
+    const normalizedGuardianId = isGuardian ? "" : guardianId.trim();
 
-    // ???�버 ?�송 payload (백엔??DTO??맞게 ??조정 ?�요?????�음)
     const payload = {
       userId: userId.trim(),
-      password: password.trim(), // ??추�?
+      password: password.trim(),
       name: name.trim(),
       gender: toApiGender(gender),
       birthDate: birthDate.trim(),
       phone: phone.trim(),
       address: address.trim(),
       role,
+      guardianId: normalizedGuardianId,
       profileImageId: selectedAvatarId,
     };
 
-    console.log("?? [Signup] payload:", payload);
+    console.log("🚀 [Signup] payload:", payload);
 
-    // backend endpoint
     const SIGNUP_ENDPOINT = `${API_BASE_URL}/api/auth/signup`;
 
     try {
@@ -178,29 +186,32 @@ export default function SignUp() {
       const text = await res.text();
 
       if (!res.ok) {
-        console.log("??Signup failed:", res.status, text);
-        Alert.alert("?�패", text || "?�원가??�??�류가 발생?�습?�다.");
+        console.log("❌ Signup failed:", res.status, text);
+        Alert.alert("실패", text || "회원가입 중 오류가 발생했습니다.");
         return;
       }
 
-      Alert.alert("?�공", "?�원가?�이 ?�료?�었?�니??");
+      Alert.alert("성공", "회원가입이 완료되었습니다!");
       router.push("../auth/login");
     } catch (e) {
       console.error("Signup Error:", e);
-      Alert.alert("?�러", "?�버?� ?�결?????�습?�다.");
+      Alert.alert("에러", "서버와 연결할 수 없습니다.");
     } finally {
       setSignUpLoading(false);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView
+      contentContainerStyle={styles.scrollContainer}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <ImageBackground
         source={require("../../../assets/images/signupbackground.png")}
         style={styles.background}
         resizeMode="cover"
       >
-        {/* ?�더 */}
         <View style={styles.header}>
           <Image
             source={require("../../../assets/images/CareLinkicon.png")}
@@ -211,11 +222,9 @@ export default function SignUp() {
           <Text style={styles.slogan}>Track health, stay connected</Text>
         </View>
 
-        {/* 카드 */}
         <View style={styles.card}>
           <Text style={styles.title}>Sign Up</Text>
 
-          {/* ?�바?� */}
           <View style={styles.avatarSection}>
             <Text style={styles.avatarLabel}>Choose Your Profile</Text>
 
@@ -244,7 +253,6 @@ export default function SignUp() {
             </ScrollView>
           </View>
 
-          {/* User ID */}
           <TextInput
             style={styles.input}
             placeholder="User ID"
@@ -254,10 +262,9 @@ export default function SignUp() {
             autoCapitalize="none"
           />
 
-          {/* ??Password */}
           <View style={styles.passwordRow}>
             <TextInput
-              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+              style={[styles.input, styles.passwordInput]}
               placeholder="Password"
               placeholderTextColor="#999"
               value={password}
@@ -270,15 +277,17 @@ export default function SignUp() {
               onPress={() => setPwVisible((v) => !v)}
               activeOpacity={0.85}
             >
-              <Text style={styles.pwToggleText}>{pwVisible ? "Hide" : "Show"}</Text>
+              <Text style={styles.pwToggleText}>
+                {pwVisible ? "Hide" : "Show"}
+              </Text>
             </TouchableOpacity>
           </View>
-          <View style={{ height: height * 0.02 }} />
 
-          {/* ??Password Confirm */}
+          <View style={styles.inputSpacer} />
+
           <View style={styles.passwordRow}>
             <TextInput
-              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+              style={[styles.input, styles.passwordInput]}
               placeholder="Confirm Password"
               placeholderTextColor="#999"
               value={passwordConfirm}
@@ -291,12 +300,14 @@ export default function SignUp() {
               onPress={() => setPwConfirmVisible((v) => !v)}
               activeOpacity={0.85}
             >
-              <Text style={styles.pwToggleText}>{pwConfirmVisible ? "Hide" : "Show"}</Text>
+              <Text style={styles.pwToggleText}>
+                {pwConfirmVisible ? "Hide" : "Show"}
+              </Text>
             </TouchableOpacity>
           </View>
-          <View style={{ height: height * 0.02 }} />
 
-          {/* Name */}
+          <View style={styles.inputSpacer} />
+
           <TextInput
             style={styles.input}
             placeholder="Name"
@@ -305,7 +316,6 @@ export default function SignUp() {
             onChangeText={setName}
           />
 
-          {/* Gender */}
           <View style={styles.genderContainer}>
             {(["MAN", "FEMALE", "UNKNOWN"] as GenderOption[]).map((option) => (
               <TouchableOpacity
@@ -329,11 +339,10 @@ export default function SignUp() {
             ))}
           </View>
 
-          {/* ?�년?�일 (?�력) */}
-          <TouchableOpacity activeOpacity={0.85} onPress={() => setShowBirthPicker(true)}>
+          <TouchableOpacity activeOpacity={0.85} onPress={openBirthPicker}>
             <View pointerEvents="none">
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: "#000" }]}
                 placeholder="Date of Birth (YYYY-MM-DD)"
                 placeholderTextColor="#999"
                 value={birthDate}
@@ -342,24 +351,15 @@ export default function SignUp() {
             </View>
           </TouchableOpacity>
 
-          {showBirthPicker && Platform.OS === "android" && (
-            <DateTimePicker
-              value={birthPickerValue}
-              mode="date"
-              display="calendar"
-              onChange={onBirthChange}
-              maximumDate={new Date()}
-            />
-          )}
-
-          {showBirthPicker && Platform.OS === "ios" && (
+          {Platform.OS === "ios" && showBirthPicker && (
             <View style={styles.iosPickerBox}>
               <DateTimePicker
                 value={birthPickerValue}
                 mode="date"
-                display="spinner"
+                display="inline"
                 onChange={onBirthChange}
                 maximumDate={new Date()}
+                themeVariant="light"
               />
               <TouchableOpacity
                 style={styles.iosDoneBtn}
@@ -371,7 +371,16 @@ export default function SignUp() {
             </View>
           )}
 
-          {/* Phone */}
+          {Platform.OS === "android" && showBirthPicker && (
+            <DateTimePicker
+              value={birthPickerValue}
+              mode="date"
+              display="calendar"
+              onChange={onBirthChange}
+              maximumDate={new Date()}
+            />
+          )}
+
           <TextInput
             style={styles.input}
             placeholder="Phone Number"
@@ -381,7 +390,6 @@ export default function SignUp() {
             onChangeText={setPhone}
           />
 
-          {/* Address */}
           <TextInput
             style={styles.input}
             placeholder="Address"
@@ -390,7 +398,6 @@ export default function SignUp() {
             onChangeText={setAddress}
           />
 
-          {/* Guardian ID (?�자???�만) */}
           {!isGuardian && (
             <TextInput
               style={styles.input}
@@ -402,7 +409,6 @@ export default function SignUp() {
             />
           )}
 
-          {/* 체크박스 */}
           <TouchableOpacity
             style={styles.checkboxContainer}
             onPress={() =>
@@ -418,15 +424,14 @@ export default function SignUp() {
             <Text style={styles.checkboxLabel}>I am a guardian</Text>
           </TouchableOpacity>
 
-          {/* 가??버튼 */}
           <TouchableOpacity
-            style={[styles.joinButton, signUpLoading && { opacity: 0.6 }]}
+            style={[styles.joinButton, signUpLoading && styles.joinButtonDisabled]}
             onPress={handleSignUp}
             disabled={signUpLoading}
             activeOpacity={0.9}
           >
             {signUpLoading ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View style={styles.loadingRow}>
                 <ActivityIndicator color="#fff" />
                 <Text style={styles.joinButtonText}>Signing up...</Text>
               </View>
@@ -441,19 +446,25 @@ export default function SignUp() {
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+  },
   background: {
     flex: 1,
     width: "100%",
-    height: "100%",
     alignItems: "center",
     justifyContent: "flex-start",
+    paddingBottom: 32,
   },
   header: {
     alignItems: "center",
     marginTop: height * 0.08,
     marginBottom: height * 0.02,
   },
-  logo: { width: width * 0.12, height: height * 0.06 },
+  logo: {
+    width: width * 0.12,
+    height: height * 0.06,
+  },
   brand: {
     fontSize: width * 0.07,
     fontWeight: "bold",
@@ -488,8 +499,10 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.02,
     textAlign: "center",
   },
-
-  avatarSection: { alignItems: "center", marginBottom: height * 0.03 },
+  avatarSection: {
+    alignItems: "center",
+    marginBottom: height * 0.03,
+  },
   avatarLabel: {
     fontSize: width * 0.035,
     color: "#6b7280",
@@ -508,8 +521,16 @@ const styles = StyleSheet.create({
     borderColor: "#e0f2fe",
     overflow: "hidden",
   },
-  selectedAvatar: { width: "100%", height: "100%", resizeMode: "cover" },
-  avatarScrollContent: { paddingHorizontal: 5, paddingVertical: 5, gap: 12 },
+  selectedAvatar: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  avatarScrollContent: {
+    paddingHorizontal: 5,
+    paddingVertical: 5,
+    gap: 12,
+  },
   avatarOption: {
     width: width * 0.14,
     height: width * 0.14,
@@ -524,11 +545,18 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     transform: [{ scale: 1.05 }],
   },
-  avatarOptionImg: { width: "100%", height: "100%", resizeMode: "cover" },
-
-  // ??비�?번호 ??  passwordRow: {
+  avatarOptionImg: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  passwordRow: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  passwordInput: {
+    flex: 1,
+    marginBottom: 0,
   },
   pwToggle: {
     marginLeft: 10,
@@ -536,12 +564,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     backgroundColor: "#e0f2fe",
+    justifyContent: "center",
+    alignItems: "center",
   },
   pwToggleText: {
     color: "#0284c7",
     fontWeight: "800",
   },
-
+  inputSpacer: {
+    height: height * 0.02,
+  },
   genderContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -556,10 +588,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  genderButtonSelected: { backgroundColor: "#0ea5e9" },
-  genderText: { fontSize: width * 0.035, fontWeight: "600", color: "#999" },
-  genderTextSelected: { color: "#fff", fontWeight: "bold" },
-
+  genderButtonSelected: {
+    backgroundColor: "#0ea5e9",
+  },
+  genderText: {
+    fontSize: width * 0.035,
+    fontWeight: "600",
+    color: "#999",
+  },
+  genderTextSelected: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
   input: {
     backgroundColor: "#f1f3f6",
     borderRadius: 10,
@@ -569,15 +609,16 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: height * 0.02,
   },
-
   iosPickerBox: {
     backgroundColor: "#f8fafc",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    borderRadius: 14,
+    paddingTop: 10,
+    paddingHorizontal: 8,
+    paddingBottom: 12,
     marginBottom: height * 0.02,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#cbd5e1",
+    overflow: "hidden",
   },
   iosDoneBtn: {
     marginTop: 10,
@@ -586,8 +627,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-  iosDoneText: { color: "#fff", fontWeight: "800" },
-
+  iosDoneText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: width * 0.04,
+  },
   checkboxContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -603,9 +647,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 8,
   },
-  checkedBox: { backgroundColor: "#0ea5e9" },
-  checkboxLabel: { fontSize: width * 0.04, color: "#111" },
-
+  checkedBox: {
+    backgroundColor: "#0ea5e9",
+  },
+  checkboxLabel: {
+    fontSize: width * 0.04,
+    color: "#111",
+  },
   joinButton: {
     backgroundColor: "#0ea5e9",
     borderRadius: 10,
@@ -613,7 +661,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: height * 0.01,
   },
-  joinButtonText: { color: "#fff", fontSize: width * 0.045, fontWeight: "bold" },
+  joinButtonDisabled: {
+    opacity: 0.6,
+  },
+  joinButtonText: {
+    color: "#fff",
+    fontSize: width * 0.045,
+    fontWeight: "bold",
+  },
+  loadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
 });
-
-

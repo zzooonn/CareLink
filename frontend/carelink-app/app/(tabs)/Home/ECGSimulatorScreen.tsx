@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
   useWindowDimensions,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import Svg, { Polyline } from "react-native-svg";
 
 // --- UI Constants ---

@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Image,
@@ -9,6 +8,7 @@ import {
   useWindowDimensions,
   Platform,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter } from "expo-router";
 
 // ✅ TS(.tsx)에서 implicit any 방지: 타입 지정

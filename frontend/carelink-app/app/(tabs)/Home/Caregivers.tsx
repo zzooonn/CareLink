@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   ScrollView,
   View,
-  Text,
   StyleSheet,
   Image,
   TouchableOpacity,
@@ -17,6 +16,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";
