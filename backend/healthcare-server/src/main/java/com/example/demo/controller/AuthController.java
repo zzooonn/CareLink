@@ -3,15 +3,19 @@ package com.example.demo.controller;
 import com.example.demo.dto.auth.LoginRequest;
 import com.example.demo.dto.auth.LoginResponse;
 import com.example.demo.dto.auth.RegisterRequest;
+import com.example.demo.entity.User;
 import com.example.demo.service.AuthService;
 
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "*") // ✅ React Native 접근 허용
+import java.util.Map;
+
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -25,9 +29,16 @@ public class AuthController {
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .body(response);
     }
-    
+
     @PostMapping("/signup")
-    public String register(@RequestBody RegisterRequest request) {
-        return authService.register(request);
+    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest request) {
+        User saved = authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                Map.of(
+                        "success", true,
+                        "message", "signup successful",
+                        "userId", saved.getUserId()
+                )
+        );
     }
 }

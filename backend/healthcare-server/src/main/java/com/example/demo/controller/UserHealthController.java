@@ -63,7 +63,6 @@ public class UserHealthController {
     }
 
     @GetMapping("/insights")
-    @Transactional(readOnly = true)
     public ResponseEntity<InsightsResponse> getInsights(
             @RequestParam String userId,
             @RequestParam(defaultValue = "7d") String range
