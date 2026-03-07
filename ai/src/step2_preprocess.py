@@ -45,9 +45,9 @@ def preprocess_ptbxl_5class_multilabel():
         for code, w in scp_dict.items():
             if code in diag_statements.index:
                 sup = diag_statements.loc[code, "diagnostic_class"]
-                if sup in CLASS_TO_IDX:
-                    # 점수 집계 방식:
-                    # - 기존 코드와 비슷하게 "가장 강한 코드 기준(max)"을 유지
+                # 신뢰도 50 미만은 노이즈로 간주하여 제외
+                # PTB-XL scp_codes 값: 0~100 (신뢰도 %)
+                if sup in CLASS_TO_IDX and float(w) >= 50:
                     scores[sup] = max(scores[sup], float(w))
 
         if not scores:
@@ -92,7 +92,8 @@ def preprocess_ptbxl_5class_multilabel():
     print("\n3. Train/Val/Test 분할 (환자 단위 + primary stratified)...")
 
     groups = Y["patient_id"].values
-    sgkf = StratifiedGroupKFold(n_splits=10, shuffle=True, random_state=42)
+    # n_splits=8: val/test 각 12.5% → Val 2,700건 이상으로 threshold 튜닝 안정화
+    sgkf = StratifiedGroupKFold(n_splits=8, shuffle=True, random_state=42)
     folds = list(sgkf.split(X, y_primary, groups))
 
     _, test_idx = folds[0]

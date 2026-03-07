@@ -2,9 +2,7 @@ services:
 
   # ── Spring Boot 백엔드 ───────────────────────────────────────────
   backend:
-    build:
-      context: ./backend/healthcare-server
-      dockerfile: Dockerfile
+    image: ghcr.io/zzooonn/carelink/carelink-backend:latest
     container_name: carelink-backend
     ports:
       - "8080:8080"
@@ -23,9 +21,7 @@ services:
 
   # ── FastAPI AI 서버 ──────────────────────────────────────────────
   ai:
-    build:
-      context: ./ai
-      dockerfile: Dockerfile
+    image: ghcr.io/zzooonn/carelink/carelink-ai:latest
     container_name: carelink-ai
     ports:
       - "8000:8000"

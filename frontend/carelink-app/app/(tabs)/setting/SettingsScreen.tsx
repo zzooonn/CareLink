@@ -7,10 +7,12 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width: W, height: H } = Dimensions.get("window");
 
@@ -40,6 +42,38 @@ const BTN_H = Math.min(H * 0.12, 92);
 export default function SettingsScreen() {
   const router = useRouter();
   const go = (path: Href) => router.push(path);
+
+  const handleLogout = () => {
+    Alert.alert(
+      "로그아웃",
+      "정말 로그아웃 하시겠습니까?",
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "로그아웃",
+          style: "destructive", // iOS에서 빨간색 글씨로 표시됨
+          onPress: async () => {
+            try {
+              // 1. 로그인 시 저장했던 데이터 확실하게 삭제
+              await AsyncStorage.removeItem("userId");
+              
+              // (만약 나중에 토큰 등 다른 값도 저장한다면 아래처럼 추가로 지워주세요)
+              // await AsyncStorage.removeItem("token");
+              
+              // 2. 로그인 화면으로 덮어쓰기 (뒤로가기 방지)
+              router.replace("/(tabs)/auth/login");
+            } catch (error) {
+              console.error("로그아웃 에러:", error);
+              Alert.alert("오류", "로그아웃 처리 중 문제가 발생했습니다.");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
@@ -73,7 +107,7 @@ export default function SettingsScreen() {
 
         {/* 아래 영역(Log out 고정 느낌) */}
         <TouchableOpacity
-          onPress={() => go("/(tabs)/auth/login")}
+          onPress={handleLogout}
           style={styles.logoutBtn}
           activeOpacity={0.85}
         >
