@@ -32,11 +32,24 @@ def load_ptbxl_segments(path, sampling_rate=500, segment_sec=10):
 
     seg_len = sampling_rate * segment_sec  # 500*10=5000
     print("2. 500Hz 파형 로딩 및 10초 세그먼트 분할 중...")
+    skipped_nan = 0
+    skipped_flat = 0
 
     for ecg_id, row in Y.iterrows():
         rec_path = os.path.join(path, row["filename_hr"])
         signal, meta = wfdb.rdsamp(rec_path)   # (T,12)
         signal = signal.astype(np.float32)
+
+        # 품질 검사 1: NaN / Inf 포함 신호 제거
+        if not np.isfinite(signal).all():
+            skipped_nan += 1
+            continue
+
+        # 품질 검사 2: 평탄선(flatline) 제거 — 7개 이상 lead의 std < 0.05 mV
+        lead_std = signal.std(axis=0)
+        if (lead_std < 0.05).sum() > 6:
+            skipped_flat += 1
+            continue
 
         T = signal.shape[0]
         n_segs = T // seg_len
@@ -50,6 +63,7 @@ def load_ptbxl_segments(path, sampling_rate=500, segment_sec=10):
             patient_list.append(row["patient_id"])
             ecg_list.append(ecg_id)
 
+    print(f"  제거된 신호 - NaN/Inf: {skipped_nan}건, 평탄선: {skipped_flat}건")
     X = np.stack(X_list, axis=0)  # (N,5000,12)
     print(f"세그먼트 개수: {X.shape[0]}, 형태: {X.shape}")
 

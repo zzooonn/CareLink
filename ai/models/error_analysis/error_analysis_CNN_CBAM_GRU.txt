@@ -1,0 +1,98 @@
+============================================================
+  Error Analysis: CNN_CBAM_GRU
+============================================================
+
+1. Per-Class Confusion Matrix (Binary: label vs rest)
+--------------------------------------------------
+
+  NORM:
+    TP= 1079  FP=  204
+    FN=   95  TN= 1169
+    Sensitivity: 91.9%  Specificity: 85.1%
+    PPV: 84.1%  NPV: 92.5%  F1: 87.8%
+
+  STTC:
+    TP=  505  FP=  182
+    FN=  121  TN= 1739
+    Sensitivity: 80.7%  Specificity: 90.5%
+    PPV: 73.5%  NPV: 93.5%  F1: 76.9%
+
+  MI:
+    TP=  400  FP=  143
+    FN=  110  TN= 1894
+    Sensitivity: 78.4%  Specificity: 93.0%
+    PPV: 73.7%  NPV: 94.5%  F1: 76.0%
+
+  CD:
+    TP=  410  FP=   79
+    FN=  186  TN= 1872
+    Sensitivity: 68.8%  Specificity: 96.0%
+    PPV: 83.8%  NPV: 91.0%  F1: 75.6%
+
+  HYP:
+    TP=  159  FP=  121
+    FN=  126  TN= 2141
+    Sensitivity: 55.8%  Specificity: 94.7%
+    PPV: 56.8%  NPV: 94.4%  F1: 56.3%
+
+
+============================================================
+2. HYP Misclassification Pattern Analysis
+--------------------------------------------------
+
+  HYP False Negatives (missed): 126
+  HYP False Positives (wrong):  121
+
+  [HYP FN] Co-occurring TRUE labels in missed HYP samples:
+    NORM:    1 (0.8%)
+    STTC:   53 (42.1%)
+    MI:   31 (24.6%)
+    CD:   52 (41.3%)
+
+  [HYP FN] What the model predicted instead:
+    Predicted NORM:   33 (26.2%)
+    Predicted STTC:   43 (34.1%)
+    Predicted MI:   38 (30.2%)
+    Predicted CD:   40 (31.7%)
+    Predicted NOTHING:    3 (2.4%)
+
+  [HYP FP] TRUE labels of wrongly-predicted-as-HYP samples:
+    Actually NORM:   11 (9.1%)
+    Actually STTC:   52 (43.0%)
+    Actually MI:   42 (34.7%)
+    Actually CD:   54 (44.6%)
+
+
+============================================================
+3. Multi-label Co-occurrence & Performance Impact
+--------------------------------------------------
+
+  Label count distribution:
+    1 label(s):  2028 samples | Macro F1: 67.2%
+    2 label(s):   403 samples | Macro F1: 75.2%
+    3 label(s):   107 samples | Macro F1: 61.7%
+    4 label(s):     9 samples | Macro F1: 62.9%
+
+  HYP co-occurrence performance:
+    HYP + STTC:  167 samples | HYP F1: 81.1%
+    HYP + MI:   77 samples | HYP F1: 74.8%
+    HYP + CD:   88 samples | HYP F1: 58.1%
+    HYP only:    57 samples | HYP F1: 57.5%
+
+
+============================================================
+4. Model Confidence Analysis (HYP)
+--------------------------------------------------
+
+  HYP Positive samples (n=285):
+    Mean prob: 0.821
+    Median:    0.909
+    Std:       0.201
+    <0.3:      3 (1.1%)
+    0.3-0.7:   73
+    >0.7:      209 (73.3%)
+
+  HYP Negative samples (n=2262):
+    Mean prob: 0.478
+    >0.5:      966 (42.7%)
+    >0.7:      277 (12.2%)

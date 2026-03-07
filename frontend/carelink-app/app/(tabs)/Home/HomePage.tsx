@@ -173,6 +173,10 @@ export default function HomePage() {
 
   useFocusEffect(
     useCallback(() => {
+
+      console.log('API URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
+      console.log('AI API URL:', process.env.EXPO_PUBLIC_AI_API_BASE_URL);
+
       const run = async () => {
         try {
           setLoadingMe(true);
@@ -225,6 +229,27 @@ export default function HomePage() {
               }
             }
           }
+
+          if (API_BASE_URL) {
+          const USER_ID = await getStoredUserId();
+          if (USER_ID) {
+            const res = await fetch(`${API_BASE_URL}/api/users/${USER_ID}`, {
+              method: "GET",
+              headers: { "Content-Type": "application/json", ...NGROK_HEADER },
+            });
+
+            if (res.ok) {
+              // ✅ 성공 콘솔 추가
+              console.log(`✅ [User Profile] 백엔드 연결 성공: ${API_BASE_URL}`);
+              
+              const text = await res.text();
+              const u = text ? JSON.parse(text) : null;
+              // ... (이후 데이터 처리 로직 생략)
+            } else {
+              console.log(`❌ [User Profile] 서버 응답 에러: ${res.status}`);
+            }
+          }
+        }
 
           /* ---------------- (B) Caregivers 리스트 연동 ---------------- */
           const raw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);

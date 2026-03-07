@@ -1,12 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const { width, height } = Dimensions.get("window"); // 기기 화면 크기 가져오기
+const { width, height } = Dimensions.get("window");
 
 export default function Index() {
-
   const router = useRouter();
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        router.replace("/(tabs)/Home/HomePage");
+      }
+    };
+    checkLogin();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -19,17 +29,17 @@ export default function Index() {
       <Text style={styles.subtitle}>Empowering families for better</Text>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => router.push("../auth/login")}>
+        <TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/auth/login")}>
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={() => router.push("../auth/data-agreement")}>
+        <TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/auth/data-agreement")}>
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
