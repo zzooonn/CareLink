@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type RangeKey = "7d" | "30d" | "365d";
 
@@ -20,7 +21,7 @@ const ranges: Record<RangeKey, string> = {
   "365d": "This year",
 };
 
-// ✅ 서버 응답 타입
+// Server response type
 type InsightsApi = {
   labels: string[];     // ["01/08", ...]
   glucose: number[];    // 0~100
@@ -68,11 +69,8 @@ const COLORS = {
   total: "#111827",
 };
 
-// ✅ 환경변수 (예: http://localhost:8080 or http://10.0.2.2:8080)
+// ???�경변??(?? http://localhost:8080 or http://10.0.2.2:8080)
 const BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
-
-// ✅ 임시: 로그인 붙이기 전까지 테스트용 userId
-const USER_ID = "kevin";
 
 export default function InsightsScreen() {
   const [openSelect, setOpenSelect] = useState(false);
@@ -81,7 +79,7 @@ export default function InsightsScreen() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // ✅ 서버에서 받은 vitals
+  // ???�버?�서 받�? vitals
   const [vitals, setVitals] = useState<InsightsApi>({
     labels: ["-", "-", "-", "-", "-", "-", "-"],
     glucose: [0, 0, 0, 0, 0, 0, 0],
@@ -90,11 +88,17 @@ export default function InsightsScreen() {
     max: 100,
   });
 
-  // ✅ range 바뀔 때마다 서버에서 다시 가져오기
+  // Fetch insights whenever range changes
   useEffect(() => {
     const run = async () => {
       if (!BACKEND_URL) {
         setErr("BACKEND_URL is not set (.env EXPO_PUBLIC_BACKEND_URL)");
+        return;
+      }
+
+      const USER_ID = await AsyncStorage.getItem("userId");
+      if (!USER_ID) {
+        setErr("No logged-in user found. Please log in again.");
         return;
       }
 
@@ -118,7 +122,7 @@ export default function InsightsScreen() {
 
         const data = (await res.json()) as InsightsApi;
 
-        // ✅ 방어: 배열 길이 불일치 시 UI 깨짐 방지
+        // ??방어: 배열 길이 불일�???UI 깨짐 방�?
         const n = data.labels?.length ?? 0;
         if (!n || !data.glucose || !data.bp || !data.ecg) {
           throw new Error("Invalid insights response shape");
@@ -135,7 +139,7 @@ export default function InsightsScreen() {
     run();
   }, [range]);
 
-  // ✅ 종합 점수 (가중치 예시)
+  // ??종합 ?�수 (가중치 ?�시)
   const totals = useMemo(() => {
     const wG = 0.35,
       wB = 0.35,
@@ -146,7 +150,7 @@ export default function InsightsScreen() {
     );
   }, [vitals]);
 
-  // ✅ 평균 점수
+  // ???�균 ?�수
   const avg = useMemo(() => {
     const mean = (arr: number[]) =>
       Math.round(arr.reduce((a, b) => a + b, 0) / Math.max(1, arr.length));
@@ -158,7 +162,7 @@ export default function InsightsScreen() {
     };
   }, [vitals, totals]);
 
-  // ✅ 주간 점수 (표시용): totals 평균
+  // ??주간 ?�수 (?�시??: totals ?�균
   const weeklyScore = useMemo(() => {
     const a = totals.reduce((x, y) => x + y, 0) / Math.max(1, totals.length);
     return Math.round(a);
@@ -169,8 +173,8 @@ export default function InsightsScreen() {
     setOpenSelect(false);
   };
 
-  // ✅ x축 라벨: 서버 labels 사용 (7d면 7개, 30d면 30개…)
-  // UI가 30/365는 너무 빽빽할 수 있으니 “표시용”으로 7d만 예쁘게 쓰고 싶으면 여기에서 downsample 하면 됨.
+  // ??x�??�벨: ?�버 labels ?�용 (7d�?7�? 30d�?30개�?
+  // UI가 30/365???�무 빽빽?????�으???�표?�용?�으�?7d�??�쁘�??�고 ?�으�??�기?�서 downsample ?�면 ??
   const xLabels = vitals.labels;
 
   return (
@@ -246,7 +250,7 @@ export default function InsightsScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Vitals score (Glucose / BP / ECG)</Text>
 
-          {/* 평균 요약 */}
+          {/* ?�균 ?�약 */}
           <View style={styles.pillRow}>
             <View style={styles.pill}>
               <View style={[styles.pillDot, { backgroundColor: COLORS.glucose }]} />
@@ -557,3 +561,7 @@ const styles = StyleSheet.create({
     fontSize: FS_TICK,
   },
 });
+
+
+
+
