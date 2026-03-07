@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter, Stack } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View, ActivityIndicator } from "react-native";
+import { FontSizeProvider } from "../contexts/FontSizeContext";
 
 export default function RootLayout() {
     const [isReady, setIsReady] = useState(false);
@@ -22,7 +23,7 @@ export default function RootLayout() {
         if (isLoggedIn) {
         router.replace("/(tabs)/Home/HomePage");
         } else {
-        router.replace("/(tabs)/auth/login");
+        router.replace("/(tabs)");
         }
     }, [isReady]);
 
@@ -34,5 +35,9 @@ export default function RootLayout() {
         );
     }
 
-    return <Stack screenOptions={{ headerShown: false }} />;
+    return (
+        <FontSizeProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+        </FontSizeProvider>
+    );
 }

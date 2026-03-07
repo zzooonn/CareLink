@@ -2,7 +2,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
-  Text,
   FlatList,
   Image,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
   Dimensions,
   ImageSourcePropType,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";

@@ -5,13 +5,13 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
   Dimensions,
   Platform,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 
 const { width: W, height: H } = Dimensions.get("window");
 

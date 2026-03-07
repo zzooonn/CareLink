@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -14,16 +13,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ScaledText as Text } from "../../../components/ScaledText";
 
 const { width: W, height: H } = Dimensions.get("window");
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const NGROK_HEADER = { "ngrok-skip-browser-warning": "true" as const };
-
-/* ??Caregivers.tsx ?Ä ?ôÏùº???Ä????*/
 const CAREGIVERS_STORAGE_KEY = "caregivers:list";
 
-/* ??Î°úÏª¨ ?ÑÎ∞î?Ä Îß§Ìïë (SignUpÍ≥??ôÏùº) */
 const AVATAR_LIST = [
   { id: 1, source: require("../../../assets/avatar/avatar1.png") },
   { id: 2, source: require("../../../assets/avatar/avatar2.png") },
@@ -45,73 +42,40 @@ type Caregiver = {
   id: string;
   name: string;
   phone: string;
-  avatarId: number; // 1~12
+  avatarId: number;
 };
 
-/* ---------- Responsive Tokens (ÎπÑÏú® Í∏∞Î∞ò) ---------- */
+/* ---------- UI Constants ---------- */
 const HP = W * 0.045;
 const GAP = W * 0.03;
 const CARD_GAP = W * 0.03;
 const CARD_WIDTH = W - HP * 2;
-
-const FS_H1 = W * 0.046;
-const FS_H2 = W * 0.04;
-const FS_BODY = W * 0.035;
-const FS_SUB = W * 0.032;
-const FS_CAP = W * 0.03;
-
+// Í∏∞Î≥∏ Ìè∞Ìä∏: ÎÖ∏Ïù∏ Í∏∞Ï§Ä ÏµúÏÜå 16px Ïù¥ÏÉÅ
+const FS_H1 = W * 0.052;
+const FS_H2 = W * 0.046;
+const FS_BODY = W * 0.042;
+const FS_SUB = W * 0.038;
+const FS_CAP = W * 0.036;
 const PROFILE = W * 0.11;
 const ICON_CIRCLE = W * 0.085;
 const ROUND_ACTION = W * 0.075;
-
 const RADIUS_L = W * 0.045;
 const RADIUS_M = W * 0.04;
 const PAD_CARD = W * 0.045;
 const PAD_ROW_V = H * 0.016;
 const CARD_MIN_H = H * 0.18;
-
 const DOT = W * 0.016;
-
 const AV_STACK_W = W * 0.18;
 const AV_STACK_H = W * 0.08;
 const AVATAR = W * 0.07;
 const AVATAR_SHIFT = W * 0.04;
 
-/* ??News/Trends cards data */
 const NEWS_CARDS = [
-  {
-    id: "c1",
-    title: "Disease Trends",
-    desc: "Check the latest safety guidelines.",
-    route: "/Home/News",
-    icon: "newspaper-outline",
-  },
-  {
-    id: "c2",
-    title: "Vitals Snapshot",
-    desc: "Check blood pressure, glucose & ECG score at a glance.",
-    route: "/Home/Vitals",
-    icon: "pulse-outline",
-  },
-  {
-    id: "c3",
-    title: "Brain Training",
-    desc: "Flip cards, earn points, and keep your mind sharp.",
-    route: "/setting/BrainTraining",
-    icon: "game-controller-outline",
-  },
-  {
-    id: "c4",
-    title: "ECG Simulator",
-    desc: "Real-time simulated ECG powered by your model.",
-    route: "/Home/ECGSimulatorScreen",
-    icon: "heart-outline",
-  },
+  { id: "c1", title: "Disease Trends", desc: "Check the latest safety guidelines.", route: "/Home/News", icon: "newspaper-outline" },
+  { id: "c2", title: "Vitals Snapshot", desc: "Check blood pressure, glucose & ECG score at a glance.", route: "/Home/Vitals", icon: "pulse-outline" },
+  { id: "c3", title: "Brain Training", desc: "Flip cards, earn points, and keep your mind sharp.", route: "/setting/BrainTraining", icon: "game-controller-outline" },
+  { id: "c4", title: "ECG Simulator", desc: "Real-time simulated ECG powered by your model.", route: "/Home/ECGSimulatorScreen", icon: "heart-outline" },
 ];
-
-async function getStoredUserId() {
-  return await AsyncStorage.getItem("userId");
-}
 
 function pickAvatarSource(profileImageId?: number) {
   const id = profileImageId ?? 1;
@@ -127,333 +91,179 @@ export default function HomePage() {
   const listRef = useRef<FlatList>(null);
   const router = useRouter();
 
-  // ??Home?êÏÑú ?¨Ïö©???¨Ïö©???úÏãú???ÅÌÉú
+
   const [myName, setMyName] = useState<string>("");
   const [myAvatarId, setMyAvatarId] = useState<number>(1);
   const [loadingMe, setLoadingMe] = useState(false);
-
-  // ??Home???úÏãú??caregivers ?ÑÎ∞î?Ä??  const [caregiverAvatarIds, setCaregiverAvatarIds] = useState<number[]>([]);
+  const [caregiverAvatarIds, setCaregiverAvatarIds] = useState<number[]>([]);
   const [emergencyAvatarIds, setEmergencyAvatarIds] = useState<number[]>([randomAvatarId()]);
-
-  // ???úÎ≤Ñ?êÏÑú Î∞õÏïÑ???∏ÏÇ¨?¥Ìä∏ ?êÏàò
   const [insightsScore, setInsightsScore] = useState<number>(0);
   const [loadingInsights, setLoadingInsights] = useState(false);
 
   const insightsMeta = useMemo(() => {
-    const score = insightsScore;
-
-    if (score >= 80) {
-      return {
-        text: `Insight score: ${score} ?ëç Amazing work! Keep up the routine you're building.`,
-        tone: "good" as const,
-        icon: "happy-outline" as const,
-      };
-    }
-    if (score >= 60) {
-      return {
-        text: `Insight score: ${score} ?ôÇ You're doing well. Try to get a bit more rest and stay consistent.`,
-        tone: "warn" as const,
-        icon: "thumbs-up-outline" as const,
-      };
-    }
-    if (score >= 40) {
-      return {
-        text: `Insight score: ${score} ?òï Things look a bit off lately. Take it easy today and focus on recovery.`,
-        tone: "bad" as const,
-        icon: "warning-outline" as const,
-      };
-    }
-    return {
-      text: `Insight score: ${score} ?ö® High risk detected. Consider sharing this update with a caregiver.`,
-      tone: "bad" as const,
-      icon: "alert-circle-outline" as const,
-    };
+    const s = insightsScore;
+    if (s >= 80) return { text: `Insight score: ${s} - Amazing work!`, tone: "good" as const, icon: "happy-outline" as const };
+    if (s >= 60) return { text: `Insight score: ${s} - Doing well. Stay consistent.`, tone: "warn" as const, icon: "thumbs-up-outline" as const };
+    if (s >= 40) return { text: `Insight score: ${s} - Looking a bit off. Take rest.`, tone: "bad" as const, icon: "warning-outline" as const };
+    return { text: `Insight score: ${s} - High risk. Alert your caregiver.`, tone: "bad" as const, icon: "alert-circle-outline" as const };
   }, [insightsScore]);
 
   useFocusEffect(
     useCallback(() => {
-
-      console.log('API URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
-      console.log('AI API URL:', process.env.EXPO_PUBLIC_AI_API_BASE_URL);
-
-      const run = async () => {
+      const fetchData = async () => {
         try {
           setLoadingMe(true);
-
-          /* ---------------- (A) ???ÑÎ°ú??Ï∫êÏãú/?úÎ≤Ñ ?ôÍ∏∞??---------------- */
-          const cachedAvatarId = await AsyncStorage.getItem("profileImageId");
-          if (cachedAvatarId) {
-            const n = Number(cachedAvatarId);
-            if (!Number.isNaN(n)) setMyAvatarId(n);
-          }
-
+          const userId = await AsyncStorage.getItem("userId");
+          
+          // 1. Profile Info (Cache First)
           const cachedName = await AsyncStorage.getItem("userName");
+          const cachedImg = await AsyncStorage.getItem("profileImageId");
           if (cachedName) setMyName(cachedName);
+          if (cachedImg) setMyAvatarId(Number(cachedImg));
 
-          if (API_BASE_URL) {
-            const USER_ID = await getStoredUserId();
-            if (USER_ID) {
-              const res = await fetch(`${API_BASE_URL}/api/users/${USER_ID}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json", ...NGROK_HEADER },
-              });
-
-              const text = await res.text();
-              if (res.ok) {
-                const u = text ? JSON.parse(text) : null;
-
-                const serverAvatarId =
-                  typeof u?.profileImageId === "number"
-                    ? u.profileImageId
-                    : typeof u?.profile_image_id === "number"
-                    ? u?.profile_image_id
-                    : undefined;
-
-                const serverName =
-                  typeof u?.name === "string"
-                    ? u.name
-                    : typeof u?.userName === "string"
-                    ? u.userName
-                    : "";
-
-                if (serverName) {
-                  setMyName(serverName);
-                  await AsyncStorage.setItem("userName", serverName);
-                }
-
-                if (serverAvatarId) {
-                  setMyAvatarId(serverAvatarId);
-                  await AsyncStorage.setItem("profileImageId", String(serverAvatarId));
-                }
-              }
+          if (API_BASE_URL && userId) {
+            const res = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+              headers: { ...NGROK_HEADER }
+            });
+            if (res.ok) {
+              const u = await res.json();
+              const sName = u.name || u.userName || "";
+              const sImg = u.profileImageId || u.profile_image_id || 1;
+              setMyName(sName);
+              setMyAvatarId(sImg);
+              await AsyncStorage.setItem("userName", sName);
+              await AsyncStorage.setItem("profileImageId", String(sImg));
             }
           }
 
-          /* ---------------- (B) Caregivers Î¶¨Ïä§???∞Îèô ---------------- */
-          const raw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
-          if (raw) {
-            const parsed = JSON.parse(raw) as Caregiver[];
-            if (Array.isArray(parsed)) {
-              const ids = parsed
-                .map((c) => (typeof c.avatarId === "number" ? c.avatarId : 1))
-                .filter((n) => n >= 1 && n <= 12);
-
-              setCaregiverAvatarIds(ids.slice(0, 3));
-            }
+          // 2. Caregivers
+          const cgRaw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
+          if (cgRaw) {
+            const parsed = JSON.parse(cgRaw) as Caregiver[];
+            setCaregiverAvatarIds(parsed.map(c => c.avatarId || 1).slice(0, 3));
           } else {
             setCaregiverAvatarIds([randomAvatarId(), randomAvatarId()]);
           }
 
-          setEmergencyAvatarIds([randomAvatarId()]);
-
-          /* ---------------- (C) Insights ?êÏàò ?ôÍ∏∞??---------------- */
-          if (API_BASE_URL) {
-            const USER_ID = await getStoredUserId(); // ?? "kevin"
-            if (USER_ID) {
-              try {
-                setLoadingInsights(true);
-
-                const url =
-                  `${API_BASE_URL}/api/vitals/insights` +
-                  `?userId=${encodeURIComponent(USER_ID)}` +
-                  `&range=7d`;
-
-                const res = await fetch(url, {
-                  method: "GET",
-                  headers: { ...NGROK_HEADER },
-                });
-
-                const text = await res.text();
-                if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
-
-                const data = text ? JSON.parse(text) : null;
-
-                // data: { labels:[], glucose:[], bp:[], ecg:[], max:100 }
-                const glucose: number[] = Array.isArray(data?.glucose) ? data.glucose : [];
-                const bp: number[] = Array.isArray(data?.bp) ? data.bp : [];
-                const ecg: number[] = Array.isArray(data?.ecg) ? data.ecg : [];
-
-                const L = Math.min(glucose.length, bp.length, ecg.length);
-
-                if (L > 0) {
-                  // Insights.tsx?Ä ?ôÏùº Í∞ÄÏ§ëÏπò
-                  const wG = 0.35,
-                    wB = 0.35,
-                    wE = 0.3;
-
-                  let sum = 0;
-                  for (let i = 0; i < L; i++) {
-                    const total = Math.round(
-                      (glucose[i] ?? 0) * wG + (bp[i] ?? 0) * wB + (ecg[i] ?? 0) * wE
-                    );
-                    sum += total;
-                  }
-                  const weekly = Math.round(sum / L);
-                  const clamped = Math.max(0, Math.min(100, weekly));
-                  setInsightsScore(clamped);
-                } else {
-                  setInsightsScore(0);
+          // 3. Insights
+          if (API_BASE_URL && userId) {
+            setLoadingInsights(true);
+            const iRes = await fetch(`${API_BASE_URL}/api/vitals/insights?userId=${userId}&range=7d`, {
+              headers: { ...NGROK_HEADER }
+            });
+            if (iRes.ok) {
+              const data = await iRes.json();
+              const glucose = data.glucose || [];
+              const bp = data.bp || [];
+              const ecg = data.ecg || [];
+              const L = Math.min(glucose.length, bp.length, ecg.length);
+              if (L > 0) {
+                let sum = 0;
+                for (let i = 0; i < L; i++) {
+                  sum += (glucose[i] * 0.35 + bp[i] * 0.35 + ecg[i] * 0.3);
                 }
-              } catch (e) {
-                console.log("Insights sync failed:", e);
-              } finally {
-                setLoadingInsights(false);
+                setInsightsScore(Math.round(sum / L));
               }
             }
           }
+        } catch (e) {
+          console.log("Home Sync Error:", e);
         } finally {
           setLoadingMe(false);
+          setLoadingInsights(false);
         }
       };
-
-      run();
+      fetchData();
     }, [])
   );
 
-  const myAvatarSource = useMemo(() => pickAvatarSource(myAvatarId), [myAvatarId]);
-
-  const onScroll = useCallback(
-    (e: any) => {
-      const x = e.nativeEvent.contentOffset.x;
-      const idx = Math.round(x / (CARD_WIDTH + CARD_GAP));
-      if (idx !== page) setPage(idx);
-    },
-    [page]
-  );
+  const onScroll = (e: any) => {
+    const x = e.nativeEvent.contentOffset.x;
+    const idx = Math.round(x / (CARD_WIDTH + CARD_GAP));
+    if (idx !== page) setPage(idx);
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ paddingBottom: H * 0.03 }}
-        contentInsetAdjustmentBehavior="never"
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
+        
         {/* Header */}
         <View style={styles.header}>
           <View style={{ position: "relative" }}>
-            <Image source={myAvatarSource} style={styles.profile} resizeMode="cover" />
-            {loadingMe && (
-              <View style={styles.profileLoadingOverlay}>
-                <ActivityIndicator />
-              </View>
-            )}
+            <Image source={pickAvatarSource(myAvatarId)} style={styles.profile} />
+            {loadingMe && <View style={styles.profileLoadingOverlay}><ActivityIndicator size="small" /></View>}
           </View>
-
           <View style={{ flex: 1 }}>
-            <Text style={styles.headerTitle}>
-              {myName ? `${myName}'s Dashboard` : "CareLink Dashboard"}
-            </Text>
-            <Text style={styles.subtle}>Alerts for today</Text>
+            <Text style={[styles.headerTitle, { fontSize: FS_H1 }]}>{myName ? `${myName}'s Dashboard` : "CareLink Dashboard"}</Text>
+            <Text style={[styles.subtle, { fontSize: FS_SUB }]}>Alerts for today</Text>
           </View>
-
-          <TouchableOpacity onPress={() => router.push("/(tabs)/Home/Notification")}>
-            <Text style={styles.seeAll}>SEE ALL</Text>
+          <TouchableOpacity onPress={() => router.push("/Home/Notification")}>
+            <Text style={[styles.seeAll, { fontSize: FS_CAP }]}>SEE ALL</Text>
           </TouchableOpacity>
         </View>
 
-        {/* News / Trends Carousel */}
-        <View style={{ marginTop: H * 0.006 }}>
+        {/* Carousel */}
+        <View>
           <FlatList
             ref={listRef}
             data={NEWS_CARDS}
-            keyExtractor={(item) => item.id}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            snapToAlignment="start"
-            decelerationRate="fast"
             snapToInterval={CARD_WIDTH + CARD_GAP}
+            decelerationRate="fast"
             contentContainerStyle={{ paddingRight: HP }}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() => router.push(item.route as any)}
-                style={[styles.newsCard, { width: CARD_WIDTH, marginRight: CARD_GAP }]}
-              >
+              <TouchableOpacity activeOpacity={0.9} onPress={() => router.push(item.route as any)} style={[styles.newsCard, { width: CARD_WIDTH, marginRight: CARD_GAP }]}>
                 <View style={styles.newsHeader}>
-                  <Text style={styles.newsTitle} numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <View style={styles.iconCircle}>
-                    <Ionicons name={item.icon as any} size={W * 0.05} color="#111" />
-                  </View>
+                  <Text style={[styles.newsTitle, { fontSize: FS_H1 }]}>{item.title}</Text>
+                  <View style={styles.iconCircle}><Ionicons name={item.icon as any} size={20} color="#111" /></View>
                 </View>
-
-                <Text style={styles.newsDesc} numberOfLines={2}>
-                  {item.desc}
-                </Text>
-
+                <Text style={[styles.newsDesc, { fontSize: FS_BODY }]} numberOfLines={2}>{item.desc}</Text>
                 <View style={styles.newsFooter}>
-                  <Text style={styles.readMoreText}>Read update</Text>
-                  <Ionicons name="arrow-forward-circle" size={W * 0.06} color="#111827" />
+                  <Text style={[styles.readMoreText, { fontSize: FS_BODY }]}>Read update</Text>
+                  <Ionicons name="arrow-forward-circle" size={24} color="#111" />
                 </View>
               </TouchableOpacity>
             )}
             onScroll={onScroll}
             scrollEventThrottle={16}
-            getItemLayout={(_, index) => ({
-              length: CARD_WIDTH + CARD_GAP,
-              offset: (CARD_WIDTH + CARD_GAP) * index,
-              index,
-            })}
           />
-
-          {/* dots */}
           <View style={styles.dots}>
-            {NEWS_CARDS.map((_, i) => (
-              <View key={i} style={[styles.dot, i === page && styles.dotActive]} />
-            ))}
+            {NEWS_CARDS.map((_, i) => <View key={i} style={[styles.dot, i === page && styles.dotActive]} />)}
           </View>
         </View>
 
-        {/* Weekly summary */}
-        <Text style={styles.sectionTitle}>Weekly summary</Text>
+        <Text style={[styles.sectionTitle, { fontSize: FS_H2 }]}>Weekly summary</Text>
 
         <SummaryCard
           title="Health insights"
           desc="Monitor health trends for loved ones"
-          iconRight={<Ionicons name="pie-chart-outline" size={W * 0.05} color="#111" />}
-          metaText={loadingInsights ? "Syncing insights..." : insightsMeta.text}
-          metaTone={loadingInsights ? "neutral" : insightsMeta.tone}
-          metaIcon={loadingInsights ? "sync-outline" : insightsMeta.icon}
+          iconRight={<Ionicons name="pie-chart-outline" size={20} color="#111" />}
+          metaText={loadingInsights ? "Syncing..." : insightsMeta.text}
+          metaTone={insightsMeta.tone}
+          metaIcon={insightsMeta.icon}
           onPress={() => router.push("/Home/Insights")}
-        />
+                  />
 
         <SummaryCard
-          title="Check medication reminders"
+          title="Medication reminders"
           desc="Don't forget to take medications."
-          iconRight={<Ionicons name="notifications-outline" size={W * 0.05} color="#111" />}
-          metaText="Turn on reminders so you never miss a dose."
-          metaTone="neutral"
-          metaIcon="calendar-outline"
+          iconRight={<Ionicons name="notifications-outline" size={20} color="#111" />}
+          metaText="Turn on reminders for safety."
           onPress={() => router.push("/Home/Medication")}
-        />
+                  />
 
-        {/* Family connections */}
         <View style={styles.familyHeaderRow}>
-          <Text style={styles.sectionTitle}>Family connections</Text>
+          <Text style={[styles.sectionTitle, { fontSize: FS_H2 }]}>Family connections</Text>
           <TouchableOpacity style={styles.roundAction} onPress={() => router.push("/Home/Caregivers")}>
-            <Ionicons name="add" size={W * 0.045} color="#fff" />
+            <Ionicons name="add" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        {/* Caregivers */}
-        <FamilyRow
-          icon={<Ionicons name="people-outline" size={W * 0.05} color="#111" />}
-          label="Caregivers"
-          avatarIds={caregiverAvatarIds}
-          onPress={() => router.push("/Home/Caregivers")}
-        />
+        <FamilyRow icon={<Ionicons name="people-outline" size={20} color="#111" />} label="Caregivers" avatarIds={caregiverAvatarIds} onPress={() => router.push("/Home/Caregivers")} />
+        <FamilyRow icon={<Ionicons name="call-outline" size={20} color="#111" />} label="Emergency contacts" avatarIds={emergencyAvatarIds} showDivider={false} onPress={() => router.push("/Home/Emergency")} />
 
-        {/* Emergency contacts */}
-        <FamilyRow
-          icon={<Ionicons name="call-outline" size={W * 0.05} color="#111" />}
-          label="Emergency contacts"
-          avatarIds={emergencyAvatarIds}
-          showDivider={false}
-          onPress={() => router.push("/Home/Emergency")}
-        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -461,86 +271,32 @@ export default function HomePage() {
 
 /* ---------- Sub Components ---------- */
 
-function SummaryCard({
-  title,
-  desc,
-  iconRight,
-  onPress,
-  metaText,
-  metaTone = "neutral",
-  metaIcon = "calendar-outline",
-}: {
-  title: string;
-  desc: string;
-  iconRight: React.ReactNode;
-  onPress?: () => void;
-  metaText?: string;
-  metaTone?: MetaTone;
-  metaIcon?: keyof typeof Ionicons.glyphMap;
-}) {
-  const metaColor =
-    metaTone === "good"
-      ? "#059669"
-      : metaTone === "warn"
-      ? "#d97706"
-      : metaTone === "bad"
-      ? "#dc2626"
-      : "#4b5563";
-
+function SummaryCard({ title, desc, iconRight, onPress, metaText, metaTone = "neutral", metaIcon = "calendar-outline" }: any) {
+  const metaColor = metaTone === "good" ? "#059669" : metaTone === "warn" ? "#d97706" : metaTone === "bad" ? "#dc2626" : "#4b5563";
   return (
     <TouchableOpacity style={styles.summaryCard} onPress={onPress} activeOpacity={0.9}>
-      <View style={{ flex: 1, gap: H * 0.008 }}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        <Text style={styles.cardDesc}>{desc}</Text>
-
+      <View style={{ flex: 1, gap: 5 }}>
+        <Text style={[styles.cardTitle, { fontSize: FS_H2 }]}>{title}</Text>
+        <Text style={[styles.cardDesc, { fontSize: FS_BODY }]}>{desc}</Text>
         {!!metaText && (
           <View style={styles.timeRow}>
-            <Ionicons name={metaIcon as any} size={W * 0.04} color={metaColor} />
-            <Text style={[styles.timeText, { color: metaColor }]} numberOfLines={2}>
-              {metaText}
-            </Text>
+            <Ionicons name={metaIcon as any} size={16} color={metaColor} />
+            <Text style={[styles.timeText, { color: metaColor, fontSize: FS_SUB }]} numberOfLines={2}>{metaText}</Text>
           </View>
         )}
       </View>
-
       <View style={styles.rightIcon}>{iconRight}</View>
     </TouchableOpacity>
   );
 }
 
-function FamilyRow({
-  icon,
-  label,
-  avatarIds,
-  showDivider = true,
-  onPress,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  avatarIds: number[];
-  showDivider?: boolean;
-  onPress?: () => void;
-}) {
-  const ids = avatarIds?.length ? avatarIds.slice(0, 3) : [1];
-
+function FamilyRow({ icon, label, avatarIds, showDivider = true, onPress }: any) {
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.85}
-      style={[styles.familyRow, !showDivider && { borderBottomWidth: 0 }]}
-    >
-      <View style={styles.familyLeft}>
-        {icon}
-        <Text style={styles.familyText}>{label}</Text>
-      </View>
-
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[styles.familyRow, !showDivider && { borderBottomWidth: 0 }]}>
+      <View style={styles.familyLeft}>{icon}<Text style={[styles.familyText, { fontSize: FS_BODY }]}>{label}</Text></View>
       <View style={styles.avatarStack}>
-        {ids.map((id, idx) => (
-          <Image
-            key={`${id}-${idx}`}
-            source={pickAvatarSource(id)}
-            style={[styles.avatar, { left: idx * AVATAR_SHIFT, zIndex: 10 - idx }]}
-          />
+        {avatarIds.slice(0, 3).map((id: number, idx: number) => (
+          <Image key={idx} source={pickAvatarSource(id)} style={[styles.avatar, { left: idx * AVATAR_SHIFT, zIndex: 10 - idx }]} />
         ))}
       </View>
     </TouchableOpacity>

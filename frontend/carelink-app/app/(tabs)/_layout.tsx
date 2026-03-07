@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useRouter, useSegments, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View, ActivityIndicator } from "react-native"; // ✅ 추가
+import { View, ActivityIndicator, Dimensions } from "react-native"; // ✅ Dimensions 추가
 import AppHeader from "../../components/AppHeader";
+
+const { width: W } = Dimensions.get("window");
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -51,14 +53,19 @@ export default function TabsLayout() {
       screenOptions={({ route }) => ({
         headerShown: true,
         header: () => <AppHeader />,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
+        tabBarLabelStyle: {
+          fontSize: W * 0.028,
+          fontWeight: "600",
+          marginBottom: 4,
+        },
         tabBarStyle: {
           backgroundColor: "#fff",
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          height: 70,
-          paddingBottom: 10,
+          height: 82,
+          paddingBottom: 12,
         },
         tabBarActiveTintColor: "#00AEEF",
         tabBarInactiveTintColor: "#111827",
@@ -86,10 +93,10 @@ export default function TabsLayout() {
         },
       })}
     >
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="Home" />
-      <Tabs.Screen name="profile" />
-      <Tabs.Screen name="setting" />
+      <Tabs.Screen name="index" options={{ title: "Welcome" }} />
+      <Tabs.Screen name="Home" options={{ title: "Home" }} />
+      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
+      <Tabs.Screen name="setting" options={{ title: "Settings" }} />
 
       {/* auth 폴더를 탭에서 제거 */}
       <Tabs.Screen name="auth" options={{ href: null }} />

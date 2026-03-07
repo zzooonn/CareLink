@@ -1,13 +1,13 @@
 import React from "react";
 import {
     View,
-    Text,
     TextInput,
     TouchableOpacity,
     StyleSheet,
     Image,
     Dimensions,
 } from "react-native";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter } from "expo-router";
 
 const { width, height } = Dimensions.get("window");
