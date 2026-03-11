@@ -37,65 +37,54 @@ export default function Login() {
 
   const handleLogin = async () => {
     if (!userId || !password) {
-      Alert.alert("⚠️", "아이디와 비밀번호를 모두 입력해주세요.");
+      Alert.alert("Required", "Please enter both your ID and password.");
       return;
     }
     if (!API_BASE_URL) {
       Alert.alert(
-        "환경 변수 미설정",
-        "EXPO_PUBLIC_API_BASE_URL를 설정한 뒤 앱을 다시 시작해주세요."
+        "Configuration Error",
+        "Please set EXPO_PUBLIC_API_BASE_URL and restart the app."
       );
       return;
     }
 
     try {
       setLoading(true);
-      console.log("API_BASE_URL:", API_BASE_URL);
 
-      console.log("🔵 요청 시작");
       const res = await fetchWithTimeout(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
         },
         body: JSON.stringify({ userId, password }),
       });
 
-      console.log("🟢 응답 도착:", res.status);
       const text = await res.text();
-      console.log("📄 응답 내용:", text);
 
-      // ✅ 응답이 JSON이 아닐 수 있으니 안전 파싱
       let data: any = {};
       try {
         data = text ? JSON.parse(text) : {};
       } catch {
-        // ngrok/서버 에러가 HTML/텍스트로 오면 여기로 들어옴
-        Alert.alert("🚫 서버 응답 오류", "서버가 JSON이 아닌 응답을 반환했습니다.");
+        Alert.alert("Server Error", "Received an invalid response from the server.");
         return;
       }
 
       if (!res.ok || data?.success === false) {
-        Alert.alert("❌ 로그인 실패", data?.message || `HTTP ${res.status}`);
+        Alert.alert("Login Failed", data?.message || `HTTP ${res.status}`);
         return;
       }
 
-      // ✅ 여기서 핵심: 로그인한 userId 저장
       await AsyncStorage.setItem("userId", userId);
+      if (data?.token) await AsyncStorage.setItem("token", data.token);
 
-      // (선택) 토큰도 저장하고 싶으면:
-      // if (data?.token) await AsyncStorage.setItem("token", data.token);
-
-      Alert.alert("✅ 로그인 성공", "환영합니다!", [
-        { text: "확인", onPress: () => router.replace("/Home/HomePage") },
+      Alert.alert("Welcome", "Login successful!", [
+        { text: "OK", onPress: () => router.replace("/Home/HomePage") },
       ]);
     } catch (err: any) {
-      console.error(err);
       if (err?.message === "timeout" || err?.name === "AbortError") {
-        Alert.alert("⏰ 서버 응답 지연", "서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요.");
+        Alert.alert("Timeout", "Server is not responding. Please try again.");
       } else {
-        Alert.alert("🚫 서버 오류", "서버에 연결할 수 없습니다.");
+        Alert.alert("Connection Error", "Could not connect to the server.");
       }
     } finally {
       setLoading(false);

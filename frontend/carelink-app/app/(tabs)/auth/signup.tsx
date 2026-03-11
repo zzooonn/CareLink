@@ -21,7 +21,6 @@ import DateTimePicker, {
 const { width, height } = Dimensions.get("window");
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
-const NGROK_HEADER = { "ngrok-skip-browser-warning": "true" as const };
 
 const AVATAR_LIST = [
   { id: 1, source: require("../../../assets/avatar/avatar1.png") },
@@ -59,7 +58,7 @@ function isValidBirthDate(v: string) {
 }
 
 function isStrongPassword(pw: string) {
-  return pw.length >= 6;
+  return /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(pw);
 }
 
 export default function SignUp() {
@@ -120,34 +119,34 @@ export default function SignUp() {
   const handleSignUp = async () => {
     if (!API_BASE_URL) {
       Alert.alert(
-        "Missing env var",
-        "EXPO_PUBLIC_API_BASE_URL 를 설정하고 앱을 재시작하세요."
+        "Configuration Error",
+        "Please set EXPO_PUBLIC_API_BASE_URL and restart the app."
       );
       return;
     }
 
     if (!userId.trim() || !name.trim() || !phone.trim()) {
-      Alert.alert("알림", "아이디, 이름, 전화번호는 필수 입력사항입니다.");
+      Alert.alert("Required", "User ID, name, and phone number are required.");
       return;
     }
 
     if (!password.trim()) {
-      Alert.alert("알림", "비밀번호를 입력해주세요.");
+      Alert.alert("Required", "Please enter a password.");
       return;
     }
 
     if (!isStrongPassword(password.trim())) {
-      Alert.alert("알림", "비밀번호는 최소 6자 이상이어야 합니다.");
+      Alert.alert("Weak Password", "Password must be at least 8 characters and include both letters and numbers.");
       return;
     }
 
     if (password !== passwordConfirm) {
-      Alert.alert("알림", "비밀번호 확인이 일치하지 않습니다.");
+      Alert.alert("Mismatch", "Passwords do not match.");
       return;
     }
 
     if (!isValidBirthDate(birthDate.trim())) {
-      Alert.alert("알림", "생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)");
+      Alert.alert("Invalid Format", "Please enter a valid date of birth (YYYY-MM-DD).");
       return;
     }
 
@@ -167,8 +166,6 @@ export default function SignUp() {
       profileImageId: selectedAvatarId,
     };
 
-    console.log("🚀 [Signup] payload:", payload);
-
     const SIGNUP_ENDPOINT = `${API_BASE_URL}/api/auth/signup`;
 
     try {
@@ -178,7 +175,6 @@ export default function SignUp() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...NGROK_HEADER,
         },
         body: JSON.stringify(payload),
       });
@@ -186,16 +182,14 @@ export default function SignUp() {
       const text = await res.text();
 
       if (!res.ok) {
-        console.log("❌ Signup failed:", res.status, text);
-        Alert.alert("실패", text || "회원가입 중 오류가 발생했습니다.");
+        Alert.alert("Sign Up Failed", text || "An error occurred during sign up.");
         return;
       }
 
-      Alert.alert("성공", "회원가입이 완료되었습니다!");
+      Alert.alert("Success", "Account created successfully!");
       router.push("../auth/login");
     } catch (e) {
-      console.error("Signup Error:", e);
-      Alert.alert("에러", "서버와 연결할 수 없습니다.");
+      Alert.alert("Connection Error", "Could not connect to the server.");
     } finally {
       setSignUpLoading(false);
     }

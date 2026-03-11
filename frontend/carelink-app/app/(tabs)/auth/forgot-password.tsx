@@ -1,5 +1,5 @@
 // app/(tabs)/auth/forgot-password.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   TextInput,
@@ -7,23 +7,62 @@ import {
   StyleSheet,
   Image,
   Dimensions,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter } from "expo-router";
 
 const { width, height } = Dimensions.get("window");
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-export default function ForgotPassWord() {
+export default function ForgotPassword() {
   const router = useRouter();
+  const [userId, setUserId] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const goReset = () => {
-    // ✅ reset-password.tsx 로 이동 (절대경로 권장)
-    router.push("/(tabs)/auth/reset-password");
+  const handleReset = async () => {
+    if (!userId.trim() || !fullName.trim()) {
+      Alert.alert("Required", "Please enter both your ID and full name.");
+      return;
+    }
+    if (!API_BASE_URL) {
+      Alert.alert("Configuration Error", "Server address is not configured.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: userId.trim(), fullName: fullName.trim() }),
+      });
+
+      const text = await res.text();
+      let data: any = {};
+      try { data = text ? JSON.parse(text) : {}; } catch {}
+
+      if (!res.ok) {
+        Alert.alert("Verification Failed", data?.message || "ID or name does not match.");
+        return;
+      }
+
+      // 본인 확인 성공 → reset-password로 이동 (userId 전달)
+      router.push({
+        pathname: "/(tabs)/auth/reset-password",
+        params: { userId: userId.trim() },
+      });
+    } catch {
+      Alert.alert("Connection Error", "Could not connect to the server. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* 로고 + CareLink 한 줄 */}
       <View style={styles.brandContainer}>
         <Image
           source={require("../../../assets/images/CareLinkicon.png")}
@@ -33,26 +72,49 @@ export default function ForgotPassWord() {
         <Text style={styles.brand}>CareLink</Text>
       </View>
 
-      {/* Forgot Password 카드 */}
       <View style={styles.card}>
         <Text style={styles.loginTitle}>Forgot Password?</Text>
+        <Text style={styles.subtitle}>
+          Enter the ID and name you registered with.
+        </Text>
 
         <TextInput
           style={styles.input}
           placeholder="User ID"
           placeholderTextColor="#999"
+          value={userId}
+          onChangeText={setUserId}
+          autoCapitalize="none"
+          editable={!loading}
         />
         <TextInput
           style={styles.input}
           placeholder="Full Name"
           placeholderTextColor="#999"
+          value={fullName}
+          onChangeText={setFullName}
+          editable={!loading}
         />
 
-        <TouchableOpacity style={styles.loginButton} onPress={goReset}>
-          <Text style={styles.loginButtonText}>Reset password</Text>
+        <TouchableOpacity
+          style={[styles.loginButton, loading && { opacity: 0.6 }]}
+          onPress={handleReset}
+          disabled={loading}
+        >
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.loginButtonText}>Reset password</Text>
+          }
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => router.back()}
+          disabled={loading}
+          style={{ marginTop: height * 0.02 }}
+        >
+          <Text style={styles.backText}>← Back to Login</Text>
         </TouchableOpacity>
       </View>
-
     </View>
   );
 }
@@ -96,8 +158,14 @@ const styles = StyleSheet.create({
   loginTitle: {
     fontSize: width * 0.06,
     fontWeight: "bold",
-    marginBottom: height * 0.03,
+    marginBottom: height * 0.01,
     color: "#111",
+  },
+  subtitle: {
+    fontSize: width * 0.035,
+    color: "#6b7280",
+    textAlign: "center",
+    marginBottom: height * 0.025,
   },
   input: {
     width: "100%",
@@ -122,27 +190,8 @@ const styles = StyleSheet.create({
     fontSize: width * 0.045,
     fontWeight: "bold",
   },
-
-  // ✅ 추가: Reset Password 박스 스타일
-  resetBox: {
-    width: "100%",
-    marginTop: height * 0.02,
-    paddingVertical: height * 0.022,
-    paddingHorizontal: width * 0.06,
-    borderRadius: 16,
-    backgroundColor: "#E8F6FF",
-    borderWidth: 1,
-    borderColor: "#BFE9FF",
-  },
-  resetBoxTitle: {
-    fontSize: width * 0.05,
-    fontWeight: "800",
-    color: "#0f172a",
-    marginBottom: height * 0.007,
-  },
-  resetBoxDesc: {
+  backText: {
+    color: "#0ea5e9",
     fontSize: width * 0.038,
-    color: "#334155",
-    lineHeight: width * 0.05,
   },
 });

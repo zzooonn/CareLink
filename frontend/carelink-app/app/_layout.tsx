@@ -1,43 +1,58 @@
 import { useEffect, useState } from "react";
 import { useRouter, Stack } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { FontSizeProvider } from "../contexts/FontSizeContext";
+import { AuthProvider } from "../contexts/AuthContext";
+import Toast from "../components/Toast";
 
 export default function RootLayout() {
     const [isReady, setIsReady] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [sessionExpired, setSessionExpired] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
         const init = async () => {
-        const userId = await AsyncStorage.getItem("userId");
-        setIsLoggedIn(!!userId);
-        setIsReady(true);
+            const userId = await AsyncStorage.getItem("userId");
+            if (userId) {
+                router.replace("/(tabs)/Home/HomePage");
+            } else {
+                router.replace("/(tabs)");
+            }
+            setIsReady(true);
         };
         init();
     }, []);
 
-    useEffect(() => {
-        if (!isReady) return;
-        if (isLoggedIn) {
-        router.replace("/(tabs)/Home/HomePage");
-        } else {
-        router.replace("/(tabs)");
-        }
-    }, [isReady]);
-
-    if (!isReady) {
-        return (
-        <View style={{ flex: 1, backgroundColor: "#ffffff", justifyContent: "center", alignItems: "center" }}>
-            <ActivityIndicator size="large" color="#00AEEF" />
-        </View>
-        );
-    }
-
     return (
         <FontSizeProvider>
-            <Stack screenOptions={{ headerShown: false }} />
+            <AuthProvider onSessionExpired={() => setSessionExpired(true)}>
+                {/* Stack은 항상 마운트 → router.replace()가 즉시 동작 */}
+                <Stack screenOptions={{ headerShown: false }} />
+
+                {/* 인증 확인 중에는 흰 오버레이로 깜빡임 차단 */}
+                {!isReady && (
+                    <View style={styles.overlay}>
+                        <ActivityIndicator size="large" color="#00AEEF" />
+                    </View>
+                )}
+
+                {/* 세션 만료 토스트 */}
+                <Toast
+                    visible={sessionExpired}
+                    message="세션이 만료되었습니다. 다시 로그인해주세요."
+                    onHide={() => setSessionExpired(false)}
+                />
+            </AuthProvider>
         </FontSizeProvider>
     );
 }
+
+const styles = StyleSheet.create({
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: "#ffffff",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+});

@@ -12,6 +12,8 @@ import {
   Platform,
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { authFetch } from "../../../utils/api";
 
 const { width: W, height: H } = Dimensions.get("window");
 
@@ -65,6 +67,17 @@ export default function VitalsScreen() {
     const d = parseInt(dia, 10);
     const result = analyzeBP(s, d);
     setBpResult(result);
+
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        await authFetch("/api/vitals", {
+          method: "POST",
+          body: JSON.stringify({ userId, bpSys: s, bpDia: d }),
+        });
+      }
+    } catch {}
+
     Alert.alert("Success", `Saved.\nResult: ${result.msg}`);
   };
 
@@ -89,6 +102,17 @@ export default function VitalsScreen() {
     const g = parseInt(glu, 10);
     const result = analyzeGlucose(g, isFasting);
     setGluResult(result);
+
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        await authFetch("/api/vitals", {
+          method: "POST",
+          body: JSON.stringify({ userId, glucose: g, isFasting }),
+        });
+      }
+    } catch {}
+
     Alert.alert("Success", `Saved.\nResult: ${result.msg}`);
   };
 

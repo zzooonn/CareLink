@@ -1,23 +1,12 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { View, Image, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
 import { ScaledText as Text } from "../../components/ScaledText";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
 export default function Index() {
   const router = useRouter();
-
-  useEffect(() => {
-    const checkLogin = async () => {
-      const userId = await AsyncStorage.getItem("userId");
-      if (userId) {
-        router.replace("/(tabs)/Home/HomePage");
-      }
-    };
-    checkLogin();
-  }, []);
 
   return (
     <View style={styles.container}>

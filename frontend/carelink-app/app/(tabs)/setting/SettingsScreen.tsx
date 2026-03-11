@@ -1,5 +1,5 @@
 // app/(tabs)/setting/SettingsScreen.tsx
-import React from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -11,10 +11,31 @@ import {
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter, type Href } from "expo-router";
+import { useRouter, useFocusEffect, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFontSize, type FontScale } from "../../../contexts/FontSizeContext";
+import { useAuth } from "../../../contexts/AuthContext";
+
+const AVATAR_LIST = [
+  { id: 1, source: require("../../../assets/avatar/avatar1.png") },
+  { id: 2, source: require("../../../assets/avatar/avatar2.png") },
+  { id: 3, source: require("../../../assets/avatar/avatar3.png") },
+  { id: 4, source: require("../../../assets/avatar/avatar4.png") },
+  { id: 5, source: require("../../../assets/avatar/avatar5.png") },
+  { id: 6, source: require("../../../assets/avatar/avatar6.png") },
+  { id: 7, source: require("../../../assets/avatar/avatar7.png") },
+  { id: 8, source: require("../../../assets/avatar/avatar8.png") },
+  { id: 9, source: require("../../../assets/avatar/avatar9.png") },
+  { id: 10, source: require("../../../assets/avatar/avatar10.png") },
+  { id: 11, source: require("../../../assets/avatar/avatar11.png") },
+  { id: 12, source: require("../../../assets/avatar/avatar12.png") },
+] as const;
+
+function pickAvatarSource(id?: number) {
+  const safeId = id && id >= 1 && id <= 12 ? id : 1;
+  return AVATAR_LIST.find((a) => a.id === safeId)?.source ?? AVATAR_LIST[0].source;
+}
 
 const { width: W, height: H } = Dimensions.get("window");
 
@@ -45,34 +66,32 @@ export default function SettingsScreen() {
   const router = useRouter();
   const go = (path: Href) => router.push(path);
   const { fontScale, setFontScale } = useFontSize();
+  const { signOut } = useAuth();
+  const [profileImageId, setProfileImageId] = useState<number>(1);
+  const [userName, setUserName] = useState<string>("");
+
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.multiGet(["profileImageId", "userName"]).then((pairs) => {
+        const imgVal = pairs[0][1];
+        const nameVal = pairs[1][1];
+        const n = Number(imgVal);
+        if (!Number.isNaN(n) && n >= 1 && n <= 12) setProfileImageId(n);
+        if (nameVal) setUserName(nameVal);
+      });
+    }, [])
+  );
 
   const handleLogout = () => {
     Alert.alert(
-      "로그아웃",
-      "정말 로그아웃 하시겠습니까?",
+      "Log out",
+      "Are you sure you want to log out?",
       [
+        { text: "Cancel", style: "cancel" },
         {
-          text: "취소",
-          style: "cancel",
-        },
-        {
-          text: "로그아웃",
-          style: "destructive", // iOS에서 빨간색 글씨로 표시됨
-          onPress: async () => {
-            try {
-              // 1. 로그인 시 저장했던 데이터 확실하게 삭제
-              await AsyncStorage.removeItem("userId");
-              
-              // (만약 나중에 토큰 등 다른 값도 저장한다면 아래처럼 추가로 지워주세요)
-              // await AsyncStorage.removeItem("token");
-              
-              // 2. 로그인 화면으로 덮어쓰기 (뒤로가기 방지)
-              router.replace("/(tabs)/auth/login");
-            } catch (error) {
-              console.error("로그아웃 에러:", error);
-              Alert.alert("오류", "로그아웃 처리 중 문제가 발생했습니다.");
-            }
-          },
+          text: "Log out",
+          style: "destructive",
+          onPress: () => signOut(),
         },
       ]
     );
@@ -94,12 +113,10 @@ export default function SettingsScreen() {
           {/* Profile / Family */}
           <View style={styles.center}>
             <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1604881991720-f91add269bed?q=80&w=400&auto=format&fit=crop",
-              }}
+              source={pickAvatarSource(profileImageId)}
               style={styles.avatar}
             />
-            <Text style={styles.family}>Family Care</Text>
+            {!!userName && <Text style={styles.family}>{userName}</Text>}
           </View>
 
           {/* Feature Buttons (2*2 유지) */}

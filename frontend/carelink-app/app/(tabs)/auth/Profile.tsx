@@ -6,17 +6,19 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Text,
   TextInput,
   Alert,
   Dimensions,
   ActivityIndicator,
   Modal,
 } from "react-native";
-import { ScaledText as Text } from "../../../components/ScaledText";
+import { useFontSize } from "../../../contexts/FontSizeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { authFetch } from "../../../utils/api";
 
 /* ---------------- Types ---------------- */
 
@@ -46,7 +48,6 @@ type Guardian = {
 
 const { width: W, height: H } = Dimensions.get("window");
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
-const NGROK_HEADER = { "ngrok-skip-browser-warning": "true" as const };
 
 /* ---------------- ✅ Avatar mapping ---------------- */
 
@@ -152,6 +153,9 @@ export default function ProfileScreen() {
   const [profileImageId, setProfileImageId] = useState<number>(1);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
+  const { multiplier } = useFontSize();
+  const ms = (size: number) => ({ fontSize: size * multiplier });
+
   const age = useMemo(() => calcAge(user?.birthDate), [user?.birthDate]);
 
   const dirty = useMemo(() => {
@@ -201,10 +205,7 @@ export default function ProfileScreen() {
         }
 
         // 1) Fetch user profile
-        const res = await fetch(`${API_BASE_URL}/api/users/${USER_ID}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json", ...NGROK_HEADER },
-        });
+        const res = await authFetch(`/api/users/${USER_ID}`, { method: "GET" });
 
         const text = await res.text();
         if (!res.ok) throw new Error(`profile fetch failed: ${res.status} ${text}`);
@@ -230,10 +231,7 @@ export default function ProfileScreen() {
         }
 
         // 2) guardians
-        const gRes = await fetch(`${API_BASE_URL}/api/guardian/my-guardians/${USER_ID}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json", ...NGROK_HEADER },
-        });
+        const gRes = await authFetch(`/api/guardian/my-guardians/${USER_ID}`, { method: "GET" });
 
         const gText = await gRes.text();
         if (gRes.ok) {
@@ -288,9 +286,8 @@ export default function ProfileScreen() {
         // profileImageId: profileImageId,
       };
 
-      const res = await fetch(`${API_BASE_URL}/api/users/${USER_ID}`, {
+      const res = await authFetch(`/api/users/${USER_ID}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", ...NGROK_HEADER },
         body: JSON.stringify(payload),
       });
 
@@ -334,19 +331,19 @@ export default function ProfileScreen() {
               <Image source={avatarSource} style={styles.profileImg} />
               <View style={styles.avatarHint}>
                 <Ionicons name="pencil" size={W * 0.04} color="#111827" />
-                <Text style={styles.avatarHintText}>Change</Text>
+                <Text style={[styles.avatarHintText, ms(W * 0.03)]}>Change</Text>
               </View>
             </View>
           </TouchableOpacity>
 
-          <Text style={styles.name}>{loading ? "Loading..." : user?.name ?? "Unknown"}</Text>
+          <Text style={[styles.name, ms(FS_NAME)]}>{loading ? "Loading..." : user?.name ?? "Unknown"}</Text>
 
           <View style={styles.badgeRow}>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{age !== null ? `${age} years old` : "Age N/A"}</Text>
+              <Text style={[styles.badgeText, ms(FS_BADGE)]}>{age !== null ? `${age} years old` : "Age N/A"}</Text>
             </View>
             <View style={[styles.badge, { backgroundColor: "#60a5fa" }]}>
-              <Text style={styles.badgeText}>{genderLabel(user?.gender)}</Text>
+              <Text style={[styles.badgeText, ms(FS_BADGE)]}>{genderLabel(user?.gender)}</Text>
             </View>
           </View>
         </View>
@@ -365,7 +362,7 @@ export default function ProfileScreen() {
           >
             <TouchableOpacity activeOpacity={1} style={styles.modalCard} onPress={() => {}}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Choose your avatar</Text>
+                <Text style={[styles.modalTitle, ms(W * 0.045)]}>Choose your avatar</Text>
                 <TouchableOpacity onPress={() => setAvatarModalOpen(false)} activeOpacity={0.85}>
                   <Ionicons name="close" size={W * 0.07} color="#111827" />
                 </TouchableOpacity>
@@ -392,7 +389,7 @@ export default function ProfileScreen() {
                 })}
               </View>
 
-              <Text style={styles.modalSubText}>
+              <Text style={[styles.modalSubText, ms(W * 0.032)]}>
                 Changes apply immediately.
               </Text>
             </TouchableOpacity>
@@ -408,14 +405,14 @@ export default function ProfileScreen() {
 
         {!loading && !form && (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>Failed to load profile.</Text>
+            <Text style={[styles.emptyText, ms(FS_LABEL)]}>Failed to load profile.</Text>
           </View>
         )}
 
         {!!form && (
           <>
             {/* Account Info */}
-            <Text style={styles.sectionTitle}>Account info</Text>
+            <Text style={[styles.sectionTitle, ms(FS_TITLE)]}>Account info</Text>
             <View style={styles.infoSection}>
               <InfoItem label="User ID" value={form.userId} />
 
@@ -474,12 +471,12 @@ export default function ProfileScreen() {
             </View>
 
             {/* Emergency Contacts */}
-            <Text style={styles.sectionTitle}>Emergency contact</Text>
+            <Text style={[styles.sectionTitle, ms(FS_TITLE)]}>Emergency contact</Text>
 
             {guardians.length === 0 ? (
               <View style={styles.emptyBox}>
-                <Text style={styles.emptyText}>No emergency contacts linked.</Text>
-                <Text style={styles.emptySub}>
+                <Text style={[styles.emptyText, ms(FS_LABEL)]}>No emergency contacts linked.</Text>
+                <Text style={[styles.emptySub, ms(W * 0.032)]}>
                   Once you connect a guardian, you’ll be able to call them directly from here.
                 </Text>
               </View>
@@ -493,13 +490,13 @@ export default function ProfileScreen() {
                     onPress={() => callPhone(g.phone)}
                   >
                     <View style={styles.contactTop}>
-                      <Text style={styles.contactNum}>{idx + 1}</Text>
+                      <Text style={[styles.contactNum, ms(W * 0.042)]}>{idx + 1}</Text>
                       <Ionicons name="call-outline" size={W * 0.045} color="#111827" />
                     </View>
-                    <Text style={styles.contactLabel} numberOfLines={1}>
+                    <Text style={[styles.contactLabel, ms(FS_LABEL)]} numberOfLines={1}>
                       {g.name || g.userId}
                     </Text>
-                    <Text style={styles.contactPhone} numberOfLines={1}>
+                    <Text style={[styles.contactPhone, ms(W * 0.032)]} numberOfLines={1}>
                       {g.phone}
                     </Text>
                   </TouchableOpacity>
@@ -514,7 +511,7 @@ export default function ProfileScreen() {
               onPress={handleSave}
               activeOpacity={0.9}
             >
-              <Text style={styles.updateText}>{saving ? "Saving..." : "Update info"}</Text>
+              <Text style={[styles.updateText, ms(FS_BTN)]}>{saving ? "Saving..." : "Update info"}</Text>
             </TouchableOpacity>
           </>
         )}
@@ -525,10 +522,12 @@ export default function ProfileScreen() {
 
 /* ---------- Read-only item ---------- */
 function InfoItem({ label, value }: { label: string; value: string }) {
+  const { multiplier } = useFontSize();
+  const ms = (size: number) => ({ fontSize: size * multiplier });
   return (
     <View style={styles.infoItem}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+      <Text style={[styles.infoLabel, ms(FS_LABEL)]}>{label}</Text>
+      <Text style={[styles.infoValue, ms(FS_VALUE)]}>{value}</Text>
       <View style={styles.divider} />
     </View>
   );
@@ -554,13 +553,15 @@ function EditableInfoItem({
   keyboardType?: "default" | "number-pad" | "email-address" | "phone-pad";
   placeholder?: string;
 }) {
+  const { multiplier } = useFontSize();
+  const ms = (size: number) => ({ fontSize: size * multiplier });
   return (
     <View style={styles.infoItem}>
-      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={[styles.infoLabel, ms(FS_LABEL)]}>{label}</Text>
 
       {!isEditing ? (
         <TouchableOpacity onPress={onPress} activeOpacity={0.6} style={{ paddingVertical: H * 0.003 }}>
-          <Text style={styles.infoValue}>{value?.trim() ? value : "Tap to edit"}</Text>
+          <Text style={[styles.infoValue, ms(FS_VALUE)]}>{value?.trim() ? value : "Tap to edit"}</Text>
         </TouchableOpacity>
       ) : (
         <TextInput
@@ -572,7 +573,7 @@ function EditableInfoItem({
           keyboardType={keyboardType}
           autoFocus
           returnKeyType="done"
-          style={styles.input}
+          style={[styles.input, ms(FS_VALUE)]}
         />
       )}
 
