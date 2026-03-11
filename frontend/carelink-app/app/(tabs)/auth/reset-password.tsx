@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     View,
     TextInput,
@@ -6,47 +6,124 @@ import {
     StyleSheet,
     Image,
     Dimensions,
+    Alert,
+    ActivityIndicator,
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 const { width, height } = Dimensions.get("window");
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-export default function ForgotPassWord() {
+function isStrongPassword(pw: string) {
+    return /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(pw);
+}
+
+export default function ResetPassword() {
     const router = useRouter();
+    const { userId } = useLocalSearchParams<{ userId: string }>();
+
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleReset = async () => {
+        if (!newPassword.trim() || !confirmPassword.trim()) {
+            Alert.alert("Required", "Please fill in both password fields.");
+            return;
+        }
+        if (!isStrongPassword(newPassword.trim())) {
+            Alert.alert("Weak Password", "Password must be at least 8 characters and include both letters and numbers.");
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            Alert.alert("Mismatch", "Passwords do not match.");
+            return;
+        }
+        if (!API_BASE_URL) {
+            Alert.alert("Configuration Error", "Server address is not configured.");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, newPassword: newPassword.trim() }),
+            });
+
+            const text = await res.text();
+            let data: any = {};
+            try { data = text ? JSON.parse(text) : {}; } catch {}
+
+            if (!res.ok) {
+                Alert.alert("Error", data?.message || "Failed to reset password.");
+                return;
+            }
+
+            Alert.alert("Success", "Password has been reset. Please log in.", [
+                { text: "OK", onPress: () => router.replace("/(tabs)/auth/login") },
+            ]);
+        } catch {
+            Alert.alert("Connection Error", "Could not connect to the server. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
-        {/* 로고 + CareLink 한 줄 */}
-        <View style={styles.brandContainer}>
-            <Image
-            source={require("../../../assets/images/CareLinkicon.png")}
-            style={styles.logo}
-            resizeMode="contain"
-            />
-            <Text style={styles.brand}>CareLink</Text>
-        </View>
+            <View style={styles.brandContainer}>
+                <Image
+                    source={require("../../../assets/images/CareLinkicon.png")}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
+                <Text style={styles.brand}>CareLink</Text>
+            </View>
 
-        {/* 로그인 카드 */}
-        <View style={styles.card}>
-            <Text style={styles.loginTitle}>Reset Password</Text>
+            <View style={styles.card}>
+                <Text style={styles.loginTitle}>Reset Password</Text>
 
-            <TextInput
-            style={styles.input}
-            placeholder="New Password"
-            placeholderTextColor="#999"
-            />
-            <TextInput
-            style={styles.input}
-            placeholder="New Password"
-            secureTextEntry
-            placeholderTextColor="#999"
-            />
+                <TextInput
+                    style={styles.input}
+                    placeholder="New Password"
+                    placeholderTextColor="#999"
+                    secureTextEntry
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    editable={!loading}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Confirm New Password"
+                    placeholderTextColor="#999"
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    editable={!loading}
+                />
 
-            <TouchableOpacity style={styles.loginButton} onPress={() => router.push("./login")}>
-            <Text style={styles.loginButtonText}>Go to Login</Text>
-            </TouchableOpacity>
-        </View>
+                <TouchableOpacity
+                    style={[styles.loginButton, loading && { opacity: 0.6 }]}
+                    onPress={handleReset}
+                    disabled={loading}
+                >
+                    {loading
+                        ? <ActivityIndicator color="#fff" />
+                        : <Text style={styles.loginButtonText}>Set New Password</Text>
+                    }
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    disabled={loading}
+                    style={{ marginTop: height * 0.02 }}
+                >
+                    <Text style={styles.backText}>← Back</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -60,14 +137,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: width * 0.08,
     },
     brandContainer: {
-        flexDirection: "row", // ✅ 한 줄 정렬
+        flexDirection: "row",
         alignItems: "center",
         marginBottom: height * 0.04,
     },
     logo: {
-        width: width * 0.1, // 조금 작게
+        width: width * 0.1,
         height: height * 0.05,
-        marginRight: width * 0.02, // 로고와 텍스트 간격
+        marginRight: width * 0.02,
     },
     brand: {
         fontSize: width * 0.07,
@@ -116,9 +193,8 @@ const styles = StyleSheet.create({
         fontSize: width * 0.045,
         fontWeight: "bold",
     },
-    forgotText: {
+    backText: {
         color: "#0ea5e9",
-        fontSize: width * 0.04,
-        marginTop: height * 0.015,
+        fontSize: width * 0.038,
     },
 });

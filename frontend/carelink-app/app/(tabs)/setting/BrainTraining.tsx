@@ -191,7 +191,7 @@ export default function BrainTraining() {
 
           setTimeout(() => {
             Alert.alert(
-              "Game Completed 🎉",
+              "Game Completed",
               `You matched all the cards!\nMoves: ${finalMoves}\nScore: ${score}`
             );
           }, 300);

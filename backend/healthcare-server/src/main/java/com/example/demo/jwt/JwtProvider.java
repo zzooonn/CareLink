@@ -41,5 +41,23 @@ public class JwtProvider {
                 .compact(); // 토큰 생성
     }
     
-    // (TODO: 토큰 유효성 검사, 정보 추출 등 로직이 추가될 예정)
+    /**
+     * 토큰 유효성 검사
+     */
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * 토큰에서 userId 추출
+     */
+    public String getUserId(String token) {
+        return Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload().getSubject();
+    }
 }

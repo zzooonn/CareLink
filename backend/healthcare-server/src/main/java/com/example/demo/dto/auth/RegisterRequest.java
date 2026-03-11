@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +20,10 @@ public class RegisterRequest {
     private String userId;
 
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
+    @Pattern(
+        regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,}$",
+        message = "Password must be at least 8 characters and include both letters and numbers."
+    )
     private String password;
 
     @NotBlank(message = "이름은 필수 입력 항목입니다.")
@@ -35,4 +40,6 @@ public class RegisterRequest {
     private Integer profileImageId;
 
     private UserRole role;   // PATIENT / GUARDIAN (프론트에서 선택해서 보내게 할 거면)
+
+    private String guardianId;  // optional: link patient to existing guardian at signup
 }

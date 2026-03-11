@@ -14,7 +14,10 @@ import com.example.demo.dto.auth.LoginRequest;
 import com.example.demo.dto.auth.LoginResponse;
 import com.example.demo.dto.auth.RegisterRequest;
 import com.example.demo.entity.User;
+import com.example.demo.entity.UserGuardianLink;
 import com.example.demo.entity.UserRole;
+import com.example.demo.jwt.JwtProvider;
+import com.example.demo.repository.UserGuardianLinkRepository;
 import com.example.demo.repository.UserRepository;
 
 @Service
@@ -26,6 +29,12 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtProvider jwtProvider;
+
+    @Autowired
+    private UserGuardianLinkRepository userGuardianLinkRepository;
+
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     public LoginResponse login(LoginRequest req) {
@@ -33,19 +42,19 @@ public class AuthService {
 
         if (userOptional.isEmpty()) {
             logger.warn("Login failed: user not found for userId='{}'", req.getUserId());
-            return new LoginResponse(false, "user not found !! ", null, null);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
         }
 
         User user = userOptional.get();
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             logger.warn("Login failed: invalid password for userId='{}'", req.getUserId());
-            return new LoginResponse(false, "Invalid password", null, null);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid password");
         }
 
-        String dummyToken = "jwt.token.placeholder";
+        String token = jwtProvider.createToken(user.getUserId(), user.getRole());
 
         logger.info("Login successful for userId='{}'", req.getUserId());
-        return new LoginResponse(true, "Login successful", dummyToken, user.getUserId());
+        return new LoginResponse(true, "Login successful", token, user.getUserId());
     }
 
     public User register(RegisterRequest request) {
@@ -86,6 +95,43 @@ public class AuthService {
             user.setProfileImageId(request.getProfileImageId());
         }
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+
+        // Link patient to guardian if guardianId provided
+        String gid = request.getGuardianId();
+        if (saved.getRole() == UserRole.PATIENT && gid != null && !gid.isBlank()) {
+            userRepository.findByUserId(gid.trim()).ifPresent(guardian -> {
+                if (!userGuardianLinkRepository.existsByPatientAndGuardian(saved, guardian)) {
+                    UserGuardianLink link = new UserGuardianLink();
+                    link.setPatient(saved);
+                    link.setGuardian(guardian);
+                    link.setRelationType("FAMILY");
+                    userGuardianLinkRepository.save(link);
+                }
+            });
+        }
+
+        return saved;
+    }
+
+    public void verifyIdentity(String userId, String fullName) {
+        if (userId == null || userId.isBlank() || fullName == null || fullName.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId and fullName are required");
+        }
+        User user = userRepository.findByUserId(userId.trim())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (!user.getName().equalsIgnoreCase(fullName.trim())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Name does not match");
+        }
+    }
+
+    public void resetPassword(String userId, String newPassword) {
+        if (userId == null || userId.isBlank() || newPassword == null || newPassword.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId and newPassword are required");
+        }
+        User user = userRepository.findByUserId(userId.trim())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setPassword(passwordEncoder.encode(newPassword.trim()));
+        userRepository.save(user);
     }
 }

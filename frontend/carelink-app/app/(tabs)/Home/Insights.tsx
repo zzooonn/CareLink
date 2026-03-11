@@ -12,6 +12,7 @@ import {
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { authFetch } from "../../../utils/api";
 
 type RangeKey = "7d" | "30d" | "365d";
 
@@ -106,14 +107,10 @@ export default function InsightsScreen() {
       setErr(null);
 
       try {
-        const url = `${BACKEND_URL}/api/vitals/insights?userId=${encodeURIComponent(
-          USER_ID
-        )}&range=${encodeURIComponent(range)}`;
-
-        const res = await fetch(url, {
-          method: "GET",
-          headers: { "Accept": "application/json" },
-        });
+        const res = await authFetch(
+          `/api/vitals/insights?userId=${encodeURIComponent(USER_ID)}&range=${encodeURIComponent(range)}`,
+          { method: "GET" }
+        );
 
         if (!res.ok) {
           const text = await res.text().catch(() => "");

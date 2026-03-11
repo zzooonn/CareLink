@@ -84,9 +84,13 @@ export default function NewsScreen() {
         `?userId=${encodeURIComponent(storedUserId)}` +
         `&limit=5`; // 데이터는 여전히 5개 가져옴 (스크롤 가능하게)
 
+      const token = await AsyncStorage.getItem("token");
       const res = await fetchWithTimeout(url, {
         method: "GET",
-        headers: { Accept: "application/json" },
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
 
       if (!res.ok) {

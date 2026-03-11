@@ -20,12 +20,9 @@ import { ScaledText as Text } from "../../../components/ScaledText";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";
+import { authFetch } from "../../../utils/api";
 
 const { width: W, height: H } = Dimensions.get("window");
-
-/* ---------- ✅ API (회원 체크용) ---------- */
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
-const NGROK_HEADER = { "ngrok-skip-browser-warning": "true" as const };
 
 /* ---------- ✅ 로컬 아바타 (1~12) ---------- */
 const AVATAR_LIST = [
@@ -89,20 +86,14 @@ type UserProfileResponse = {
   profileImageId: number;
 };
 
-const initialData: Caregiver[] = [
-  { id: "1", userId: "patient001", name: "Sarah Johnson", phone: "(123) 456-7890", avatarId: 3 },
-];
+const initialData: Caregiver[] = [];
 
 async function fetchUserProfile(userId: string): Promise<
   | { ok: true; data: UserProfileResponse }
   | { ok: false; status?: number; message?: string }
 > {
-  if (!API_BASE_URL) return { ok: false, message: "Server URL missing" };
   try {
-    const res = await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(userId)}`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json", ...NGROK_HEADER },
-    });
+    const res = await authFetch(`/api/users/${encodeURIComponent(userId)}`, { method: "GET" });
     if (!res.ok) return { ok: false, status: res.status, message: await res.text().catch(() => "") };
     const data = (await res.json()) as UserProfileResponse;
     return { ok: true, data };

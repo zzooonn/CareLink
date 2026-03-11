@@ -14,11 +14,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ScaledText as Text } from "../../../components/ScaledText";
+import { authFetch } from "../../../utils/api";
 
 const { width: W, height: H } = Dimensions.get("window");
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
-const NGROK_HEADER = { "ngrok-skip-browser-warning": "true" as const };
 const CAREGIVERS_STORAGE_KEY = "caregivers:list";
 
 const AVATAR_LIST = [
@@ -122,9 +122,7 @@ export default function HomePage() {
           if (cachedImg) setMyAvatarId(Number(cachedImg));
 
           if (API_BASE_URL && userId) {
-            const res = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-              headers: { ...NGROK_HEADER }
-            });
+            const res = await authFetch(`/api/users/${userId}`);
             if (res.ok) {
               const u = await res.json();
               const sName = u.name || u.userName || "";
@@ -148,9 +146,7 @@ export default function HomePage() {
           // 3. Insights
           if (API_BASE_URL && userId) {
             setLoadingInsights(true);
-            const iRes = await fetch(`${API_BASE_URL}/api/vitals/insights?userId=${userId}&range=7d`, {
-              headers: { ...NGROK_HEADER }
-            });
+            const iRes = await authFetch(`/api/vitals/insights?userId=${userId}&range=7d`);
             if (iRes.ok) {
               const data = await iRes.json();
               const glucose = data.glucose || [];
