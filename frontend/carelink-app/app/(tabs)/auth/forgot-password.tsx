@@ -1,4 +1,3 @@
-// app/(tabs)/auth/forgot-password.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -42,17 +41,21 @@ export default function ForgotPassword() {
 
       const text = await res.text();
       let data: any = {};
-      try { data = text ? JSON.parse(text) : {}; } catch {}
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {}
 
       if (!res.ok) {
         Alert.alert("Verification Failed", data?.message || "ID or name does not match.");
         return;
       }
 
-      // 본인 확인 성공 → reset-password로 이동 (userId 전달)
       router.push({
         pathname: "/(tabs)/auth/reset-password",
-        params: { userId: userId.trim() },
+        params: {
+          userId: userId.trim(),
+          resetToken: data?.resetToken ?? "",
+        },
       });
     } catch {
       Alert.alert("Connection Error", "Could not connect to the server. Please try again.");
@@ -112,7 +115,7 @@ export default function ForgotPassword() {
           disabled={loading}
           style={{ marginTop: height * 0.02 }}
         >
-          <Text style={styles.backText}>← Back to Login</Text>
+          <Text style={styles.backText}>Back to Login</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -16,34 +16,26 @@ public class JwtProvider {
     private final SecretKey key;
     private final long expiration;
 
-    // application.properties에서 값을 주입받아 SecretKey를 생성합니다.
-    public JwtProvider(@Value("${jwt.secret}") String secretKey, 
+    public JwtProvider(@Value("${jwt.secret}") String secretKey,
                        @Value("${jwt.expiration}") long expiration) {
-        // Base64 디코딩하여 안전한 SecretKey 객체를 생성
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.expiration = expiration;
     }
 
-    /**
-     * 사용자 정보와 권한을 포함한 JWT 토큰을 생성합니다.
-     */
     public String createToken(String userId, UserRole role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
-                .subject(userId) // 토큰의 주체 (여기서는 userId)
-                .claim("role", role.name()) // 사용자 권한(role) 정보 추가
-                .issuedAt(now) // 토큰 발행 시간
-                .expiration(expiryDate) // 토큰 만료 시간
-                .signWith(key) // Secret Key로 서명
-                .compact(); // 토큰 생성
+                .subject(userId)
+                .claim("role", role.name())
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(key)
+                .compact();
     }
-    
-    /**
-     * 토큰 유효성 검사
-     */
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
@@ -53,11 +45,14 @@ public class JwtProvider {
         }
     }
 
-    /**
-     * 토큰에서 userId 추출
-     */
     public String getUserId(String token) {
         return Jwts.parser().verifyWith(key).build()
                 .parseSignedClaims(token).getPayload().getSubject();
+    }
+
+    public UserRole getRole(String token) {
+        String role = Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload().get("role", String.class);
+        return UserRole.valueOf(role);
     }
 }

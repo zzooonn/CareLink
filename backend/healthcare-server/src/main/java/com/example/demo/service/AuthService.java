@@ -1,15 +1,5 @@
 package com.example.demo.service;
 
-import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.example.demo.dto.auth.LoginRequest;
 import com.example.demo.dto.auth.LoginResponse;
 import com.example.demo.dto.auth.RegisterRequest;
@@ -19,6 +9,15 @@ import com.example.demo.entity.UserRole;
 import com.example.demo.jwt.JwtProvider;
 import com.example.demo.repository.UserGuardianLinkRepository;
 import com.example.demo.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -34,6 +33,9 @@ public class AuthService {
 
     @Autowired
     private UserGuardianLinkRepository userGuardianLinkRepository;
+
+    @Autowired
+    private PasswordResetTokenService passwordResetTokenService;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
@@ -82,22 +84,11 @@ public class AuthService {
         user.setBirthDate(request.getBirthDate());
         user.setPhone(request.getPhone() == null ? "" : request.getPhone().trim());
         user.setAddress(request.getAddress() == null ? "" : request.getAddress().trim());
-
-        if (request.getRole() == null) {
-            user.setRole(UserRole.PATIENT);
-        } else {
-            user.setRole(request.getRole());
-        }
-
-        if (request.getProfileImageId() == null) {
-            user.setProfileImageId(1);
-        } else {
-            user.setProfileImageId(request.getProfileImageId());
-        }
+        user.setRole(request.getRole() == null ? UserRole.PATIENT : request.getRole());
+        user.setProfileImageId(request.getProfileImageId() == null ? 1 : request.getProfileImageId());
 
         User saved = userRepository.save(user);
 
-        // Link patient to guardian if guardianId provided
         String gid = request.getGuardianId();
         if (saved.getRole() == UserRole.PATIENT && gid != null && !gid.isBlank()) {
             userRepository.findByUserId(gid.trim()).ifPresent(guardian -> {
@@ -114,7 +105,7 @@ public class AuthService {
         return saved;
     }
 
-    public void verifyIdentity(String userId, String fullName) {
+    public String verifyIdentity(String userId, String fullName) {
         if (userId == null || userId.isBlank() || fullName == null || fullName.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId and fullName are required");
         }
@@ -123,15 +114,18 @@ public class AuthService {
         if (!user.getName().equalsIgnoreCase(fullName.trim())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Name does not match");
         }
+        return passwordResetTokenService.issueToken(user.getUserId());
     }
 
-    public void resetPassword(String userId, String newPassword) {
-        if (userId == null || userId.isBlank() || newPassword == null || newPassword.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId and newPassword are required");
+    public void resetPassword(String userId, String newPassword, String resetToken) {
+        if (userId == null || userId.isBlank() || newPassword == null || newPassword.isBlank() || resetToken == null || resetToken.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId, newPassword and resetToken are required");
         }
         User user = userRepository.findByUserId(userId.trim())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        passwordResetTokenService.validateToken(user.getUserId(), resetToken.trim());
         user.setPassword(passwordEncoder.encode(newPassword.trim()));
         userRepository.save(user);
+        passwordResetTokenService.consumeToken(user.getUserId());
     }
 }

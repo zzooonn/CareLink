@@ -1,108 +1,91 @@
 # 🏥 CareLink: AI-Powered Mobile Healthcare
 
-> **통합 모바일 헬스케어 솔루션** > `React Native` + `Spring Boot` + `FastAPI` 기반의 실시간 ECG 진단 및 건강 관리 플랫폼
+CareLink는 **React Native(Expo) + Spring Boot + FastAPI** 기반의 통합 헬스케어 프로젝트입니다.
 
+## 1) 프로젝트 구성
 
-## 🚀 1. 프로젝트 개요 (Overview)
+- `frontend/carelink-app`: 모바일 앱 (Expo + TypeScript)
+- `backend/healthcare-server`: API 서버 (Spring Boot + PostgreSQL)
+- `ai/src`: ECG 추론 서버 (FastAPI + PyTorch)
 
-CareLink는 단순한 건강 기록 앱을 넘어, **딥러닝 기반의 ECG(심전도) 분석** 기능을 갖춘 통합 헬스케어 시스템입니다.
+## 2) 현재 동작 방식 (요약)
 
-* **🎯 핵심 목표**: 사용자 건강 데이터 관리, 복약 알림, 보호자 연결 및 AI 기반 심전도 이상 징후 감지.
-* **🩺 AI 진단**: 12-lead ECG 데이터를 분석하여 5가지 주요 진단 계열(`NORM`, `STTC`, `MI`, `CD`, `HYP`)을 멀티라벨로 예측.
-* **📱 사용자 경험**: 예측 확률과 임계값을 바탕으로 실시간 위험도(`Risk Level`)를 산출하여 직관적인 UI 제공.
+1. 모바일 앱이 `EXPO_PUBLIC_API_BASE_URL`로 백엔드 API를 호출
+2. 백엔드는 사용자/건강 데이터 CRUD 및 인사이트 API 제공
+3. 백엔드는 PostgreSQL과 통신
+4. AI 서버는 별도 API 서버로 실행되어 ECG 추론 처리
 
-
-## 🛠 2. 기술 스택 (Tech Stack)
-
-| 구분 | 기술 환경 |
-| --- | --- |
-| **Frontend** | **React Native**,  **Expo**,  **TypeScript**, Axios, Expo Router |
-| **Backend** | **Spring Boot 3**,  **Spring Security**,  **PostgreSQL**, JPA, JWT |
-| **AI Server** | **FastAPI**,  **PyTorch**,  **NumPy**, SciPy |
-| **Pipeline** | **PTB-XL Dataset**, **Band-pass Filtering**, **Z-score Normalization** |
+자세한 구조/점검 내용: `docs/CICD_RUNTIME_GUIDE.md`
 
 ---
 
+## 3) 로컬 실행
 
-## 🧠 3. 핵심 경쟁력: CNN–CBAM–GRU 모델
+### A. 개별 실행
 
-CareLink의 핵심은 단순한 수치 비교가 아닌, **국소 패턴 + 주의 집중 + 시계열 문맥 + 수치 특징**을 모두 결합한 하이브리드 아키텍처입니다.
-
-### ✅ 아키텍처 설계 포인트
-
-1. **Conv1D + BN + ReLU**: 리드별 국소 형태학적 특징(QRS morphology) 추출.
-2. **CBAM (Attention Mechanism)**: 중요한 채널(Lead)과 시간대에 가중치를 부여해 노이즈 억제.
-3. **BiGRU (Bidirectional)**: 심장 박동 간의 전후 문맥 정보를 반영하여 정밀도 향상.
-4. **Feature Injection**: 딥러닝 특징 외에 36차원의 통계 데이터(`PTP`, `STD`, `RMS`)를 결합(Concat)하여 모델의 안정성 확보.
-5. **Multi-label Head**: 실제 환자에게 동시에 나타날 수 있는 복합 이상 증상을 정밀하게 포착.
-
-
-## 📂 4. 레포지토리 구조 (Project Structure)
-
-```text
-CareLink/
-├─ 📱 frontend/carelink-app/        # React Native 모바일 앱
-├─ ⚙️ backend/healthcare-server/    # Spring Boot API 서버
-├─ 🤖 ai/
-│  ├─ 🛠️ src/
-│  │  ├─ step1_loader.py            # PTB-XL 데이터 로딩
-│  │  ├─ step2_preprocess.py        # 5클래스 멀티라벨 전처리
-│  │  ├─ train_local.py             # CNN-CBAM-GRU 학습 스크립트
-│  │  └─ server.py                  # FastAPI 추론 서버 (Inference)
-│  ├─ 💾 models/                    # 학습된 .pth 모델 저장소
-│  └─ 📊 data/                      # 처리된 데이터셋 (npy/csv)
-└─ README.md
-
-```
-
----
-
-## 🔄 5. 시스템 워크플로우 (Data Flow)
-
-1. **데이터 입력**: 사용자의 12리드 ECG 신호 입력 (500Hz, 10초).
-2. **전처리**: Band-pass Filter 적용 및 Amplitude Feature(36-dim) 추출.
-3. **추론**: AI 서버에서 확률값(`probs`) 및 임계값(`thresholds`) 기반 라벨링 수행.
-4. **결과 제공**: 백엔드를 거쳐 앱에서 `Risk Level` (Low/Medium/High) 시각화.
-
----
-
-## 🛠️ 6. 빠른 시작 가이드 (Quick Start)
-
-### 1️⃣ AI Inference Server
-
-```bash
-cd ai/src
-python server.py  # Port: 8000
-
-```
-
-### 2️⃣ Backend Server
-
+#### Backend
 ```bash
 cd backend/healthcare-server
-./gradlew bootRun  # Port: 8080
-
+./gradlew bootRun
 ```
 
-### 3️⃣ Frontend App
+#### AI
+```bash
+cd ai
+pip install -r requirements.txt
+cd src
+uvicorn server:app --host 0.0.0.0 --port 8000
+```
 
+#### Frontend
 ```bash
 cd frontend/carelink-app
-npm install && npm run start
-
+npm install
+npm run start
 ```
 
+> 프론트엔드 `.env`에 `EXPO_PUBLIC_API_BASE_URL=http://<백엔드주소>:8080` 필요
+
+### B. Docker Compose (권장)
+
+```bash
+docker compose up --build
+```
+
+- backend: `8080`
+- ai: `8000`
+- postgres: `5432`
+
 ---
 
-## 🌟 7. 향후 고도화 계획 (Future Roadmap)
+## 4) EC2 프리티어(저메모리) 실행
 
-* **시각화 강화**: CBAM Attention Map을 활용한 심전도 내 주요 이상 부위 히트맵 제공.
-* **신뢰성 지표**: Uncertainty Estimation(MC Dropout) 도입으로 진단의 신뢰도 수치화.
-* **MLOps**: 모델 성능 모니터링 및 신규 데이터 자동 수집/재학습 파이프라인 구축.
+프리티어에서는 일반 compose보다 `docker-compose.ec2-lite.yml` 사용을 권장합니다.
+
+```bash
+docker compose -f docker-compose.ec2-lite.yml up -d
+```
+
+상세 운영 가이드: `DEPLOYMENT_DOCKER_K8S.md`
 
 ---
 
-> **⚠️ 주의사항**: 본 프로젝트의 AI 모델 출력은 **자가 건강 관리 보조 도구**이며, 최종 진단은 반드시 전문 의료진의 판단을 따라야 합니다.
+## 5) CI/CD 현재 상태 (중요)
+
+현재 레포에는 활성화된 GitHub Actions 워크플로우가 없어,
+- PR 자동 테스트
+- 이미지 자동 빌드
+- 자동 배포
+가 구성되어 있지 않습니다.
+
+즉, 현재는 **수동 실행/수동 배포** 상태입니다.
+
+권장 CI/CD 설계와 단계별 제안은 `docs/CICD_RUNTIME_GUIDE.md`를 참고하세요.
 
 ---
+
+## 6) 주의사항
+
+- AI 결과는 의료 보조 목적이며 최종 진단은 전문 의료진 판단이 필요합니다.
+- `application.properties`에는 기본값이 있으나, 운영에서는 반드시 환경변수로 민감정보를 주입하세요.
 

@@ -1,14 +1,13 @@
 package com.example.demo.controller;
 
-import java.util.List;
-
-import org.springframework.web.bind.annotation.*;
-
 import com.example.demo.dto.CreateUserDiseaseRequest;
 import com.example.demo.dto.UserDiseaseResponse;
+import com.example.demo.security.AccessControlService;
 import com.example.demo.service.UserDiseaseService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/user-diseases")
@@ -16,16 +15,17 @@ import lombok.RequiredArgsConstructor;
 public class UserDiseaseController {
 
     private final UserDiseaseService userDiseaseService;
+    private final AccessControlService accessControlService;
 
-    // ✔ 로그인 객체 필요 없이 요청 JSON에서 userId 받음
     @PostMapping
     public UserDiseaseResponse addDisease(@RequestBody CreateUserDiseaseRequest req) {
+        accessControlService.ensureSelfOrLinkedGuardian(req.getUserId());
         return userDiseaseService.addDisease(req.getUserId(), req);
     }
 
-    // ✔ 마찬가지로 userId를 쿼리 파라미터 또는 요청 바디로 받는 버전
     @GetMapping
     public List<UserDiseaseResponse> getMyDiseases(@RequestParam String userId) {
+        accessControlService.ensureSelfOrLinkedGuardian(userId);
         return userDiseaseService.getMyDiseases(userId);
     }
 }
