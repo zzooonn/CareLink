@@ -1,5 +1,6 @@
 package com.example.demo.jwt;
 
+import com.example.demo.entity.UserRole;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,10 +31,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             if (jwtProvider.validateToken(token)) {
                 String userId = jwtProvider.getUserId(token);
+                UserRole role = jwtProvider.getRole(token);
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
-                                userId, null,
-                                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                                userId,
+                                null,
+                                List.of(
+                                        new SimpleGrantedAuthority("ROLE_USER"),
+                                        new SimpleGrantedAuthority("ROLE_" + role.name())
+                                )
                         );
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

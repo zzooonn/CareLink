@@ -1,28 +1,20 @@
-# ── Stage 1: Build ──────────────────────────────────────────────
-FROM eclipse-temurin:21-jdk-alpine AS builder
+# syntax=docker/dockerfile:1
 
+FROM gradle:8.10.2-jdk21 AS builder
 WORKDIR /app
 
-# Gradle wrapper + build files 먼저 복사 (레이어 캐싱)
-COPY gradlew .
-COPY gradle/ gradle/
-COPY build.gradle .
-COPY settings.gradle .
+COPY build.gradle settings.gradle gradlew ./
+COPY gradle ./gradle
+RUN chmod +x ./gradlew
 
-# 의존성 다운로드 (소스 변경 없을 때 캐시 재사용)
-RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
+COPY src ./src
+RUN ./gradlew clean bootJar -x test --no-daemon
 
-# 소스 복사 후 JAR 빌드 (테스트 스킵)
-COPY src/ src/
-RUN ./gradlew bootJar --no-daemon -x test
-
-# ── Stage 2: Runtime ─────────────────────────────────────────────
-FROM eclipse-temurin:21-jre-alpine
-
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder /app/build/libs/*.jar /app/app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

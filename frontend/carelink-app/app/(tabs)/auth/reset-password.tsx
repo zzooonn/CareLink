@@ -21,13 +21,17 @@ function isStrongPassword(pw: string) {
 
 export default function ResetPassword() {
     const router = useRouter();
-    const { userId } = useLocalSearchParams<{ userId: string }>();
+    const { userId, resetToken } = useLocalSearchParams<{ userId: string; resetToken: string }>();
 
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
 
     const handleReset = async () => {
+        if (!userId || !resetToken) {
+            Alert.alert("Invalid Access", "Please verify your identity again.");
+            return;
+        }
         if (!newPassword.trim() || !confirmPassword.trim()) {
             Alert.alert("Required", "Please fill in both password fields.");
             return;
@@ -50,7 +54,11 @@ export default function ResetPassword() {
             const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, newPassword: newPassword.trim() }),
+                body: JSON.stringify({
+                    userId,
+                    newPassword: newPassword.trim(),
+                    resetToken,
+                }),
             });
 
             const text = await res.text();
@@ -121,7 +129,7 @@ export default function ResetPassword() {
                     disabled={loading}
                     style={{ marginTop: height * 0.02 }}
                 >
-                    <Text style={styles.backText}>← Back</Text>
+                    <Text style={styles.backText}>Back</Text>
                 </TouchableOpacity>
             </View>
         </View>

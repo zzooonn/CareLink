@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: carelink-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: healthcare
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "work_mem=4MB", "-c", "maintenance_work_mem=32MB", "-c", "max_connections=40"]
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d healthcare"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
+
+  backend:
+    image: ${BACKEND_IMAGE:-your-registry/carelink-backend:latest}
+    container_name: carelink-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/healthcare
+      SPRING_DATASOURCE_USERNAME: appuser
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
+      NEWS_API_KEY: ${NEWS_API_KEY:-replace-me}
+      JWT_SECRET: ${JWT_SECRET:-replace-with-strong-secret}
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=20 -XX:+UseSerialGC"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    mem_limit: 384m
+
+  ai:
+    image: ${AI_IMAGE:-your-registry/carelink-ai:latest}
+    container_name: carelink-ai
+    restart: unless-stopped
+    profiles: ["ai"]
+    environment:
+      MODEL_PATH: /app/models/best_model_multilabel.pth
+      SAMPLE_DIR: /app/samples
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ai/models:/app/models
+      - ./ai/samples:/app/samples
+    mem_limit: 512m
+
+volumes:
+  postgres_data:
