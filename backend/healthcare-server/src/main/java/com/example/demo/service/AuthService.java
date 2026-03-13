@@ -17,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -105,16 +107,36 @@ public class AuthService {
         return saved;
     }
 
-    public String verifyIdentity(String userId, String fullName) {
-        if (userId == null || userId.isBlank() || fullName == null || fullName.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId and fullName are required");
+    public String verifyIdentity(String userId, String birthDateStr) {
+        if (userId == null || userId.isBlank() || birthDateStr == null || birthDateStr.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId and birthDate are required");
         }
-        User user = userRepository.findByUserId(userId.trim())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        if (!user.getName().equalsIgnoreCase(fullName.trim())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Name does not match");
+        LocalDate birthDate;
+        try {
+            birthDate = LocalDate.parse(birthDateStr.trim());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format. Use yyyy-MM-dd");
         }
-        return passwordResetTokenService.issueToken(user.getUserId());
+        userRepository.findByUserIdAndBirthDate(userId.trim(), birthDate)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "ID or date of birth does not match"));
+        return passwordResetTokenService.issueToken(userId.trim());
+    }
+
+    public String findUserId(String name, String birthDateStr) {
+        if (name == null || name.isBlank() || birthDateStr == null || birthDateStr.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name and birthDate are required");
+        }
+        LocalDate birthDate;
+        try {
+            birthDate = LocalDate.parse(birthDateStr.trim());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format. Use yyyy-MM-dd");
+        }
+        List<User> users = userRepository.findByNameIgnoreCaseAndBirthDate(name.trim(), birthDate);
+        if (users.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No matching user found");
+        }
+        return users.get(0).getUserId();
     }
 
     public void resetPassword(String userId, String newPassword, String resetToken) {

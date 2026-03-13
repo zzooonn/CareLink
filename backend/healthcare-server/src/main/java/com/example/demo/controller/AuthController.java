@@ -42,7 +42,7 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody Map<String, String> body) {
-        String resetToken = authService.verifyIdentity(body.get("userId"), body.get("fullName"));
+        String resetToken = authService.verifyIdentity(body.get("userId"), body.get("birthDate"));
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Identity verified",
@@ -54,5 +54,11 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> resetPassword(@RequestBody Map<String, String> body) {
         authService.resetPassword(body.get("userId"), body.get("newPassword"), body.get("resetToken"));
         return ResponseEntity.ok(Map.of("success", true, "message", "Password reset successfully"));
+    }
+
+    @PostMapping("/find-id")
+    public ResponseEntity<Map<String, Object>> findId(@RequestBody Map<String, String> body) {
+        String userId = authService.findUserId(body.get("name"), body.get("birthDate"));
+        return ResponseEntity.ok(Map.of("success", true, "userId", userId));
     }
 }
