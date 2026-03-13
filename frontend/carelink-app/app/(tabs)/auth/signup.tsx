@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter } from "expo-router";
@@ -196,6 +197,7 @@ export default function SignUp() {
   };
 
   return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
     <ScrollView
       contentContainerStyle={styles.scrollContainer}
       keyboardShouldPersistTaps="handled"
@@ -436,6 +438,7 @@ export default function SignUp() {
         </View>
       </ImageBackground>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

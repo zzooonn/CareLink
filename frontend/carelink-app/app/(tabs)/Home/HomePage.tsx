@@ -82,9 +82,6 @@ function pickAvatarSource(profileImageId?: number) {
   return AVATAR_LIST.find((a) => a.id === id)?.source ?? AVATAR_LIST[0].source;
 }
 
-function randomAvatarId() {
-  return Math.floor(Math.random() * 12) + 1;
-}
 
 export default function HomePage() {
   const [page, setPage] = useState(0);
@@ -96,7 +93,6 @@ export default function HomePage() {
   const [myAvatarId, setMyAvatarId] = useState<number>(1);
   const [loadingMe, setLoadingMe] = useState(false);
   const [caregiverAvatarIds, setCaregiverAvatarIds] = useState<number[]>([]);
-  const [emergencyAvatarIds, setEmergencyAvatarIds] = useState<number[]>([randomAvatarId()]);
   const [insightsScore, setInsightsScore] = useState<number>(0);
   const [loadingInsights, setLoadingInsights] = useState(false);
 
@@ -140,7 +136,7 @@ export default function HomePage() {
             const parsed = JSON.parse(cgRaw) as Caregiver[];
             setCaregiverAvatarIds(parsed.map(c => c.avatarId || 1).slice(0, 3));
           } else {
-            setCaregiverAvatarIds([randomAvatarId(), randomAvatarId()]);
+            setCaregiverAvatarIds([]);
           }
 
           // 3. Insights
@@ -258,7 +254,7 @@ export default function HomePage() {
         </View>
 
         <FamilyRow icon={<Ionicons name="people-outline" size={20} color="#111" />} label="Caregivers" avatarIds={caregiverAvatarIds} onPress={() => router.push("/Home/Caregivers")} />
-        <FamilyRow icon={<Ionicons name="call-outline" size={20} color="#111" />} label="Emergency contacts" avatarIds={emergencyAvatarIds} showDivider={false} onPress={() => router.push("/Home/Emergency")} />
+        <FamilyRow icon={<Ionicons name="call-outline" size={20} color="#111" />} label="Emergency contacts" avatarIds={caregiverAvatarIds} showDivider={false} onPress={() => router.push("/Home/Emergency")} />
 
       </ScrollView>
     </SafeAreaView>

@@ -10,6 +10,7 @@ import {
   View,
   Dimensions,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -70,15 +71,23 @@ export default function VitalsScreen() {
 
     try {
       const userId = await AsyncStorage.getItem("userId");
-      if (userId) {
-        await authFetch("/api/vitals", {
-          method: "POST",
-          body: JSON.stringify({ userId, bpSys: s, bpDia: d }),
-        });
+      if (!userId) {
+        Alert.alert("Error", "Login required. Please log in again.");
+        return;
       }
-    } catch {}
-
-    Alert.alert("Success", `Saved.\nResult: ${result.msg}`);
+      const res = await authFetch("/api/vitals", {
+        method: "POST",
+        body: JSON.stringify({ userId, bpSys: s, bpDia: d }),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        Alert.alert("Save Failed", text || "Failed to save. Please try again.");
+        return;
+      }
+      Alert.alert("Success", `Saved.\nResult: ${result.msg}`);
+    } catch {
+      Alert.alert("Connection Error", "Cannot connect to the server. Please check your network.");
+    }
   };
 
   const analyzeGlucose = (g: number, fasting: boolean) => {
@@ -105,15 +114,23 @@ export default function VitalsScreen() {
 
     try {
       const userId = await AsyncStorage.getItem("userId");
-      if (userId) {
-        await authFetch("/api/vitals", {
-          method: "POST",
-          body: JSON.stringify({ userId, glucose: g, isFasting }),
-        });
+      if (!userId) {
+        Alert.alert("Error", "Login required. Please log in again.");
+        return;
       }
-    } catch {}
-
-    Alert.alert("Success", `Saved.\nResult: ${result.msg}`);
+      const res = await authFetch("/api/vitals", {
+        method: "POST",
+        body: JSON.stringify({ userId, glucose: g, isFasting }),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        Alert.alert("Save Failed", text || "Failed to save. Please try again.");
+        return;
+      }
+      Alert.alert("Success", `Saved.\nResult: ${result.msg}`);
+    } catch {
+      Alert.alert("Connection Error", "Cannot connect to the server. Please check your network.");
+    }
   };
 
   const getStatusColor = (type: StatusType) => {
@@ -128,6 +145,7 @@ export default function VitalsScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={{ paddingBottom: H * 0.05 }}
@@ -217,6 +235,7 @@ export default function VitalsScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
