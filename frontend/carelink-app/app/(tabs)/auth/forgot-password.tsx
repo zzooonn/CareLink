@@ -18,12 +18,17 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 export default function ForgotPassword() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
-  const [fullName, setFullName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleReset = async () => {
-    if (!userId.trim() || !fullName.trim()) {
-      Alert.alert("Required", "Please enter both your ID and full name.");
+    if (!userId.trim() || !birthDate.trim()) {
+      Alert.alert("Required", "Please enter both your ID and date of birth.");
+      return;
+    }
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(birthDate.trim())) {
+      Alert.alert("Format Error", "Please enter your date of birth as YYYY-MM-DD.\nExample: 1990-01-15");
       return;
     }
     if (!API_BASE_URL) {
@@ -36,7 +41,7 @@ export default function ForgotPassword() {
       const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: userId.trim(), fullName: fullName.trim() }),
+        body: JSON.stringify({ userId: userId.trim(), birthDate: birthDate.trim() }),
       });
 
       const text = await res.text();
@@ -78,7 +83,7 @@ export default function ForgotPassword() {
       <View style={styles.card}>
         <Text style={styles.loginTitle}>Forgot Password?</Text>
         <Text style={styles.subtitle}>
-          Enter the ID and name you registered with.
+          Enter the ID and date of birth you registered with.
         </Text>
 
         <TextInput
@@ -92,10 +97,11 @@ export default function ForgotPassword() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Full Name"
+          placeholder="Date of Birth (e.g. 1990-01-15)"
           placeholderTextColor="#999"
-          value={fullName}
-          onChangeText={setFullName}
+          value={birthDate}
+          onChangeText={setBirthDate}
+          keyboardType="numeric"
           editable={!loading}
         />
 
@@ -111,9 +117,17 @@ export default function ForgotPassword() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.push("/(tabs)/auth/find-id")}
           disabled={loading}
           style={{ marginTop: height * 0.02 }}
+        >
+          <Text style={styles.backText}>Forgot your ID?</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => router.back()}
+          disabled={loading}
+          style={{ marginTop: height * 0.015 }}
         >
           <Text style={styles.backText}>Back to Login</Text>
         </TouchableOpacity>
