@@ -23,16 +23,16 @@ export default function FindId() {
 
   const handleFindId = async () => {
     if (!name.trim() || !birthDate.trim()) {
-      Alert.alert("필수 입력", "이름과 생년월일을 모두 입력해주세요.");
+      Alert.alert("Required Field", "Please enter both your name and date of birth.");
       return;
     }
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
     if (!datePattern.test(birthDate.trim())) {
-      Alert.alert("형식 오류", "생년월일을 YYYY-MM-DD 형식으로 입력해주세요.\n예) 1990-01-15");
+      Alert.alert("Format Error", "Please enter your date of birth in YYYY-MM-DD format.\ne.g., 1990-01-15");
       return;
     }
     if (!API_BASE_URL) {
-      Alert.alert("설정 오류", "서버 주소가 설정되지 않았습니다.");
+      Alert.alert("Configuration Error", "Server address is not configured.");
       return;
     }
 
@@ -51,17 +51,17 @@ export default function FindId() {
       } catch {}
 
       if (!res.ok) {
-        Alert.alert("조회 실패", data?.message || "일치하는 계정을 찾을 수 없습니다.");
+        Alert.alert("Search Failed", data?.message || "Could not find a matching account.");
         return;
       }
 
       Alert.alert(
-        "아이디 찾기 완료",
-        `회원님의 아이디는\n\n"${data.userId}"\n\n입니다.`,
-        [{ text: "로그인하기", onPress: () => router.replace("/(tabs)/auth/login") }]
+        "Find ID Complete",
+        `Your ID is\n\n"${data.userId}"`,
+        [{ text: "Go to Login", onPress: () => router.replace("/(tabs)/auth/login") }]
       );
     } catch {
-      Alert.alert("연결 오류", "서버에 연결할 수 없습니다. 다시 시도해주세요.");
+      Alert.alert("Connection Error", "Cannot connect to the server. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -79,14 +79,14 @@ export default function FindId() {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.title}>아이디 찾기</Text>
+        <Text style={styles.title}>Find ID</Text>
         <Text style={styles.subtitle}>
-          가입 시 등록한 이름과 생년월일을 입력해주세요.
+          Please enter the name and date of birth registered to your account.
         </Text>
 
         <TextInput
           style={styles.input}
-          placeholder="이름"
+          placeholder="Name"
           placeholderTextColor="#999"
           value={name}
           onChangeText={setName}
@@ -94,7 +94,7 @@ export default function FindId() {
         />
         <TextInput
           style={styles.input}
-          placeholder="생년월일 (예: 1990-01-15)"
+          placeholder="Date of Birth (e.g., 1990-01-15)"
           placeholderTextColor="#999"
           value={birthDate}
           onChangeText={setBirthDate}
@@ -109,7 +109,7 @@ export default function FindId() {
         >
           {loading
             ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>아이디 찾기</Text>
+            : <Text style={styles.buttonText}>Find ID</Text>
           }
         </TouchableOpacity>
 
@@ -118,7 +118,7 @@ export default function FindId() {
           disabled={loading}
           style={{ marginTop: height * 0.02 }}
         >
-          <Text style={styles.backText}>뒤로 가기</Text>
+          <Text style={styles.backText}>Go Back</Text>
         </TouchableOpacity>
       </View>
     </View>
