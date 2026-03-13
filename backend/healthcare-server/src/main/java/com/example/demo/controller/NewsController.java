@@ -7,7 +7,10 @@ import com.example.demo.security.AccessControlService;
 import com.example.demo.service.NewsAutoCollectorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 
 import java.util.List;
 
@@ -36,7 +39,7 @@ public class NewsController {
         int size = Math.max(1, Math.min(limit, 20));
 
         User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + userId));
 
         var page = diseaseTrendRepository.findByUser_IdAndAdvisoryTypeOrderByIdDesc(
                 user.getId(), "NEWS", PageRequest.of(0, size)

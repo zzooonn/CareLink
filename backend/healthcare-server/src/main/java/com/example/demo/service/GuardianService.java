@@ -7,8 +7,10 @@ import com.example.demo.entity.UserRole;
 import com.example.demo.repository.UserGuardianLinkRepository;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,17 +29,17 @@ public class GuardianService {
     public void connectGuardian(String patientId, String guardianId) {
 
         User patient = userRepository.findByUserId(patientId)
-                .orElseThrow(() -> new IllegalArgumentException("환자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
 
         User guardian = userRepository.findByUserId(guardianId)
-                .orElseThrow(() -> new IllegalArgumentException("보호자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Guardian not found"));
 
         if (guardian.getRole() != UserRole.GUARDIAN) {
-            throw new IllegalArgumentException("해당 유저는 보호자 계정이 아닙니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The user is not a guardian account");
         }
 
         if (userGuardianLinkRepository.existsByPatientAndGuardian(patient, guardian)) {
-            throw new IllegalArgumentException("이미 연결된 보호자입니다.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Already connected");
         }
 
         UserGuardianLink link = new UserGuardianLink();
@@ -54,7 +56,7 @@ public class GuardianService {
     @Transactional(readOnly = true)
     public List<ConnectedPatientResponseDto> getMyPatients(String guardianId) {
         User guardian = userRepository.findByUserId(guardianId)
-                .orElseThrow(() -> new IllegalArgumentException("보호자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Guardian not found"));
 
         List<UserGuardianLink> links = userGuardianLinkRepository.findByGuardian(guardian);
 
@@ -69,7 +71,7 @@ public class GuardianService {
     @Transactional(readOnly = true)
     public List<ConnectedPatientResponseDto> getMyGuardians(String patientId) {
         User patient = userRepository.findByUserId(patientId)
-                .orElseThrow(() -> new IllegalArgumentException("환자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
 
         List<UserGuardianLink> links = userGuardianLinkRepository.findByPatient(patient);
 

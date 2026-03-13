@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python:*)",
-      "Bash(ai/venv/Scripts/python.exe:*)"
+      "Bash(ai/venv/Scripts/python.exe:*)",
+      "Bash(find c:UserszooncDesktopHealthCarebackendhealthcare-server -name *Security* -type f)"
     ]
   }
 }

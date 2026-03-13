@@ -58,7 +58,7 @@ public class AuthController {
 
     @PostMapping("/find-id")
     public ResponseEntity<Map<String, Object>> findId(@RequestBody Map<String, String> body) {
-        String userId = authService.findUserId(body.get("name"), body.get("birthDate"));
+        String userId = authService.findUserId(body.get("name"), body.get("birthDate"), body.get("phone"));
         return ResponseEntity.ok(Map.of("success", true, "userId", userId));
     }
 }

@@ -58,11 +58,11 @@ public class User {
     private UserRole role;   // PATIENT / GUARDIAN
 
     @Column(name = "profile_image_id", nullable = false)
-    private Integer profileImageId = 1;  
-    // 필요하면 나중에 환자-보호자 링크, 알림 리스트 등을 여기에 매핑 가능
-    // ex)
-    // @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
-    // private List<UserHealthAlert> alerts;
+    private Integer profileImageId = 1;
+
+    private String bloodType;         // "O+", "A-" 등
+    private String allergies;         // "Penicillin, Pollen" 등
+    private String medicalConditions; // "Asthma, Diabetes" 등
 
     @CreationTimestamp
     private LocalDateTime createdAt;
