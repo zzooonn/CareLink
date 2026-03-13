@@ -21,6 +21,23 @@ export default function ForgotPassword() {
   const [birthDate, setBirthDate] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 생년월일 자동 포맷팅 함수 (YYYY-MM-DD)
+  const handleDateChange = (text: string) => {
+    // 1. 숫자 이외의 문자는 모두 제거
+    const cleaned = text.replace(/\D/g, "");
+    
+    // 2. 길이에 따라 하이픈(-) 자동 추가
+    let formatted = cleaned;
+    if (cleaned.length > 4 && cleaned.length <= 6) {
+      formatted = `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
+    } else if (cleaned.length > 6) {
+      // 최대 8자리 숫자까지만 처리
+      formatted = `${cleaned.slice(0, 4)}-${cleaned.slice(4, 6)}-${cleaned.slice(6, 8)}`;
+    }
+    
+    setBirthDate(formatted);
+  };
+
   const handleReset = async () => {
     if (!userId.trim() || !birthDate.trim()) {
       Alert.alert("Required", "Please enter both your ID and date of birth.");
@@ -51,7 +68,7 @@ export default function ForgotPassword() {
       } catch {}
 
       if (!res.ok) {
-        Alert.alert("Verification Failed", data?.message || "ID or name does not match.");
+        Alert.alert("Verification Failed", data?.message || "ID or date of birth does not match.");
         return;
       }
 
@@ -95,13 +112,15 @@ export default function ForgotPassword() {
           autoCapitalize="none"
           editable={!loading}
         />
+        {/* 수정된 생년월일 입력 부분 */}
         <TextInput
           style={styles.input}
-          placeholder="Date of Birth (e.g. 1990-01-15)"
+          placeholder="Date of Birth (e.g. 19900115)"
           placeholderTextColor="#999"
           value={birthDate}
-          onChangeText={setBirthDate}
+          onChangeText={handleDateChange} // 커스텀 함수 적용
           keyboardType="numeric"
+          maxLength={10} // YYYY-MM-DD 길이에 맞춤
           editable={!loading}
         />
 
