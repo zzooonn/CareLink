@@ -8,6 +8,9 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter } from "expo-router";
@@ -19,11 +22,23 @@ export default function FindId() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const handleDateChange = (text: string) => {
+    const cleaned = text.replace(/\D/g, "");
+    let formatted = cleaned;
+    if (cleaned.length > 4 && cleaned.length <= 6) {
+      formatted = `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
+    } else if (cleaned.length > 6) {
+      formatted = `${cleaned.slice(0, 4)}-${cleaned.slice(4, 6)}-${cleaned.slice(6, 8)}`;
+    }
+    setBirthDate(formatted);
+  };
+
   const handleFindId = async () => {
-    if (!name.trim() || !birthDate.trim()) {
-      Alert.alert("Required Field", "Please enter both your name and date of birth.");
+    if (!name.trim() || !birthDate.trim() || !phone.trim()) {
+      Alert.alert("Required Field", "Please enter your name, date of birth, and phone number.");
       return;
     }
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -41,7 +56,7 @@ export default function FindId() {
       const res = await fetch(`${API_BASE_URL}/api/auth/find-id`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), birthDate: birthDate.trim() }),
+        body: JSON.stringify({ name: name.trim(), birthDate: birthDate.trim(), phone: phone.trim() }),
       });
 
       const text = await res.text();
@@ -68,70 +83,89 @@ export default function FindId() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.brandContainer}>
-        <Image
-          source={require("../../../assets/images/CareLinkicon.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.brand}>CareLink</Text>
-      </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "#f7f9fb" }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.brandContainer}>
+          <Image
+            source={require("../../../assets/images/CareLinkicon.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.brand}>CareLink</Text>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.title}>Find ID</Text>
-        <Text style={styles.subtitle}>
-          Please enter the name and date of birth registered to your account.
-        </Text>
+        <View style={styles.card}>
+          <Text style={styles.title}>Find ID</Text>
+          <Text style={styles.subtitle}>
+            Enter the name, date of birth, and phone number registered to your account.
+          </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Name"
-          placeholderTextColor="#999"
-          value={name}
-          onChangeText={setName}
-          editable={!loading}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Date of Birth (e.g., 1990-01-15)"
-          placeholderTextColor="#999"
-          value={birthDate}
-          onChangeText={setBirthDate}
-          keyboardType="numeric"
-          editable={!loading}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Name"
+            placeholderTextColor="#999"
+            value={name}
+            onChangeText={setName}
+            editable={!loading}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Date of Birth (e.g. 1990-01-15)"
+            placeholderTextColor="#999"
+            value={birthDate}
+            onChangeText={handleDateChange}
+            keyboardType="numeric"
+            maxLength={10}
+            editable={!loading}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            placeholderTextColor="#999"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            editable={!loading}
+          />
 
-        <TouchableOpacity
-          style={[styles.button, loading && { opacity: 0.6 }]}
-          onPress={handleFindId}
-          disabled={loading}
-        >
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>Find ID</Text>
-          }
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, loading && { opacity: 0.6 }]}
+            onPress={handleFindId}
+            disabled={loading}
+          >
+            {loading
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.buttonText}>Find ID</Text>
+            }
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => router.back()}
-          disabled={loading}
-          style={{ marginTop: height * 0.02 }}
-        >
-          <Text style={styles.backText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            disabled={loading}
+            style={{ marginTop: height * 0.02 }}
+          >
+            <Text style={styles.backText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: "#f7f9fb",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: width * 0.08,
+    paddingVertical: height * 0.05,
   },
   brandContainer: {
     flexDirection: "row",

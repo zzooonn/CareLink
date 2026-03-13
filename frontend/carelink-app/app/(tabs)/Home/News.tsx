@@ -16,6 +16,7 @@ import { ScaledText as Text } from "../../../components/ScaledText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { authFetch } from "../../../utils/api";
 
 type NewsItem = {
   id: number;
@@ -30,11 +31,13 @@ type NewsRow = NewsItem & { __placeholder?: boolean };
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const TIMEOUT_MS = 8000;
 
+
 export default function NewsScreen() {
   const [searchText, setSearchText] = useState("");
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
   const { height: H } = useWindowDimensions();
 
@@ -52,21 +55,6 @@ export default function NewsScreen() {
   const VISIBLE_ITEMS = 4; 
   const CARD_HEIGHT = Math.max(150, Math.floor((LIST_AVAILABLE_HEIGHT - GAP * (VISIBLE_ITEMS - 1)) / VISIBLE_ITEMS));
 
-  const fetchWithTimeout = async (url: string, options: any = {}, timeout = TIMEOUT_MS) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-
-    try {
-      const res = await fetch(url, { ...options, signal: controller.signal });
-      clearTimeout(id);
-      return res;
-    } catch (e: any) {
-      clearTimeout(id);
-      if (e?.name === "AbortError") throw new Error("timeout");
-      throw e;
-    }
-  };
-
   const fetchNews = useCallback(async () => {
     if (!API_BASE_URL) return;
 
@@ -76,32 +64,32 @@ export default function NewsScreen() {
       return;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
     try {
       setLoading(true);
+      setFetchError(false);
 
-      const url =
-        `${API_BASE_URL}/api/news` +
+      const path =
+        `/api/news` +
         `?userId=${encodeURIComponent(storedUserId)}` +
-        `&limit=5`; // 데이터는 여전히 5개 가져옴 (스크롤 가능하게)
+        `&limit=5`;
 
-      const token = await AsyncStorage.getItem("token");
-      const res = await fetchWithTimeout(url, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const res = await authFetch(path, { signal: controller.signal } as RequestInit);
+      clearTimeout(timeoutId);
 
       if (!res.ok) {
         setNews([]);
+        setFetchError(true);
         return;
       }
 
       const data = await res.json();
       setNews(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      console.log("News error:", err);
+      clearTimeout(timeoutId);
+      if (err?.name !== "AbortError") setFetchError(true);
       setNews([]);
     } finally {
       setLoading(false);
@@ -211,7 +199,15 @@ export default function NewsScreen() {
           </View>
         )}
 
-        {!loading && news.length === 0 && (
+        {!loading && fetchError && (
+          <View style={styles.emptyBox}>
+            <Text style={[styles.emptyText, { color: "#ef4444" }]}>
+              Failed to load news. Pull down to retry.
+            </Text>
+          </View>
+        )}
+
+        {!loading && !fetchError && news.length === 0 && (
           <View style={styles.emptyBox}>
             <Text style={styles.emptyText}>
               No news available yet.

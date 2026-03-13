@@ -8,8 +8,12 @@ import {
     Dimensions,
     Alert,
     ActivityIndicator,
+    KeyboardAvoidingView,
+    ScrollView,
+    Platform,
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 const { width, height } = Dimensions.get("window");
@@ -26,6 +30,8 @@ export default function ResetPassword() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [pwVisible, setPwVisible] = useState(false);
+    const [pwConfirmVisible, setPwConfirmVisible] = useState(false);
 
     const handleReset = async () => {
         if (!userId || !resetToken) {
@@ -81,68 +87,87 @@ export default function ResetPassword() {
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.brandContainer}>
-                <Image
-                    source={require("../../../assets/images/CareLinkicon.png")}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
-                <Text style={styles.brand}>CareLink</Text>
-            </View>
+        <KeyboardAvoidingView
+            style={{ flex: 1, backgroundColor: "#f7f9fb" }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+            <ScrollView
+                contentContainerStyle={styles.container}
+                keyboardShouldPersistTaps="handled"
+            >
+                <View style={styles.brandContainer}>
+                    <Image
+                        source={require("../../../assets/images/CareLinkicon.png")}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.brand}>CareLink</Text>
+                </View>
 
-            <View style={styles.card}>
-                <Text style={styles.loginTitle}>Reset Password</Text>
+                <View style={styles.card}>
+                    <Text style={styles.loginTitle}>Reset Password</Text>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="New Password"
-                    placeholderTextColor="#999"
-                    secureTextEntry
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    editable={!loading}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Confirm New Password"
-                    placeholderTextColor="#999"
-                    secureTextEntry
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    editable={!loading}
-                />
+                    <View style={styles.pwRow}>
+                        <TextInput
+                            style={styles.pwInput}
+                            placeholder="New Password"
+                            placeholderTextColor="#999"
+                            secureTextEntry={!pwVisible}
+                            value={newPassword}
+                            onChangeText={setNewPassword}
+                            editable={!loading}
+                        />
+                        <TouchableOpacity onPress={() => setPwVisible(v => !v)} style={styles.eyeBtn}>
+                            <Ionicons name={pwVisible ? "eye-off-outline" : "eye-outline"} size={20} color="#9ca3af" />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.pwRow}>
+                        <TextInput
+                            style={styles.pwInput}
+                            placeholder="Confirm New Password"
+                            placeholderTextColor="#999"
+                            secureTextEntry={!pwConfirmVisible}
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            editable={!loading}
+                        />
+                        <TouchableOpacity onPress={() => setPwConfirmVisible(v => !v)} style={styles.eyeBtn}>
+                            <Ionicons name={pwConfirmVisible ? "eye-off-outline" : "eye-outline"} size={20} color="#9ca3af" />
+                        </TouchableOpacity>
+                    </View>
 
-                <TouchableOpacity
-                    style={[styles.loginButton, loading && { opacity: 0.6 }]}
-                    onPress={handleReset}
-                    disabled={loading}
-                >
-                    {loading
-                        ? <ActivityIndicator color="#fff" />
-                        : <Text style={styles.loginButtonText}>Set New Password</Text>
-                    }
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.loginButton, loading && { opacity: 0.6 }]}
+                        onPress={handleReset}
+                        disabled={loading}
+                    >
+                        {loading
+                            ? <ActivityIndicator color="#fff" />
+                            : <Text style={styles.loginButtonText}>Set New Password</Text>
+                        }
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    disabled={loading}
-                    style={{ marginTop: height * 0.02 }}
-                >
-                    <Text style={styles.backText}>Back</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
+                    <TouchableOpacity
+                        onPress={() => router.back()}
+                        disabled={loading}
+                        style={{ marginTop: height * 0.02 }}
+                    >
+                        <Text style={styles.backText}>Back</Text>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flexGrow: 1,
         backgroundColor: "#f7f9fb",
         alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: width * 0.08,
+        paddingVertical: height * 0.05,
     },
     brandContainer: {
         flexDirection: "row",
@@ -204,5 +229,24 @@ const styles = StyleSheet.create({
     backText: {
         color: "#0ea5e9",
         fontSize: width * 0.038,
+    },
+    pwRow: {
+        width: "100%",
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#f1f3f6",
+        borderRadius: 10,
+        marginBottom: height * 0.02,
+    },
+    pwInput: {
+        flex: 1,
+        paddingVertical: height * 0.015,
+        paddingHorizontal: width * 0.04,
+        fontSize: width * 0.04,
+        color: "#333",
+    },
+    eyeBtn: {
+        paddingHorizontal: width * 0.03,
+        justifyContent: "center",
     },
 });

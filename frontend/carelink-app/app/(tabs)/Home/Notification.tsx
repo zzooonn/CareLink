@@ -1,5 +1,5 @@
 // app/(tabs)/Home/Notification.tsx
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   FlatList,
@@ -13,6 +13,7 @@ import { ScaledText as Text } from "../../../components/ScaledText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";
+import { authFetch } from "../../../utils/api";
 
 /* ✅ Caregivers와 동일 */
 const CAREGIVERS_STORAGE_KEY = "caregivers:list";
@@ -163,35 +164,48 @@ const NotificationRow = ({
 
 export default function NotificationScreen({ data, onPressItem }: Props) {
   const [avatarIdByUserId, setAvatarIdByUserId] = useState<Record<string, number>>({});
+  const [alerts, setAlerts] = useState<NotificationItem[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       const load = async () => {
+        // Load avatar map from caregivers
         try {
           const raw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
-
-          // ✅ caregivers:list가 없으면 빈맵 (fallback은 로컬이라 이미지 보임)
-          if (!raw) {
-            setAvatarIdByUserId({});
-            return;
-          }
-
-          const parsed = JSON.parse(raw) as Caregiver[];
-          if (!Array.isArray(parsed)) {
-            setAvatarIdByUserId({});
-            return;
-          }
-
-          const map: Record<string, number> = {};
-          for (const c of parsed) {
-            if (c?.userId && typeof c.avatarId === "number") {
-              map[c.userId] = c.avatarId;
+          if (raw) {
+            const parsed = JSON.parse(raw) as Caregiver[];
+            if (Array.isArray(parsed)) {
+              const map: Record<string, number> = {};
+              for (const c of parsed) {
+                if (c?.userId && typeof c.avatarId === "number") {
+                  map[c.userId] = c.avatarId;
+                }
+              }
+              setAvatarIdByUserId(map);
             }
           }
-          setAvatarIdByUserId(map);
         } catch (e) {
           console.log("Failed to load caregivers for avatar map:", e);
-          setAvatarIdByUserId({});
+        }
+
+        // Load real alerts from backend
+        try {
+          const userId = await AsyncStorage.getItem("userId");
+          if (!userId) return;
+          const res = await authFetch(`/api/notification/${userId}`);
+          if (res.ok) {
+            const json = await res.json();
+            const items: NotificationItem[] = json.map((a: any) => ({
+              id: String(a.id),
+              actorUserId: a.patientUserId,
+              message: a.message,
+              createdAt: a.createdAt,
+              read: a.read,
+            }));
+            setAlerts(items);
+          }
+        } catch (e) {
+          console.log("Failed to load notifications:", e);
         }
       };
 
@@ -199,28 +213,23 @@ export default function NotificationScreen({ data, onPressItem }: Props) {
     }, [])
   );
 
-  // 데모 fallback: actorUserId가 caregivers에 존재하면 그 avatarId로 뜸
-  const fallback = useMemo<NotificationItem[]>(
-    () => [
-      {
-        id: "1",
-        actorUserId: "guardian010",
-        message: "guardian010 recorded a blood pressure measurement.",
-        createdAt: Date.now() - 5 * 60 * 1000,
-        read: false,
-      },
-      {
-        id: "2",
-        actorUserId: "patient001",
-        message: "patient001 updated ECG data.",
-        createdAt: Date.now() - 60 * 60 * 1000,
-        read: true,
-      },
-    ],
-    []
-  );
+  const handlePressItem = useCallback(async (item: NotificationItem) => {
+    onPressItem?.(item);
+    if (!item.read) {
+      try {
+        const userId = await AsyncStorage.getItem("userId");
+        if (!userId) return;
+        await authFetch(`/api/notification/${userId}/${item.id}/read`, { method: "PATCH" });
+        setAlerts((prev) =>
+          prev.map((a) => (a.id === item.id ? { ...a, read: true } : a))
+        );
+      } catch (e) {
+        console.log("Failed to mark notification as read:", e);
+      }
+    }
+  }, [onPressItem]);
 
-  const list = data && data.length > 0 ? data : fallback;
+  const list = data && data.length > 0 ? data : alerts;
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
@@ -235,7 +244,7 @@ export default function NotificationScreen({ data, onPressItem }: Props) {
         renderItem={({ item }) => (
           <NotificationRow
             item={item}
-            onPress={onPressItem}
+            onPress={handlePressItem}
             avatarSource={resolveAvatarSource(item, avatarIdByUserId)}
           />
         )}
@@ -243,7 +252,7 @@ export default function NotificationScreen({ data, onPressItem }: Props) {
         contentInsetAdjustmentBehavior="never"
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
-            <Text style={styles.emptyText}>표시할 알림이 없습니다</Text>
+            <Text style={styles.emptyText}>No notifications yet.</Text>
           </View>
         }
         showsVerticalScrollIndicator={false}

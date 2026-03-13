@@ -7,6 +7,9 @@ import {
   Image,
   Dimensions,
   Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter, Stack } from "expo-router";
@@ -95,8 +98,15 @@ export default function Login() {
     <>
       <Stack.Screen />
 
-      <View style={styles.container}>
-        {/* 로고 + CareLink 한 줄 */}
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: "#f7f9fb" }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+        {/* Brand Header */}
         <View style={styles.brandContainer}>
           <Image
             source={require("../../../assets/images/CareLinkicon.png")}
@@ -106,7 +116,7 @@ export default function Login() {
           <Text style={styles.brand}>CareLink</Text>
         </View>
 
-        {/* 로그인 카드 */}
+        {/* Login Card */}
         <View style={styles.card}>
           <Text style={styles.loginTitle}>{loading ? "Logging in..." : "Login"}</Text>
 
@@ -117,6 +127,7 @@ export default function Login() {
             value={userId}
             onChangeText={setUserId}
             autoCapitalize="none"
+            editable={!loading}
           />
           <TextInput
             style={styles.input}
@@ -125,6 +136,7 @@ export default function Login() {
             placeholderTextColor="#999"
             value={password}
             onChangeText={setPassword}
+            editable={!loading}
           />
 
           <TouchableOpacity
@@ -137,7 +149,7 @@ export default function Login() {
 
           <View style={styles.authLinksRow}>
             <TouchableOpacity onPress={() => router.push("/(tabs)/auth/find-id")} disabled={loading}>
-              <Text style={[styles.forgotText, loading && { opacity: 0.6 }]}>아이디 찾기</Text>
+              <Text style={[styles.forgotText, loading && { opacity: 0.6 }]}>Find ID</Text>
             </TouchableOpacity>
             <Text style={styles.divider}>|</Text>
             <TouchableOpacity onPress={() => router.push("/(tabs)/auth/forgot-password")} disabled={loading}>
@@ -151,18 +163,19 @@ export default function Login() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#f7f9fb",
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: width * 0.08,
+    paddingVertical: height * 0.05,
   },
   brandContainer: {
     flexDirection: "row",

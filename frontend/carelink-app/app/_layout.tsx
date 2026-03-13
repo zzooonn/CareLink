@@ -40,7 +40,7 @@ export default function RootLayout() {
                 {/* 세션 만료 토스트 */}
                 <Toast
                     visible={sessionExpired}
-                    message="세션이 만료되었습니다. 다시 로그인해주세요."
+                    message="Your session has expired. Please log in again."
                     onHide={() => setSessionExpired(false)}
                 />
             </AuthProvider>

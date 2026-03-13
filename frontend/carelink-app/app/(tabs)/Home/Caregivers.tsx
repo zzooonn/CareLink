@@ -198,6 +198,29 @@ export default function CaregiversScreen() {
       Alert.alert("Required", "Please verify member first.");
       return;
     }
+
+    // ✅ 새로 추가할 때만 백엔드에 Guardian 연결 등록
+    if (!editing) {
+      try {
+        const myUserId = await AsyncStorage.getItem("userId");
+        if (myUserId) {
+          const res = await authFetch("/api/guardian/connect", {
+            method: "POST",
+            body: JSON.stringify({ patientId: myUserId, guardianId: userId }),
+          });
+          if (!res.ok && res.status !== 409) {
+            // 409 = 이미 연결됨 (중복) → 무시하고 진행
+            const msg = await res.text().catch(() => "");
+            Alert.alert("Connection Failed", msg || "Failed to link guardian. Please try again.");
+            return;
+          }
+        }
+      } catch {
+        Alert.alert("Connection Error", "Cannot connect to the server. Please check your network.");
+        return;
+      }
+    }
+
     const nextList: Caregiver[] = editing
       ? list.map((c) => (c.id === editing.id ? { ...c, userId, name, phone, avatarId } : c))
       : [...list, { id: String(Date.now()), userId, name, phone, avatarId }];
@@ -209,6 +232,14 @@ export default function CaregiversScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: H * 0.05 }} showsVerticalScrollIndicator={false}>
+        {list.length === 0 && (
+          <View style={styles.emptyBox}>
+            <Ionicons name="people-outline" size={W * 0.12} color="#CBD5E1" />
+            <Text style={styles.emptyTitle}>No caregivers yet.</Text>
+            <Text style={styles.emptySub}>Tap "Add Caregiver" to link someone who can support you.</Text>
+          </View>
+        )}
+
         <View style={{ gap: GAP_CARD, marginTop: 10 }}>
           {list.map((c) => (
             <View key={c.id} style={styles.card}>
@@ -346,6 +377,15 @@ const styles = StyleSheet.create({
   checkBtn: { height: H * 0.06, paddingHorizontal: 15, borderRadius: R_INPUT, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: BORDER, borderColor: "#CBD5E1" },
   checkBtnText: { fontWeight: "800", color: "#000" },
   verifiedText: { marginTop: 8, color: "#16a34a", fontWeight: "800" },
+
+  emptyBox: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: H * 0.06,
+    gap: H * 0.012,
+  },
+  emptyTitle: { fontSize: FS_NAME, fontWeight: "700", color: "#94A3B8", marginTop: H * 0.01 },
+  emptySub: { fontSize: FS_PHONE, color: "#CBD5E1", textAlign: "center", paddingHorizontal: W * 0.04 },
 
   modalActions: { flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 25 },
   btn: { borderRadius: R_BTN, paddingVertical: 14, paddingHorizontal: 20 },

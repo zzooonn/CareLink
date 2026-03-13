@@ -13,6 +13,7 @@ import { ScaledText as Text } from "../../../components/ScaledText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";
+import { authFetch } from "../../../utils/api";
 
 const { width: W, height: H } = Dimensions.get("window");
 
@@ -48,18 +49,6 @@ function pickAvatarSource(id?: number) {
   return AVATAR_LIST.find((a) => a.id === safeId)?.source ?? AVATAR_LIST[0].source;
 }
 
-/* ---------- (선택) caregivers가 없을 때 보여줄 기본 연락처 ---------- */
-type Contact = {
-  id: string;
-  name: string;
-  role: string;
-  phone: string;
-};
-
-const FALLBACK_CONTACTS: Contact[] = [
-  { id: "1", name: "Dr. Emily Watson", role: "Family Physician", phone: "+1-555-0101" },
-  { id: "2", name: "John Smith", role: "Brother", phone: "+1-555-0202" },
-];
 
 /* ---------- Responsive Tokens ---------- */
 const HP = W * 0.05;
@@ -87,25 +76,47 @@ const AVATAR_R = AVATAR_SIZE / 2;
 
 const BORDER = Math.max(1, W * 0.0025);
 
+type VitalInfo = {
+  bloodType: string | null;
+  allergies: string | null;
+  medicalConditions: string | null;
+};
+
 export default function EmergencyScreen() {
   const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
+  const [vitalInfo, setVitalInfo] = useState<VitalInfo>({ bloodType: null, allergies: null, medicalConditions: null });
 
-  // ✅ 화면 들어올 때마다 caregivers 최신 로드
+  // ✅ 화면 들어올 때마다 caregivers + vital info 최신 로드
   useFocusEffect(
     useCallback(() => {
       const load = async () => {
         try {
           const raw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
-          if (!raw) {
-            setCaregivers([]);
-            return;
+          if (!raw) setCaregivers([]);
+          else {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) setCaregivers(parsed);
+            else setCaregivers([]);
           }
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) setCaregivers(parsed);
-          else setCaregivers([]);
         } catch (e) {
           console.log("Failed to load caregivers:", e);
           setCaregivers([]);
+        }
+
+        try {
+          const userId = await AsyncStorage.getItem("userId");
+          if (!userId) return;
+          const res = await authFetch(`/api/users/${userId}`);
+          if (res.ok) {
+            const data = await res.json();
+            setVitalInfo({
+              bloodType: data.bloodType ?? null,
+              allergies: data.allergies ?? null,
+              medicalConditions: data.medicalConditions ?? null,
+            });
+          }
+        } catch (e) {
+          console.log("Failed to load vital info:", e);
         }
       };
 
@@ -159,8 +170,7 @@ export default function EmergencyScreen() {
 
                 <View style={{ flex: 1 }}>
                   <Text style={styles.contactName}>{c.name}</Text>
-                  {/* role이 없으니 userId를 보조 정보로 */}
-                  <Text style={styles.contactRole}>{c.userId}</Text>
+                  <Text style={styles.contactRole}>Caregiver</Text>
                 </View>
 
                 <TouchableOpacity
@@ -176,51 +186,18 @@ export default function EmergencyScreen() {
             ))}
           </View>
         ) : (
-          <>
-            <View style={styles.emptyBox}>
-              <Text style={styles.emptyTitle}>연동된 Caregiver가 없어요.</Text>
-              <Text style={styles.emptySub}>Caregivers에서 추가하면 여기에도 자동으로 표시돼요.</Text>
-            </View>
-
-            {/* (선택) 기존 더미 연락처 보여주고 싶으면 유지 */}
-            <View style={{ gap: VSP }}>
-              {FALLBACK_CONTACTS.map((c) => (
-                <TouchableOpacity
-                  key={c.id}
-                  style={styles.contactCard}
-                  activeOpacity={0.9}
-                  onPress={() => onCall(c.phone)}
-                >
-                  <View style={[styles.contactAvatar, styles.fallbackAvatar]}>
-                    <Text style={styles.fallbackAvatarText}>{c.name.trim().slice(0, 1)}</Text>
-                  </View>
-
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.contactName}>{c.name}</Text>
-                    <Text style={styles.contactRole}>{c.role}</Text>
-                  </View>
-
-                  <TouchableOpacity
-                    onPress={() => onCall(c.phone)}
-                    style={styles.callBtn}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Call ${c.name}`}
-                    activeOpacity={0.9}
-                  >
-                    <Text style={styles.callBtnText}>Call</Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </>
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyTitle}>No caregivers linked yet.</Text>
+            <Text style={styles.emptySub}>Add a caregiver in the Caregivers tab and they will appear here automatically.</Text>
+          </View>
         )}
 
         {/* Vital Information */}
         <Text style={styles.sectionTitle}>Vital Information</Text>
         <View style={styles.card}>
-          <Text style={styles.cardLine}>Blood Type: O+</Text>
-          <Text style={styles.cardLine}>Allergies: Penicillin</Text>
-          <Text style={styles.cardLine}>Medical Conditions: Asthma</Text>
+          <Text style={styles.cardLine}>Blood Type: {vitalInfo.bloodType ?? "Not set"}</Text>
+          <Text style={styles.cardLine}>Allergies: {vitalInfo.allergies ?? "Not set"}</Text>
+          <Text style={styles.cardLine}>Medical Conditions: {vitalInfo.medicalConditions ?? "Not set"}</Text>
         </View>
 
         {/* Health Resources */}
@@ -248,7 +225,7 @@ const styles = StyleSheet.create({
 
   /* SOS */
   sosButton: {
-    backgroundColor: "#34c6ef",
+    backgroundColor: "#ef4444",
     borderRadius: R_CARD,
     paddingVertical: SOS_PV,
     alignItems: "center",

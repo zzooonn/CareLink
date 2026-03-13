@@ -12,6 +12,8 @@ import {
   Dimensions,
   ActivityIndicator,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useFontSize } from "../../../contexts/FontSizeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -36,6 +38,11 @@ type UserProfile = {
   // ✅ 백엔드가 내려주면 자동 반영되게 optional
   profileImageId?: number;
   profile_image_id?: number; // snake_case 대비
+
+  // ✅ Vital info
+  bloodType?: string;
+  allergies?: string;
+  medicalConditions?: string;
 };
 
 type Guardian = {
@@ -282,8 +289,10 @@ export default function ProfileScreen() {
         birthDate: form.birthDate,
         phone: form.phone,
         address: form.address,
-        // ❗백 수정 안하면 서버에 아바타 저장은 못하니 여기엔 안 넣음
-        // profileImageId: profileImageId,
+        profileImageId: profileImageId,
+        bloodType: form.bloodType ?? null,
+        allergies: form.allergies ?? null,
+        medicalConditions: form.medicalConditions ?? null,
       };
 
       const res = await authFetch(`/api/users/${USER_ID}`, {
@@ -317,6 +326,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={{ paddingBottom: H * 0.12 }}
@@ -470,6 +480,38 @@ export default function ProfileScreen() {
               <InfoItem label="Role" value={form.role} />
             </View>
 
+            {/* Health Information */}
+            <Text style={[styles.sectionTitle, ms(FS_TITLE)]}>Health information</Text>
+            <View style={styles.infoSection}>
+              <EditableInfoItem
+                label="Blood Type"
+                value={form.bloodType ?? ""}
+                isEditing={editingKey === "bloodType"}
+                onPress={() => startEdit("bloodType")}
+                onChangeText={(t) => onChangeField("bloodType", t)}
+                onEndEditing={endEdit}
+                placeholder="e.g., O+, A-, B+"
+              />
+              <EditableInfoItem
+                label="Allergies"
+                value={form.allergies ?? ""}
+                isEditing={editingKey === "allergies"}
+                onPress={() => startEdit("allergies")}
+                onChangeText={(t) => onChangeField("allergies", t)}
+                onEndEditing={endEdit}
+                placeholder="e.g., Penicillin, Pollen"
+              />
+              <EditableInfoItem
+                label="Medical Conditions"
+                value={form.medicalConditions ?? ""}
+                isEditing={editingKey === "medicalConditions"}
+                onPress={() => startEdit("medicalConditions")}
+                onChangeText={(t) => onChangeField("medicalConditions", t)}
+                onEndEditing={endEdit}
+                placeholder="e.g., Asthma, Diabetes"
+              />
+            </View>
+
             {/* Emergency Contacts */}
             <Text style={[styles.sectionTitle, ms(FS_TITLE)]}>Emergency contact</Text>
 
@@ -516,6 +558,7 @@ export default function ProfileScreen() {
           </>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

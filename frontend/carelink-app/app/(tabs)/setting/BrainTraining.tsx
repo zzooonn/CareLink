@@ -1,5 +1,5 @@
 // app/(tabs)/setting/BrainTraining.tsx
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { authFetch } from "../../../utils/api";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type Card = { id: string; key: string; icon: IconName; flipped: boolean; matched: boolean };
@@ -72,6 +74,22 @@ export default function BrainTraining() {
   const [active, setActive] = useState(false);
   const [moves, setMoves] = useState(0);
   const [matches, setMatches] = useState(0);
+  const [bestScore, setBestScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    const loadBest = async () => {
+      try {
+        const userId = await AsyncStorage.getItem("userId");
+        if (!userId) return;
+        const res = await authFetch(`/api/brain-training/${userId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setBestScore(data.bestScore ?? 0);
+        }
+      } catch {}
+    };
+    loadBest();
+  }, []);
 
   const opened = useRef<number[]>([]);
   const resolving = useRef(false);
@@ -189,12 +207,40 @@ export default function BrainTraining() {
           const finalMoves = moves + 1;
           const score = Math.max(0, 100 - finalMoves);
 
-          setTimeout(() => {
-            Alert.alert(
-              "Game Completed",
-              `You matched all the cards!\nMoves: ${finalMoves}\nScore: ${score}`
-            );
-          }, 300);
+          // 점수 백엔드 저장
+          AsyncStorage.getItem("userId").then(userId => {
+            if (!userId) return;
+            authFetch(`/api/brain-training/${userId}`, {
+              method: "POST",
+              body: JSON.stringify({ score }),
+            }).then(res => {
+              if (res.ok) {
+                res.json().then(data => {
+                  setBestScore(data.bestScore ?? score);
+                  setTimeout(() => {
+                    Alert.alert(
+                      "Game Completed!",
+                      `All cards matched!\nMoves: ${finalMoves}\nScore: ${score}\nBest Score: ${data.bestScore ?? score}`
+                    );
+                  }, 300);
+                });
+              } else {
+                setTimeout(() => {
+                  Alert.alert(
+                    "Game Completed",
+                    `You matched all the cards!\nMoves: ${finalMoves}\nScore: ${score}`
+                  );
+                }, 300);
+              }
+            }).catch(() => {
+              setTimeout(() => {
+                Alert.alert(
+                  "Game Completed",
+                  `You matched all the cards!\nMoves: ${finalMoves}\nScore: ${score}`
+                );
+              }, 300);
+            });
+          });
 
           setActive(false);
         }
@@ -230,6 +276,11 @@ export default function BrainTraining() {
           <Text style={styles.status}>Matches: {matches}/{PAIRS}</Text>
           <Text style={styles.status}>Moves: {moves}</Text>
         </View>
+        {bestScore !== null && (
+          <View style={styles.bestRow}>
+            <Text style={styles.bestText}>Best Score: {bestScore}</Text>
+          </View>
+        )}
 
         <View style={styles.grid}>
           {deck.map((card, i) => {
@@ -302,8 +353,10 @@ export default function BrainTraining() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff", paddingHorizontal: H_PADDING },
 
-  statusRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
+  statusRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
   status: { color: "#334155", fontWeight: "700", fontSize: FS_STATUS },
+  bestRow: { alignItems: "center", marginBottom: 8 },
+  bestText: { color: "#0ea5e9", fontWeight: "700", fontSize: FS_STATUS * 0.85 },
 
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   card: {
