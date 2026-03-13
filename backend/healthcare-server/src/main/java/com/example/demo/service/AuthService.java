@@ -122,9 +122,9 @@ public class AuthService {
         return passwordResetTokenService.issueToken(userId.trim());
     }
 
-    public String findUserId(String name, String birthDateStr) {
-        if (name == null || name.isBlank() || birthDateStr == null || birthDateStr.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name and birthDate are required");
+    public String findUserId(String name, String birthDateStr, String phone) {
+        if (name == null || name.isBlank() || birthDateStr == null || birthDateStr.isBlank() || phone == null || phone.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name, birthDate and phone are required");
         }
         LocalDate birthDate;
         try {
@@ -132,11 +132,10 @@ public class AuthService {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format. Use yyyy-MM-dd");
         }
-        List<User> users = userRepository.findByNameIgnoreCaseAndBirthDate(name.trim(), birthDate);
-        if (users.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No matching user found");
-        }
-        return users.get(0).getUserId();
+        String normalizedPhone = phone.trim().replaceAll("[^\\d+]", "");
+        return userRepository.findByNameIgnoreCaseAndBirthDateAndPhone(name.trim(), birthDate, normalizedPhone)
+                .map(User::getUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No matching user found"));
     }
 
     public void resetPassword(String userId, String newPassword, String resetToken) {

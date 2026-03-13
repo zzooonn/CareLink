@@ -11,5 +11,8 @@ public record UserProfileResponse(
         String phone,
         String address,
         UserRole role,
-        Integer profileImageId
+        Integer profileImageId,
+        String bloodType,
+        String allergies,
+        String medicalConditions
 ) {}

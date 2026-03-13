@@ -43,6 +43,9 @@ public class UserController {
         if (req.phone() != null) u.setPhone(req.phone());
         if (req.address() != null) u.setAddress(req.address());
         if (req.profileImageId() != null) u.setProfileImageId(req.profileImageId());
+        if (req.bloodType() != null) u.setBloodType(req.bloodType());
+        if (req.allergies() != null) u.setAllergies(req.allergies());
+        if (req.medicalConditions() != null) u.setMedicalConditions(req.medicalConditions());
 
         userRepository.save(u);
         return ResponseEntity.ok(toResponse(u));
@@ -57,7 +60,10 @@ public class UserController {
                 u.getPhone(),
                 u.getAddress(),
                 u.getRole(),
-                u.getProfileImageId()
+                u.getProfileImageId(),
+                u.getBloodType(),
+                u.getAllergies(),
+                u.getMedicalConditions()
         );
     }
 }

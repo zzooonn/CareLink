@@ -9,5 +9,8 @@ public record UserUpdateRequest(
         LocalDate birthDate,
         String phone,
         String address,
-        Integer profileImageId 
+        Integer profileImageId,
+        String bloodType,
+        String allergies,
+        String medicalConditions
 ) {}

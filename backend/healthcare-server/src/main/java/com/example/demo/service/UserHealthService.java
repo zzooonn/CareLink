@@ -20,6 +20,7 @@ public class UserHealthService {
     private final UserRepository userRepository;
     private final UserHealthRepository userHealthRepository; // 요약 정보
     private final UserHealthRecordRepository userHealthRecordRepository; // 기록 로그
+    private final NotificationService notificationService;
 
     @Transactional
 public void saveHealthRecord(CreateHealthRecordRequest req) {
@@ -131,6 +132,14 @@ public void saveHealthRecord(CreateHealthRecordRequest req) {
 
     // 요약 업데이트
     updateUserHealthSummary(user, userHealth, req);
+
+    // ✅ 이상값 감지 시 환자 + 연결된 보호자에게 알림 발송
+    if (overall) {
+        String anomalyType = record.getAnomalyType() != null ? record.getAnomalyType() : "HEALTH_ANOMALY";
+        String title = buildAlertTitle(anomalyType);
+        String msg = buildAlertMessage(anomalyType, req);
+        notificationService.sendEmergencyAlert(user, title, msg, "HEALTH_ANOMALY");
+    }
 }
 
 
@@ -163,5 +172,27 @@ public void saveHealthRecord(CreateHealthRecordRequest req) {
 
         // 요약 테이블 저장 (UPDATE)
         userHealthRepository.save(userHealth);
+    }
+
+    private String buildAlertTitle(String anomalyType) {
+        return switch (anomalyType) {
+            case "HIGH_BP"      -> "⚠️ High Blood Pressure Detected";
+            case "LOW_BP"       -> "⚠️ Low Blood Pressure Detected";
+            case "HIGH_GLUCOSE" -> "⚠️ High Blood Glucose Detected";
+            case "LOW_GLUCOSE"  -> "⚠️ Low Blood Glucose Detected";
+            case "ECG_ABNORMAL" -> "⚠️ Abnormal ECG Detected";
+            default             -> "⚠️ Abnormal Vital Signs Detected";
+        };
+    }
+
+    private String buildAlertMessage(String anomalyType, CreateHealthRecordRequest req) {
+        return switch (anomalyType) {
+            case "HIGH_BP"      -> String.format("Blood pressure %d/%d mmHg exceeds normal range (≥140/90).", req.getBpSys(), req.getBpDia());
+            case "LOW_BP"       -> String.format("Blood pressure %d/%d mmHg is below normal range (<90/60).", req.getBpSys(), req.getBpDia());
+            case "HIGH_GLUCOSE" -> String.format("Blood glucose %d mg/dL exceeds normal range (≥200).", req.getGlucose());
+            case "LOW_GLUCOSE"  -> String.format("Blood glucose %d mg/dL is below normal range (≤70).", req.getGlucose());
+            case "ECG_ABNORMAL" -> "An abnormality was detected in the ECG reading. Please consult a healthcare provider.";
+            default             -> "Abnormal vital signs were recorded. Please check the health data.";
+        };
     }
 }
