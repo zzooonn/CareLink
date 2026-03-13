@@ -135,9 +135,15 @@ export default function Login() {
             <Text style={styles.loginButtonText}>{loading ? "Please wait..." : "Login"}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => router.push("/(tabs)/auth/forgot-password")} disabled={loading}>
-            <Text style={[styles.forgotText, loading && { opacity: 0.6 }]}>Forgot Password?</Text>
-          </TouchableOpacity>
+          <View style={styles.authLinksRow}>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/auth/find-id")} disabled={loading}>
+              <Text style={[styles.forgotText, loading && { opacity: 0.6 }]}>아이디 찾기</Text>
+            </TouchableOpacity>
+            <Text style={styles.divider}>|</Text>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/auth/forgot-password")} disabled={loading}>
+              <Text style={[styles.forgotText, loading && { opacity: 0.6 }]}>Forgot Password?</Text>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity onPress={() => router.push("/(tabs)/auth/data-agreement")} disabled={loading} style={{ marginTop: height * 0.02 }}>
             <Text style={[styles.signupText, loading && { opacity: 0.6 }]}>
@@ -215,10 +221,19 @@ const styles = StyleSheet.create({
     fontSize: width * 0.045,
     fontWeight: "bold",
   },
+  authLinksRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: height * 0.015,
+    gap: width * 0.03,
+  },
+  divider: {
+    color: "#d1d5db",
+    fontSize: width * 0.04,
+  },
   forgotText: {
     color: "#0ea5e9",
     fontSize: width * 0.04,
-    marginTop: height * 0.015,
   },
   signupText: {
     color: "#6b7280",

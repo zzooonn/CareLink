@@ -15,33 +15,33 @@ import { useRouter } from "expo-router";
 const { width, height } = Dimensions.get("window");
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-export default function ForgotPassword() {
+export default function FindId() {
   const router = useRouter();
-  const [userId, setUserId] = useState("");
+  const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleReset = async () => {
-    if (!userId.trim() || !birthDate.trim()) {
-      Alert.alert("Required", "Please enter both your ID and date of birth.");
+  const handleFindId = async () => {
+    if (!name.trim() || !birthDate.trim()) {
+      Alert.alert("필수 입력", "이름과 생년월일을 모두 입력해주세요.");
       return;
     }
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
     if (!datePattern.test(birthDate.trim())) {
-      Alert.alert("Format Error", "Please enter your date of birth as YYYY-MM-DD.\nExample: 1990-01-15");
+      Alert.alert("형식 오류", "생년월일을 YYYY-MM-DD 형식으로 입력해주세요.\n예) 1990-01-15");
       return;
     }
     if (!API_BASE_URL) {
-      Alert.alert("Configuration Error", "Server address is not configured.");
+      Alert.alert("설정 오류", "서버 주소가 설정되지 않았습니다.");
       return;
     }
 
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/find-id`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: userId.trim(), birthDate: birthDate.trim() }),
+        body: JSON.stringify({ name: name.trim(), birthDate: birthDate.trim() }),
       });
 
       const text = await res.text();
@@ -51,19 +51,17 @@ export default function ForgotPassword() {
       } catch {}
 
       if (!res.ok) {
-        Alert.alert("Verification Failed", data?.message || "ID or name does not match.");
+        Alert.alert("조회 실패", data?.message || "일치하는 계정을 찾을 수 없습니다.");
         return;
       }
 
-      router.push({
-        pathname: "/(tabs)/auth/reset-password",
-        params: {
-          userId: userId.trim(),
-          resetToken: data?.resetToken ?? "",
-        },
-      });
+      Alert.alert(
+        "아이디 찾기 완료",
+        `회원님의 아이디는\n\n"${data.userId}"\n\n입니다.`,
+        [{ text: "로그인하기", onPress: () => router.replace("/(tabs)/auth/login") }]
+      );
     } catch {
-      Alert.alert("Connection Error", "Could not connect to the server. Please try again.");
+      Alert.alert("연결 오류", "서버에 연결할 수 없습니다. 다시 시도해주세요.");
     } finally {
       setLoading(false);
     }
@@ -81,23 +79,22 @@ export default function ForgotPassword() {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.loginTitle}>Forgot Password?</Text>
+        <Text style={styles.title}>아이디 찾기</Text>
         <Text style={styles.subtitle}>
-          Enter the ID and date of birth you registered with.
+          가입 시 등록한 이름과 생년월일을 입력해주세요.
         </Text>
 
         <TextInput
           style={styles.input}
-          placeholder="User ID"
+          placeholder="이름"
           placeholderTextColor="#999"
-          value={userId}
-          onChangeText={setUserId}
-          autoCapitalize="none"
+          value={name}
+          onChangeText={setName}
           editable={!loading}
         />
         <TextInput
           style={styles.input}
-          placeholder="Date of Birth (e.g. 1990-01-15)"
+          placeholder="생년월일 (예: 1990-01-15)"
           placeholderTextColor="#999"
           value={birthDate}
           onChangeText={setBirthDate}
@@ -106,30 +103,22 @@ export default function ForgotPassword() {
         />
 
         <TouchableOpacity
-          style={[styles.loginButton, loading && { opacity: 0.6 }]}
-          onPress={handleReset}
+          style={[styles.button, loading && { opacity: 0.6 }]}
+          onPress={handleFindId}
           disabled={loading}
         >
           {loading
             ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.loginButtonText}>Reset password</Text>
+            : <Text style={styles.buttonText}>아이디 찾기</Text>
           }
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => router.push("/(tabs)/auth/find-id")}
-          disabled={loading}
-          style={{ marginTop: height * 0.02 }}
-        >
-          <Text style={styles.backText}>Forgot your ID?</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => router.back()}
           disabled={loading}
-          style={{ marginTop: height * 0.015 }}
+          style={{ marginTop: height * 0.02 }}
         >
-          <Text style={styles.backText}>Back to Login</Text>
+          <Text style={styles.backText}>뒤로 가기</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -172,7 +161,7 @@ const styles = StyleSheet.create({
     elevation: 6,
     alignItems: "center",
   },
-  loginTitle: {
+  title: {
     fontSize: width * 0.06,
     fontWeight: "bold",
     marginBottom: height * 0.01,
@@ -194,7 +183,7 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.02,
     color: "#333",
   },
-  loginButton: {
+  button: {
     backgroundColor: "#0ea5e9",
     borderRadius: 10,
     width: "100%",
@@ -202,7 +191,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: height * 0.01,
   },
-  loginButtonText: {
+  buttonText: {
     color: "#fff",
     fontSize: width * 0.045,
     fontWeight: "bold",
