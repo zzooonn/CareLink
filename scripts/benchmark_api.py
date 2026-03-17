@@ -30,15 +30,17 @@ import requests
 def parse_args():
     p = argparse.ArgumentParser(description="CareLink API Benchmark")
     p.add_argument("--base-url", default="http://localhost:8080",
-                   help="백엔드 base URL (e.g. http://3.x.x.x:30080)")
+                   help="백엔드 base URL (e.g. http://3.x.x.x:8080)")
     p.add_argument("--ai-url", default="http://localhost:8000",
                    help="AI 서버 base URL")
     p.add_argument("--token", default="",
-                   help="JWT Bearer 토큰 (로그인 후 발급)")
+                   help="JWT Bearer 토큰 (생략 시 자동 로그인)")
     p.add_argument("--ai-key", default="",
                    help="AI 서버 X-API-Key")
-    p.add_argument("--user-id", default="testuser",
-                   help="헬스 데이터 조회 대상 userId")
+    p.add_argument("--user-id", default="benchuser",
+                   help="테스트 계정 userId")
+    p.add_argument("--password", default="Bench1234!",
+                   help="테스트 계정 password")
     p.add_argument("--concurrency", type=int, nargs="+", default=[1, 5, 10, 20],
                    help="동시 사용자 수 목록 (기본: 1 5 10 20)")
     p.add_argument("--requests-per-thread", type=int, default=20,
@@ -208,23 +210,63 @@ def run_boundary_tests(ai_base_url: str, ai_key: str) -> list:
 # ---------------------------------------------------------------------------
 # 6. 메인
 # ---------------------------------------------------------------------------
+def auto_login(base_url: str, user_id: str, password: str) -> str:
+    """테스트 계정 자동 생성 후 JWT 반환"""
+    headers = {"Content-Type": "application/json"}
+
+    # 회원가입 시도 (이미 있으면 409, 무시)
+    try:
+        requests.post(f"{base_url}/api/auth/signup", json={
+            "userId": user_id, "password": password,
+            "name": "BenchUser", "email": f"{user_id}@bench.test",
+            "birthDate": "1990-01-01",
+            "phone": "01000000000",
+            "role": "PATIENT"
+        }, headers=headers, timeout=15)
+    except Exception:
+        pass
+
+    # 로그인
+    try:
+        r = requests.post(f"{base_url}/api/auth/login", json={
+            "userId": user_id, "password": password
+        }, headers=headers, timeout=15)
+        if r.status_code == 200:
+            data = r.json()
+            token = data.get("token") or data.get("accessToken") or data.get("jwt", "")
+            if token:
+                print(f"  ✅ 자동 로그인 성공 (userId={user_id})")
+                return token
+        print(f"  ⚠️  로그인 응답: HTTP {r.status_code} — 인증 없이 진행")
+    except Exception as e:
+        print(f"  ⚠️  로그인 실패: {e} — 인증 없이 진행")
+    return ""
+
+
 def main():
     args = parse_args()
-    headers = make_headers(args.token)
     report = {
         "generated_at": datetime.now().isoformat(),
         "base_url": args.base_url,
         "ai_url": args.ai_url,
     }
 
-    # --- 6-1. 백엔드 헬스 확인 ---
     print("=== CareLink API 벤치마크 ===")
+
+    # --- 6-1. 백엔드 헬스 확인 ---
     health_url = f"{args.base_url}/actuator/health"
     lat, code = timed_get(health_url, {})
     print(f"[Health] {health_url} → HTTP {code} ({lat:.1f}ms)")
     report["backend_health"] = {"status": code, "latency_ms": round(lat, 2)}
 
-    # --- 6-2. 주요 API 동시 부하 테스트 ---
+    # --- 6-2. JWT 토큰 확보 ---
+    token = args.token
+    if not token:
+        print("\n[인증] JWT 토큰 자동 발급 중...")
+        token = auto_login(args.base_url, args.user_id, args.password)
+    headers = make_headers(token)
+
+    # --- 6-3. 주요 API 동시 부하 테스트 ---
     endpoints = {
         "health_check": f"{args.base_url}/actuator/health",
         "user_health_records": f"{args.base_url}/api/user-health/{args.user_id}/records?range=7d",
@@ -232,11 +274,13 @@ def main():
 
     report["load_test"] = {}
     for ep_name, url in endpoints.items():
+        # health_check는 인증 불필요
+        ep_headers = {} if ep_name == "health_check" else headers
         print(f"\n[부하테스트] {ep_name}")
         ep_results = []
         for c in args.concurrency:
             print(f"  동시 {c}명 × {args.requests_per_thread}회 요청...")
-            r = run_concurrent_test(url, headers, c, args.requests_per_thread)
+            r = run_concurrent_test(url, ep_headers, c, args.requests_per_thread)
             ep_results.append(r)
             print(f"    → avg {r['latency_avg_ms']}ms | p95 {r['latency_p95_ms']}ms | "
                   f"TPS {r['tps']} | 에러율 {r['error_rate_pct']}%")
