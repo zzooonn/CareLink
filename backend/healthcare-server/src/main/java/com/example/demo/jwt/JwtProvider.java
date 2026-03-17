@@ -5,7 +5,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -46,13 +48,29 @@ public class JwtProvider {
     }
 
     public String getUserId(String token) {
-        return Jwts.parser().verifyWith(key).build()
-                .parseSignedClaims(token).getPayload().getSubject();
+        try {
+            return Jwts.parser().verifyWith(key).build()
+                    .parseSignedClaims(token).getPayload().getSubject();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
     }
 
     public UserRole getRole(String token) {
-        String role = Jwts.parser().verifyWith(key).build()
-                .parseSignedClaims(token).getPayload().get("role", String.class);
-        return UserRole.valueOf(role);
+        try {
+            String role = Jwts.parser().verifyWith(key).build()
+                    .parseSignedClaims(token).getPayload().get("role", String.class);
+            if (role == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token missing role claim");
+            }
+            return UserRole.valueOf(role);
+        } catch (IllegalArgumentException e) {
+            // JWT에 존재하지 않는 role 값이 포함된 경우 (조작된 토큰)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid role in token");
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
     }
 }

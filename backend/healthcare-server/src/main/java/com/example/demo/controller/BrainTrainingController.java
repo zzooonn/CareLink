@@ -17,7 +17,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/brain-training")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class BrainTrainingController {
 
     private final BrainTrainingRepository brainTrainingRepository;

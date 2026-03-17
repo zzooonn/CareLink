@@ -72,11 +72,7 @@ public class NewsAutoCollectorService {
         for (String diseaseCode : codes) {
             String keyword = mapDiseaseCodeToKeyword(diseaseCode);
 
-            // ✅ 유저 + 질병코드 + NEWS만 삭제 후 저장(유저별 갱신)
-            diseaseTrendRepository.deleteByUser_IdAndDiseaseCodeAndAdvisoryType(
-                    user.getId(), diseaseCode, "NEWS"
-            );
-
+            // ✅ 먼저 fetch → 성공 시에만 삭제 (API 실패해도 기존 데이터 보존)
             String newsJson = newsFetchService.fetchNews(keyword);
             List<NewsApiResponse.NewsArticle> articles = parseArticles(newsJson);
 
@@ -92,6 +88,11 @@ public class NewsAutoCollectorService {
                         userId, diseaseCode, keyword);
                 continue;
             }
+
+            // 새 데이터가 있을 때만 기존 뉴스 삭제
+            diseaseTrendRepository.deleteByUser_IdAndDiseaseCodeAndAdvisoryType(
+                    user.getId(), diseaseCode, "NEWS"
+            );
 
             for (NewsApiResponse.NewsArticle a : top5) {
                 DiseaseTrend trend = new DiseaseTrend();

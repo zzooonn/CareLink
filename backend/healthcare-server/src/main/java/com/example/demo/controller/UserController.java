@@ -14,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins="*")
 public class UserController {
 
     private final UserRepository userRepository;
@@ -22,7 +21,8 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfileResponse> getUser(@PathVariable String userId) {
-        accessControlService.ensureSelfOrLinkedGuardian(userId);
+        // 본인, 연결된 보호자, 또는 GUARDIAN 역할 계정(추가 전 검증용)만 허용
+        accessControlService.ensureSelfLinkedOrViewingGuardian(userId);
         User u = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
         return ResponseEntity.ok(toResponse(u));

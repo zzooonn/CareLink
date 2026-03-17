@@ -46,6 +46,7 @@ function pickAvatarSource(id?: number) {
 }
 
 const CAREGIVERS_STORAGE_KEY = "caregivers:list";
+const CAREGIVERS_AVATAR_KEY = "caregivers:avatars"; // { [userId]: avatarId }
 const HP = W * 0.05;
 
 /* ---------- ✅ 가독성 개선용 폰트 사이즈 상향 ---------- */
@@ -86,6 +87,13 @@ type UserProfileResponse = {
   profileImageId: number;
 };
 
+// GET /api/guardian/my-guardians/{id} 응답 타입
+type GuardianListItem = {
+  userId: string;
+  name: string;
+  phone: string;
+};
+
 const initialData: Caregiver[] = [];
 
 async function fetchUserProfile(userId: string): Promise<
@@ -104,6 +112,7 @@ async function fetchUserProfile(userId: string): Promise<
 
 export default function CaregiversScreen() {
   const [list, setList] = useState<Caregiver[]>(initialData);
+  const [loadingList, setLoadingList] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState<Caregiver | null>(null);
 
@@ -117,16 +126,50 @@ export default function CaregiversScreen() {
   useFocusEffect(
     useCallback(() => {
       const load = async () => {
+        setLoadingList(true);
         try {
-          const raw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
-          if (!raw) {
-            setList(initialData);
-            await AsyncStorage.setItem(CAREGIVERS_STORAGE_KEY, JSON.stringify(initialData));
-            return;
+          const myUserId = await AsyncStorage.getItem("userId");
+          if (!myUserId) return;
+
+          // 서버에서 보호자 목록 로드 (항상 최신 name/phone)
+          const res = await authFetch(`/api/guardian/my-guardians/${encodeURIComponent(myUserId)}`);
+          if (res.ok) {
+            const serverList = await res.json(); // ConnectedPatientResponseDto[]
+            // avatarId는 로컬 캐시에서 복원
+            const avatarRaw = await AsyncStorage.getItem(CAREGIVERS_AVATAR_KEY);
+            const avatarMap: Record<string, number> = avatarRaw ? JSON.parse(avatarRaw) : {};
+
+            const mapped: Caregiver[] = serverList.map((g: GuardianListItem) => ({
+              id: g.userId,
+              userId: g.userId,
+              name: g.name ?? "",
+              phone: g.phone ?? "",
+              avatarId: avatarMap[g.userId] ?? 1,
+            }));
+
+            setList(mapped);
+            // AsyncStorage 캐시 갱신 (오프라인 fallback용)
+            await AsyncStorage.setItem(CAREGIVERS_STORAGE_KEY, JSON.stringify(mapped));
+          } else {
+            // 서버 실패 시 로컬 캐시 사용 (오프라인 대응)
+            const raw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) setList(parsed);
+            }
           }
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) setList(parsed);
-        } catch (e) { console.log(e); }
+        } catch (e) {
+          // 네트워크 오류 시 로컬 캐시 사용
+          try {
+            const raw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) setList(parsed);
+            }
+          } catch { /* ignore */ }
+        } finally {
+          setLoadingList(false);
+        }
       };
       load();
     }, [])
@@ -164,6 +207,22 @@ export default function CaregiversScreen() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          try {
+            const myUserId = await AsyncStorage.getItem("userId");
+            if (myUserId) {
+              const res = await authFetch(
+                `/api/guardian/disconnect?patientId=${encodeURIComponent(myUserId)}&guardianId=${encodeURIComponent(id)}`,
+                { method: "DELETE" }
+              );
+              if (!res.ok && res.status !== 404) {
+                Alert.alert("Error", "Failed to remove caregiver from server. Please try again.");
+                return;
+              }
+            }
+          } catch {
+            Alert.alert("Connection Error", "Cannot connect to the server. Please check your network.");
+            return;
+          }
           const nextList = list.filter((c) => c.id !== id);
           setList(nextList);
           await AsyncStorage.setItem(CAREGIVERS_STORAGE_KEY, JSON.stringify(nextList));
@@ -206,7 +265,7 @@ export default function CaregiversScreen() {
         if (myUserId) {
           const res = await authFetch("/api/guardian/connect", {
             method: "POST",
-            body: JSON.stringify({ patientId: myUserId, guardianId: userId }),
+            body: JSON.stringify({ patientId: myUserId, guardianId: userId, contactPhone: phone.trim() }),
           });
           if (!res.ok && res.status !== 409) {
             // 409 = 이미 연결됨 (중복) → 무시하고 진행
@@ -221,9 +280,15 @@ export default function CaregiversScreen() {
       }
     }
 
+    // avatarId를 userId 기준으로 로컬 캐시에 저장 (서버 응답에 avatarId 없음)
+    const avatarRaw = await AsyncStorage.getItem(CAREGIVERS_AVATAR_KEY);
+    const avatarMap: Record<string, number> = avatarRaw ? JSON.parse(avatarRaw) : {};
+    avatarMap[userId] = avatarId;
+    await AsyncStorage.setItem(CAREGIVERS_AVATAR_KEY, JSON.stringify(avatarMap));
+
     const nextList: Caregiver[] = editing
       ? list.map((c) => (c.id === editing.id ? { ...c, userId, name, phone, avatarId } : c))
-      : [...list, { id: String(Date.now()), userId, name, phone, avatarId }];
+      : [...list, { id: userId, userId, name, phone, avatarId }];
     setList(nextList);
     await AsyncStorage.setItem(CAREGIVERS_STORAGE_KEY, JSON.stringify(nextList));
     setModalVisible(false);
@@ -232,13 +297,17 @@ export default function CaregiversScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: H * 0.05 }} showsVerticalScrollIndicator={false}>
-        {list.length === 0 && (
+        {loadingList ? (
+          <View style={styles.emptyBox}>
+            <ActivityIndicator size="large" color="#26B4E5" />
+          </View>
+        ) : list.length === 0 ? (
           <View style={styles.emptyBox}>
             <Ionicons name="people-outline" size={W * 0.12} color="#CBD5E1" />
             <Text style={styles.emptyTitle}>No caregivers yet.</Text>
             <Text style={styles.emptySub}>Tap "Add Caregiver" to link someone who can support you.</Text>
           </View>
-        )}
+        ) : null}
 
         <View style={{ gap: GAP_CARD, marginTop: 10 }}>
           {list.map((c) => (
@@ -292,7 +361,7 @@ export default function CaregiversScreen() {
               </View>
 
               {verifiedUserId === cgUserId.trim() && !!verifiedUserId && (
-                <Text style={styles.verifiedText}>✅ Verified: {verifiedUserId}</Text>
+                <Text style={styles.verifiedText}>Verified: {verifiedUserId}</Text>
               )}
 
               <Text style={styles.label}>Name</Text>

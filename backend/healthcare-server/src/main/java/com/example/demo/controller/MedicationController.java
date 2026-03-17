@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/medications")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class MedicationController {
 
     private final MedicationRepository medicationRepository;
@@ -54,9 +53,15 @@ public class MedicationController {
 
         String freq = body.get("freq");
         if (freq != null && !freq.isBlank()) {
+            LocalTime parsedTime;
+            try {
+                parsedTime = LocalTime.parse(freq);
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid time format. Use HH:mm (e.g. 08:30)");
+            }
             UserMedicationSchedule schedule = new UserMedicationSchedule();
             schedule.setMedication(med);
-            schedule.setTimeOfDay(LocalTime.parse(freq));
+            schedule.setTimeOfDay(parsedTime);
             schedule.setDaysOfWeek("EVERYDAY");
             schedule.setTimezone("Asia/Seoul");
             med.getSchedules().add(schedule);
@@ -81,10 +86,16 @@ public class MedicationController {
 
         String freq = body.get("freq");
         if (freq != null && !freq.isBlank()) {
+            LocalTime parsedTime;
+            try {
+                parsedTime = LocalTime.parse(freq);
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid time format. Use HH:mm (e.g. 08:30)");
+            }
             med.getSchedules().clear();
             UserMedicationSchedule schedule = new UserMedicationSchedule();
             schedule.setMedication(med);
-            schedule.setTimeOfDay(LocalTime.parse(freq));
+            schedule.setTimeOfDay(parsedTime);
             schedule.setDaysOfWeek("EVERYDAY");
             schedule.setTimezone("Asia/Seoul");
             med.getSchedules().add(schedule);
@@ -109,7 +120,9 @@ public class MedicationController {
 
     private Map<String, Object> toResponse(UserMedication med) {
         String freq = med.getSchedules().isEmpty() ? "" :
-                med.getSchedules().get(0).getTimeOfDay().toString();
+                med.getSchedules().get(0).getTimeOfDay() != null
+                        ? med.getSchedules().get(0).getTimeOfDay().toString()
+                        : "";
         return Map.of(
                 "id", String.valueOf(med.getId()),
                 "name", med.getName() != null ? med.getName() : "",

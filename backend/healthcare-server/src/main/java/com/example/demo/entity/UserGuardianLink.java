@@ -39,5 +39,8 @@ public class UserGuardianLink {
     private User guardian;
 
     private String relationType; // "FAMILY", "CAREGIVER" 등
+
+    // 환자가 저장한 보호자 연락처 (보호자 계정의 phone과 다를 수 있음)
+    private String contactPhone;
 }
 

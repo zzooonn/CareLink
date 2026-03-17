@@ -3,7 +3,11 @@
     "allow": [
       "Bash(python:*)",
       "Bash(ai/venv/Scripts/python.exe:*)",
-      "Bash(find c:UserszooncDesktopHealthCarebackendhealthcare-server -name *Security* -type f)"
+      "Bash(find c:UserszooncDesktopHealthCarebackendhealthcare-server -name *Security* -type f)",
+      "Bash(find c:UserszooncDesktopHealthCarebackendhealthcare-serversrcmainjavacomexampledemoservice -type f -name *.java)",
+      "Bash(ls -la \"c:\\\\Users\\\\zoonc\\\\Desktop\\\\HealthCare\\\\frontend\\\\carelink-app\\\\app\\\\\\(tabs\\)\\\\auth\"\" 2>/dev/null || echo \"auth folder not found \")",
+      "Bash(find /c/Users/zoonc/Desktop/HealthCare/backend -name *Controller.java -type f)",
+      "Bash(grep -n \"@Transactional\\\\|@Query\" /c/Users/zoonc/Desktop/HealthCare/backend/healthcare-server/src/main/java/com/example/demo/service/*.java)"
     ]
   }
 }

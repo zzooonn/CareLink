@@ -16,7 +16,7 @@ export default function Index() {
         resizeMode="contain"
       />
       <Text style={styles.title}>CareLink</Text>
-      <Text style={styles.subtitle}>Empowering families for better</Text>
+      <Text style={styles.subtitle}>Empowering families for better health</Text>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/auth/login")}>

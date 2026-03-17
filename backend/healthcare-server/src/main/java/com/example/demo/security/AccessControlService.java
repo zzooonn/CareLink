@@ -61,6 +61,34 @@ public class AccessControlService {
         }
     }
 
+    /**
+     * GET /api/users/{userId} 전용 접근 규칙
+     * 허용 조건:
+     *   1) 본인 프로필 조회
+     *   2) 연결된 보호자가 환자 프로필 조회
+     *   3) 환자가 아직 연결 전인 GUARDIAN 계정 조회 (보호자 추가 전 검증용)
+     * 차단 조건:
+     *   - 인증된 사용자가 관계 없는 다른 환자 프로필 조회
+     */
+    public void ensureSelfLinkedOrViewingGuardian(String targetUserId) {
+        User actor = currentUser();
+
+        // 1) 본인
+        if (actor.getUserId().equals(targetUserId)) return;
+
+        User target = userRepository.findByUserId(targetUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+
+        // 2) 연결된 보호자 → 환자 프로필 조회
+        boolean linked = userGuardianLinkRepository.existsByPatientAndGuardian(target, actor);
+        if (linked) return;
+
+        // 3) 대상이 GUARDIAN 역할이면 허용 (환자가 보호자 추가 전 검증)
+        if (target.getRole() == UserRole.GUARDIAN) return;
+
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have access to this user's data");
+    }
+
     public void ensureSelfOrConnectionParticipant(String patientId, String guardianId) {
         String actorUserId = currentUserId();
         if (!actorUserId.equals(patientId) && !actorUserId.equals(guardianId)) {

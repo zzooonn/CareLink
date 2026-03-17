@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.CreateHealthRecordRequest;
+import jakarta.validation.Valid;
 import com.example.demo.dto.InsightsResponse;
 import com.example.demo.dto.auth.UserHealthResponse;
 import com.example.demo.entity.User;
@@ -33,7 +34,7 @@ public class UserHealthController {
     private final AccessControlService accessControlService;
 
     @PostMapping
-    public ResponseEntity<String> addVitalMeasurement(@RequestBody CreateHealthRecordRequest req) {
+    public ResponseEntity<String> addVitalMeasurement(@Valid @RequestBody CreateHealthRecordRequest req) {
         accessControlService.ensureSelfOrLinkedGuardian(req.getUserId());
         userHealthService.saveHealthRecord(req);
         return ResponseEntity.ok("Measurement saved and average updated.");

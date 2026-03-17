@@ -52,16 +52,10 @@ public void saveHealthRecord(CreateHealthRecordRequest req) {
 
         if (req.getBpSys() >= 140 || req.getBpDia() >= 90) {
             record.setBpAbnormal(true);
-            if (record.getAnomalyType() == null) {
-                record.setAnomalyType("HIGH_BP");
-                record.setAnomalyReason("고혈압 기준치 초과");
-            }
+            appendAnomaly(record, "HIGH_BP", "고혈압 기준치 초과");
         } else if (req.getBpSys() < 90 || req.getBpDia() < 60) {
             record.setBpAbnormal(true);
-            if (record.getAnomalyType() == null) {
-                record.setAnomalyType("LOW_BP");
-                record.setAnomalyReason("저혈압 기준치 미만");
-            }
+            appendAnomaly(record, "LOW_BP", "저혈압 기준치 미만");
         } else {
             record.setBpAbnormal(false);
         }
@@ -79,16 +73,10 @@ public void saveHealthRecord(CreateHealthRecordRequest req) {
 
         if (req.getGlucose() >= 200) {
             record.setGlucoseAbnormal(true);
-            if (record.getAnomalyType() == null) {
-                record.setAnomalyType("HIGH_GLUCOSE");
-                record.setAnomalyReason("혈당 기준치 초과");
-            }
+            appendAnomaly(record, "HIGH_GLUCOSE", "혈당 기준치 초과");
         } else if (req.getGlucose() <= 70) {
             record.setGlucoseAbnormal(true);
-            if (record.getAnomalyType() == null) {
-                record.setAnomalyType("LOW_GLUCOSE");
-                record.setAnomalyReason("혈당 기준치 미만");
-            }
+            appendAnomaly(record, "LOW_GLUCOSE", "혈당 기준치 미만");
         } else {
             record.setGlucoseAbnormal(false);
         }
@@ -110,12 +98,8 @@ public void saveHealthRecord(CreateHealthRecordRequest req) {
         record.setEcgAnomalyType(req.getEcgAnomalyType());
     }
 
-    // ECG가 이상인데 anomalyType 비어있으면(혈압/혈당에서 이미 채웠을 수도 있으니)
     if (Boolean.TRUE.equals(record.getEcgAbnormal())) {
-        if (record.getAnomalyType() == null) {
-            record.setAnomalyType("ECG_ABNORMAL");
-            record.setAnomalyReason("ECG 이상 감지");
-        }
+        appendAnomaly(record, "ECG_ABNORMAL", "ECG 이상 감지");
     }
 
     // --------------------
@@ -133,15 +117,30 @@ public void saveHealthRecord(CreateHealthRecordRequest req) {
     // 요약 업데이트
     updateUserHealthSummary(user, userHealth, req);
 
-    // ✅ 이상값 감지 시 환자 + 연결된 보호자에게 알림 발송
-    if (overall) {
-        String anomalyType = record.getAnomalyType() != null ? record.getAnomalyType() : "HEALTH_ANOMALY";
-        String title = buildAlertTitle(anomalyType);
-        String msg = buildAlertMessage(anomalyType, req);
-        notificationService.sendEmergencyAlert(user, title, msg, "HEALTH_ANOMALY");
+    // ✅ 이상값 종류별로 각각 알림 발송 (복수 이상값 모두 전달)
+    if (Boolean.TRUE.equals(record.getBpAbnormal())) {
+        String type = (req.getBpSys() >= 140 || req.getBpDia() >= 90) ? "HIGH_BP" : "LOW_BP";
+        notificationService.sendEmergencyAlert(user, buildAlertTitle(type), buildAlertMessage(type, req), "HEALTH_ANOMALY");
+    }
+    if (Boolean.TRUE.equals(record.getGlucoseAbnormal())) {
+        String type = req.getGlucose() >= 200 ? "HIGH_GLUCOSE" : "LOW_GLUCOSE";
+        notificationService.sendEmergencyAlert(user, buildAlertTitle(type), buildAlertMessage(type, req), "HEALTH_ANOMALY");
+    }
+    if (Boolean.TRUE.equals(record.getEcgAbnormal())) {
+        notificationService.sendEmergencyAlert(user, buildAlertTitle("ECG_ABNORMAL"), buildAlertMessage("ECG_ABNORMAL", req), "HEALTH_ANOMALY");
     }
 }
 
+
+    private void appendAnomaly(UserHealthRecord record, String type, String reason) {
+        if (record.getAnomalyType() == null) {
+            record.setAnomalyType(type);
+            record.setAnomalyReason(reason);
+        } else {
+            record.setAnomalyType(record.getAnomalyType() + "," + type);
+            record.setAnomalyReason(record.getAnomalyReason() + ", " + reason);
+        }
+    }
 
     private void updateUserHealthSummary(User user, UserHealth userHealth, CreateHealthRecordRequest req) {
         // 4-1. DB에서 해당 유저의 모든 기록 평균 다시 계산
