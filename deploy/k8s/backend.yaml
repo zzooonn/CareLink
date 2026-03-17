@@ -38,6 +38,36 @@ spec:
                 secretKeyRef:
                   name: carelink-secrets
                   key: NEWS_API_KEY
+            - name: AI_ECG_SERVER_URL
+              value: http://ai:8000/predict_window
+            - name: AI_ECG_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: carelink-secrets
+                  key: AI_API_KEY
+            - name: CORS_ALLOWED_ORIGINS
+              value: "http://localhost:8081,http://localhost:19006"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
@@ -45,8 +75,10 @@ metadata:
   name: backend
   namespace: carelink
 spec:
+  type: NodePort
   selector:
     app: backend
   ports:
     - port: 8080
       targetPort: 8080
+      nodePort: 30080

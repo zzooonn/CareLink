@@ -23,6 +23,34 @@ spec:
               value: /app/models/best_model_multilabel.pth
             - name: SAMPLE_DIR
               value: /app/samples
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: carelink-secrets
+                  key: AI_API_KEY
+            - name: ALLOWED_ORIGINS
+              value: "http://backend:8080,http://localhost:8080"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
