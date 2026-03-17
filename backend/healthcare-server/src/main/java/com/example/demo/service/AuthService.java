@@ -56,9 +56,10 @@ public class AuthService {
         }
 
         String token = jwtProvider.createToken(user.getUserId(), user.getRole());
+        String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
 
         logger.info("Login successful for userId='{}'", req.getUserId());
-        return new LoginResponse(true, "Login successful", token, user.getUserId());
+        return new LoginResponse(true, "Login successful", token, user.getUserId(), refreshToken);
     }
 
     public User register(RegisterRequest request) {
@@ -105,6 +106,22 @@ public class AuthService {
         }
 
         return saved;
+    }
+
+    public LoginResponse refreshToken(String refreshToken) {
+        if (refreshToken == null || !jwtProvider.validateToken(refreshToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+        }
+        if (!jwtProvider.isRefreshToken(refreshToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not a refresh token");
+        }
+        String userId = jwtProvider.getUserId(refreshToken);
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        String newToken = jwtProvider.createToken(user.getUserId(), user.getRole());
+        String newRefreshToken = jwtProvider.createRefreshToken(user.getUserId());
+        return new LoginResponse(true, "Token refreshed", newToken, user.getUserId(), newRefreshToken);
     }
 
     public String verifyIdentity(String userId, String birthDateStr) {

@@ -190,9 +190,12 @@ def run_boundary_tests(ai_base_url: str, ai_key: str) -> list:
 
     results = []
     print("\n[경계값 테스트]")
+    import json as _json
     for name, payload in cases:
         try:
-            r = requests.post(url, json=payload, headers=headers, timeout=15)
+            # NaN은 JSON 표준 위반이므로 allow_nan=True로 직렬화 후 data= 파라미터로 전송
+            raw = _json.dumps(payload, allow_nan=True)
+            r = requests.post(url, data=raw, headers=headers, timeout=15)
             status = r.status_code
             body = r.text[:120]
         except Exception as e:
@@ -269,7 +272,7 @@ def main():
     # --- 6-3. 주요 API 동시 부하 테스트 ---
     endpoints = {
         "health_check": f"{args.base_url}/actuator/health",
-        "user_health_records": f"{args.base_url}/api/user-health/{args.user_id}/records?range=7d",
+        "vitals_insights": f"{args.base_url}/api/vitals/insights?userId={args.user_id}&range=7d",
     }
 
     report["load_test"] = {}
