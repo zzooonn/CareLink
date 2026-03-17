@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: your-registry/carelink-backend:latest
+          image: zoonz/carelink-backend:latest
           ports:
             - containerPort: 8080
           env:
