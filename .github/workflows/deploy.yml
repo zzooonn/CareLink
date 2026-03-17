@@ -144,6 +144,8 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
             NEWS_API_KEY=${{ secrets.NEWS_API_KEY }}
+            AI_ECG_API_KEY=${{ secrets.AI_ECG_API_KEY }}
+            CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
             ENVEOF
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
