@@ -8,10 +8,11 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class LoginResponse {
-    
+
     private boolean success;
     private String message;
     private String token;
     private String userId;
-    
+    private String refreshToken;
+
 }

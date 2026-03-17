@@ -79,6 +79,7 @@ export default function Login() {
 
       await AsyncStorage.setItem("userId", userId);
       if (data?.token) await AsyncStorage.setItem("token", data.token);
+      if (data?.refreshToken) await AsyncStorage.setItem("refreshToken", data.refreshToken);
 
       Alert.alert("Welcome", "Login successful!", [
         { text: "OK", onPress: () => router.replace("/Home/HomePage") },

@@ -78,6 +78,12 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("success", true, "message", "Password reset successfully"));
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(@RequestBody Map<String, String> body) {
+        LoginResponse response = authService.refreshToken(body.get("refreshToken"));
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/find-id")
     public ResponseEntity<Map<String, Object>> findId(@RequestBody Map<String, String> body) {
         String userId = authService.findUserId(body.get("name"), body.get("birthDate"), body.get("phone"));

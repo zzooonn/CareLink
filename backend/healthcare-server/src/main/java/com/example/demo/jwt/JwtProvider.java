@@ -17,12 +17,15 @@ public class JwtProvider {
 
     private final SecretKey key;
     private final long expiration;
+    private final long refreshExpiration;
 
     public JwtProvider(@Value("${jwt.secret}") String secretKey,
-                       @Value("${jwt.expiration}") long expiration) {
+                       @Value("${jwt.expiration}") long expiration,
+                       @Value("${jwt.refresh-expiration}") long refreshExpiration) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.expiration = expiration;
+        this.refreshExpiration = refreshExpiration;
     }
 
     public String createToken(String userId, UserRole role) {
@@ -36,6 +39,29 @@ public class JwtProvider {
                 .expiration(expiryDate)
                 .signWith(key)
                 .compact();
+    }
+
+    public String createRefreshToken(String userId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshExpiration);
+
+        return Jwts.builder()
+                .subject(userId)
+                .claim("type", "refresh")
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(key)
+                .compact();
+    }
+
+    public boolean isRefreshToken(String token) {
+        try {
+            String type = Jwts.parser().verifyWith(key).build()
+                    .parseSignedClaims(token).getPayload().get("type", String.class);
+            return "refresh".equals(type);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean validateToken(String token) {

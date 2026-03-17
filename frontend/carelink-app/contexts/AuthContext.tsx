@@ -20,7 +20,7 @@ export function AuthProvider({
     const router = useRouter();
 
     const signOut = async (expired = false) => {
-        await AsyncStorage.multiRemove(["userId", "token", "userName", "profileImageId", "caregivers:list"]);
+        await AsyncStorage.multiRemove(["userId", "token", "refreshToken", "userName", "profileImageId", "caregivers:list"]);
         if (expired) {
             onSessionExpired();
         }
