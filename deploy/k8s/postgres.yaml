@@ -43,6 +43,25 @@ spec:
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "appuser", "-d", "healthcare"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "appuser", "-d", "healthcare"]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
       volumes:
         - name: postgres-storage
           persistentVolumeClaim:
