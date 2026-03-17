@@ -33,12 +33,16 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-appuser}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-apppassword}
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-      NEWS_API_KEY: ${NEWS_API_KEY}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      NEWS_API_KEY: ${NEWS_API_KEY:-}
+      AI_ECG_SERVER_URL: http://ai:8000/predict_window
+      AI_ECG_API_KEY: ${AI_ECG_API_KEY:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8081}
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
+    mem_limit: 512m
 
   # ── FastAPI AI 서버 ──────────────────────────────────────────────
   ai:
@@ -53,7 +57,10 @@ services:
     environment:
       MODEL_PATH: /app/models/best_model_multilabel.pth
       SAMPLE_DIR: /app/samples
+      AI_API_KEY: ${AI_ECG_API_KEY:-}
+      ALLOWED_ORIGINS: http://backend:8080,http://localhost:8080
     restart: unless-stopped
+    mem_limit: 600m
 
 volumes:
   postgres_data:
