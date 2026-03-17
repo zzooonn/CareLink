@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-03-17T13:33:05.274528",
+  "generated_at": "2026-03-17T14:43:05.123108",
   "base_url": "http://3.106.213.107:8080",
   "ai_url": "https://zoon1-carelink-ai.hf.space",
   "backend_health": {
     "status": 200,
-    "latency_ms": 9869.57
+    "latency_ms": 4087.18
   },
   "load_test": {
     "health_check": [
@@ -13,106 +13,106 @@
         "total_requests": 20,
         "success_requests": 20,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 8.46,
-        "tps": 2.36,
-        "latency_avg_ms": 422.99,
-        "latency_p50_ms": 363.15,
-        "latency_p95_ms": 631.51,
-        "latency_p99_ms": 1079.37,
-        "latency_max_ms": 1191.33
+        "elapsed_sec": 6.6,
+        "tps": 3.03,
+        "latency_avg_ms": 329.66,
+        "latency_p50_ms": 319.74,
+        "latency_p95_ms": 390.38,
+        "latency_p99_ms": 405.76,
+        "latency_max_ms": 409.6
       },
       {
         "concurrency": 5,
         "total_requests": 100,
         "success_requests": 100,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 9.9,
-        "tps": 10.11,
-        "latency_avg_ms": 483.92,
-        "latency_p50_ms": 330.08,
-        "latency_p95_ms": 604.6,
-        "latency_p99_ms": 3313.42,
-        "latency_max_ms": 3337.15
+        "elapsed_sec": 9.25,
+        "tps": 10.81,
+        "latency_avg_ms": 437.25,
+        "latency_p50_ms": 340.78,
+        "latency_p95_ms": 646.65,
+        "latency_p99_ms": 1913.9,
+        "latency_max_ms": 2190.53
       },
       {
         "concurrency": 10,
         "total_requests": 200,
         "success_requests": 200,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 15.27,
-        "tps": 13.1,
-        "latency_avg_ms": 731.84,
-        "latency_p50_ms": 407.21,
-        "latency_p95_ms": 3410.87,
-        "latency_p99_ms": 3983.81,
-        "latency_max_ms": 4007.74
+        "elapsed_sec": 6.44,
+        "tps": 31.07,
+        "latency_avg_ms": 315.24,
+        "latency_p50_ms": 309.84,
+        "latency_p95_ms": 357.53,
+        "latency_p99_ms": 397.91,
+        "latency_max_ms": 613.44
       },
       {
         "concurrency": 20,
         "total_requests": 400,
         "success_requests": 400,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 7.96,
-        "tps": 50.24,
-        "latency_avg_ms": 357.57,
-        "latency_p50_ms": 313.24,
-        "latency_p95_ms": 712.73,
-        "latency_p99_ms": 1045.44,
-        "latency_max_ms": 1330.62
+        "elapsed_sec": 6.3,
+        "tps": 63.54,
+        "latency_avg_ms": 306.05,
+        "latency_p50_ms": 303.91,
+        "latency_p95_ms": 332.06,
+        "latency_p99_ms": 385.82,
+        "latency_max_ms": 394.83
       }
     ],
-    "user_health_records": [
+    "vitals_insights": [
       {
         "concurrency": 1,
         "total_requests": 20,
-        "success_requests": 0,
-        "error_rate_pct": 100.0,
-        "elapsed_sec": 21.26,
-        "tps": 0.94,
-        "latency_avg_ms": 1062.89,
-        "latency_p50_ms": 318.84,
-        "latency_p95_ms": 5362.79,
-        "latency_p99_ms": 9229.5,
-        "latency_max_ms": 10196.18
+        "success_requests": 20,
+        "error_rate_pct": 0.0,
+        "elapsed_sec": 9.58,
+        "tps": 2.09,
+        "latency_avg_ms": 478.94,
+        "latency_p50_ms": 338.23,
+        "latency_p95_ms": 836.51,
+        "latency_p99_ms": 2251.45,
+        "latency_max_ms": 2605.19
       },
       {
         "concurrency": 5,
         "total_requests": 100,
-        "success_requests": 0,
-        "error_rate_pct": 100.0,
-        "elapsed_sec": 7.34,
-        "tps": 13.63,
-        "latency_avg_ms": 328.47,
-        "latency_p50_ms": 316.18,
-        "latency_p95_ms": 359.8,
-        "latency_p99_ms": 380.78,
-        "latency_max_ms": 1315.58
+        "success_requests": 100,
+        "error_rate_pct": 0.0,
+        "elapsed_sec": 7.16,
+        "tps": 13.97,
+        "latency_avg_ms": 353.08,
+        "latency_p50_ms": 323.89,
+        "latency_p95_ms": 547.75,
+        "latency_p99_ms": 764.62,
+        "latency_max_ms": 780.42
       },
       {
         "concurrency": 10,
         "total_requests": 200,
-        "success_requests": 0,
-        "error_rate_pct": 100.0,
-        "elapsed_sec": 7.38,
-        "tps": 27.11,
-        "latency_avg_ms": 327.74,
-        "latency_p50_ms": 318.45,
-        "latency_p95_ms": 370.41,
-        "latency_p99_ms": 412.0,
-        "latency_max_ms": 1353.72
+        "success_requests": 200,
+        "error_rate_pct": 0.0,
+        "elapsed_sec": 7.77,
+        "tps": 25.75,
+        "latency_avg_ms": 354.53,
+        "latency_p50_ms": 331.01,
+        "latency_p95_ms": 518.98,
+        "latency_p99_ms": 706.97,
+        "latency_max_ms": 1043.3
       },
       {
         "concurrency": 20,
         "total_requests": 400,
-        "success_requests": 0,
-        "error_rate_pct": 100.0,
-        "elapsed_sec": 6.46,
-        "tps": 61.94,
-        "latency_avg_ms": 314.42,
-        "latency_p50_ms": 310.7,
-        "latency_p95_ms": 357.43,
-        "latency_p99_ms": 407.68,
-        "latency_max_ms": 416.37
+        "success_requests": 400,
+        "error_rate_pct": 0.0,
+        "elapsed_sec": 8.29,
+        "tps": 48.25,
+        "latency_avg_ms": 363.65,
+        "latency_p50_ms": 337.14,
+        "latency_p95_ms": 534.91,
+        "latency_p99_ms": 665.18,
+        "latency_max_ms": 1082.89
       }
     ]
   },
@@ -121,12 +121,12 @@
     "n_samples": 30,
     "success": 30,
     "errors": 0,
-    "latency_avg_ms": 2595.51,
-    "latency_p50_ms": 2552.91,
-    "latency_p95_ms": 2701.36,
-    "latency_p99_ms": 3503.06,
-    "latency_min_ms": 2429.4,
-    "latency_max_ms": 3813.47
+    "latency_avg_ms": 2304.55,
+    "latency_p50_ms": 2271.08,
+    "latency_p95_ms": 2475.97,
+    "latency_p99_ms": 2676.63,
+    "latency_min_ms": 2195.46,
+    "latency_max_ms": 2750.97
   },
   "boundary_tests": [
     {
@@ -137,9 +137,9 @@
     },
     {
       "case": "NaN 포함",
-      "status": -1,
+      "status": 200,
       "graceful": false,
-      "body": "Out of range float values are not JSON compliant"
+      "body": "{\"probs\":[0.00021013098012190312,0.9666948914527893,0.9581677317619324,0.09093457460403442,0.01725798286497593],\"thresho"
     },
     {
       "case": "잘못된 lead 수 (6)",
