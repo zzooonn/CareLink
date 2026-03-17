@@ -419,7 +419,7 @@ def predict_window(req: PredictReq):
         x = to_12xL(x)
 
         if np.isnan(x).any():
-            x = np.nan_to_num(x)
+            raise ValueError("Input contains NaN values")
 
         in_fs = int(req.fs) if req.fs is not None else FS
         if in_fs <= 0:
