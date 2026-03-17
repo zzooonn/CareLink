@@ -1,0 +1,163 @@
+{
+  "generated_at": "2026-03-17T11:56:09.448838",
+  "base_url": "http://3.27.201.128:8080",
+  "ai_url": "https://zoon1-carelink-ai.hf.space",
+  "backend_health": {
+    "status": 0,
+    "latency_ms": 10150.17
+  },
+  "load_test": {
+    "health_check": [
+      {
+        "concurrency": 1,
+        "total_requests": 20,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 33.88,
+        "tps": 0.59,
+        "latency_avg_ms": 1693.88,
+        "latency_p50_ms": 323.27,
+        "latency_p95_ms": 10151.86,
+        "latency_p99_ms": 10154.61,
+        "latency_max_ms": 10155.3
+      },
+      {
+        "concurrency": 5,
+        "total_requests": 100,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 10.38,
+        "tps": 9.64,
+        "latency_avg_ms": 511.76,
+        "latency_p50_ms": 316.88,
+        "latency_p95_ms": 926.54,
+        "latency_p99_ms": 3594.93,
+        "latency_max_ms": 3603.85
+      },
+      {
+        "concurrency": 10,
+        "total_requests": 200,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 7.42,
+        "tps": 26.95,
+        "latency_avg_ms": 340.52,
+        "latency_p50_ms": 309.89,
+        "latency_p95_ms": 512.94,
+        "latency_p99_ms": 900.48,
+        "latency_max_ms": 1099.92
+      },
+      {
+        "concurrency": 20,
+        "total_requests": 400,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 7.46,
+        "tps": 53.59,
+        "latency_avg_ms": 361.7,
+        "latency_p50_ms": 311.94,
+        "latency_p95_ms": 756.89,
+        "latency_p99_ms": 1263.77,
+        "latency_max_ms": 1373.69
+      }
+    ],
+    "user_health_records": [
+      {
+        "concurrency": 1,
+        "total_requests": 20,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 6.1,
+        "tps": 3.28,
+        "latency_avg_ms": 304.71,
+        "latency_p50_ms": 296.19,
+        "latency_p95_ms": 365.5,
+        "latency_p99_ms": 375.95,
+        "latency_max_ms": 378.56
+      },
+      {
+        "concurrency": 5,
+        "total_requests": 100,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 7.02,
+        "tps": 14.24,
+        "latency_avg_ms": 340.02,
+        "latency_p50_ms": 306.32,
+        "latency_p95_ms": 488.57,
+        "latency_p99_ms": 954.36,
+        "latency_max_ms": 982.07
+      },
+      {
+        "concurrency": 10,
+        "total_requests": 200,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 6.3,
+        "tps": 31.74,
+        "latency_avg_ms": 310.22,
+        "latency_p50_ms": 305.14,
+        "latency_p95_ms": 354.86,
+        "latency_p99_ms": 384.03,
+        "latency_max_ms": 501.67
+      },
+      {
+        "concurrency": 20,
+        "total_requests": 400,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 6.71,
+        "tps": 59.59,
+        "latency_avg_ms": 324.63,
+        "latency_p50_ms": 305.1,
+        "latency_p95_ms": 409.75,
+        "latency_p99_ms": 697.46,
+        "latency_max_ms": 736.18
+      }
+    ]
+  },
+  "ecg_inference": {
+    "endpoint": "https://zoon1-carelink-ai.hf.space/predict_window",
+    "n_samples": 30,
+    "success": 29,
+    "errors": 1,
+    "latency_avg_ms": 4139.08,
+    "latency_p50_ms": 2308.01,
+    "latency_p95_ms": 2747.47,
+    "latency_p99_ms": 40071.93,
+    "latency_min_ms": 2209.41,
+    "latency_max_ms": 54524.39
+  },
+  "boundary_tests": [
+    {
+      "case": "빈 배열",
+      "status": 500,
+      "graceful": true,
+      "body": "{\"detail\":\"Server Error: Input data 'x' is empty\"}"
+    },
+    {
+      "case": "NaN 포함",
+      "status": -1,
+      "graceful": false,
+      "body": "Out of range float values are not JSON compliant"
+    },
+    {
+      "case": "잘못된 lead 수 (6)",
+      "status": 500,
+      "graceful": true,
+      "body": "{\"detail\":\"Server Error: Expected (12, L) or (L, 12). Got (6, 5000)\"}"
+    },
+    {
+      "case": "길이 불일치",
+      "status": 500,
+      "graceful": true,
+      "body": "{\"detail\":\"Server Error: Jagged array detected. Row lengths: {200, 100, 5000}\"}"
+    },
+    {
+      "case": "잘못된 샘플링 주파수",
+      "status": 200,
+      "graceful": false,
+      "body": "{\"probs\":[0.00021013098012190312,0.9666948914527893,0.9581677317619324,0.09093457460403442,0.01725798286497593],\"thresho"
+    }
+  ]
+}
