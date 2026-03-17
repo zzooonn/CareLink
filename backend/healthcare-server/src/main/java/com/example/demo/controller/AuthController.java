@@ -4,6 +4,7 @@ import com.example.demo.dto.auth.LoginRequest;
 import com.example.demo.dto.auth.LoginResponse;
 import com.example.demo.dto.auth.RegisterRequest;
 import com.example.demo.entity.User;
+import com.example.demo.security.LoginAttemptService;
 import com.example.demo.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,19 +14,30 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private LoginAttemptService loginAttemptService;
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        LoginResponse response = authService.login(request);
-        return ResponseEntity.ok()
-                .header("Content-Type", "application/json;charset=UTF-8")
-                .body(response);
+        String key = "login:" + request.getUserId();
+        // 15분 내 5회 초과 실패 시 429 반환
+        loginAttemptService.checkBlocked(key);
+        try {
+            LoginResponse response = authService.login(request);
+            loginAttemptService.recordSuccess(key);
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/json;charset=UTF-8")
+                    .body(response);
+        } catch (Exception e) {
+            loginAttemptService.recordFailure(key);
+            throw e;
+        }
     }
 
     @PostMapping("/signup")
@@ -42,12 +54,22 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody Map<String, String> body) {
-        String resetToken = authService.verifyIdentity(body.get("userId"), body.get("birthDate"));
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Identity verified",
-                "resetToken", resetToken
-        ));
+        String userId = body.get("userId");
+        String key = "forgot:" + userId;
+        // 비밀번호 재설정도 동일한 Rate Limit 적용
+        loginAttemptService.checkBlocked(key);
+        try {
+            String resetToken = authService.verifyIdentity(userId, body.get("birthDate"));
+            loginAttemptService.recordSuccess(key);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Identity verified",
+                    "resetToken", resetToken
+            ));
+        } catch (Exception e) {
+            loginAttemptService.recordFailure(key);
+            throw e;
+        }
     }
 
     @PostMapping("/reset-password")

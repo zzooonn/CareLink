@@ -50,7 +50,9 @@ public class DiseaseTrendAlertService {
             }
 
             String title = "[질병 트렌드] " + trend.getDiseaseName();
-            String message = trend.getAdvisoryText();
+            String message = (trend.getAdvisoryText() != null && !trend.getAdvisoryText().isBlank())
+                    ? trend.getAdvisoryText()
+                    : trend.getDiseaseName() + " 관련 건강 주의가 필요합니다.";
 
             for (User patient : targets) {
                 // ✅ 기존 NotificationService 메서드 그대로 재사용

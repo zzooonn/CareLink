@@ -24,9 +24,10 @@ public class GuardianService {
 
     /**
      * 환자-보호자 연결하기
+     * @param contactPhone 환자가 저장하는 보호자 연락처 (null이면 보호자 계정의 phone 사용)
      */
     @Transactional
-    public void connectGuardian(String patientId, String guardianId) {
+    public void connectGuardian(String patientId, String guardianId, String contactPhone) {
 
         User patient = userRepository.findByUserId(patientId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
@@ -46,8 +47,29 @@ public class GuardianService {
         link.setPatient(patient);
         link.setGuardian(guardian);
         link.setRelationType("FAMILY");
+        // contactPhone 미전송 시 보호자 계정의 등록 전화번호를 기본값으로 사용
+        link.setContactPhone(contactPhone != null && !contactPhone.isBlank()
+                ? contactPhone
+                : guardian.getPhone());
 
         userGuardianLinkRepository.save(link);
+    }
+
+    /**
+     * 환자-보호자 연결 해제
+     */
+    @Transactional
+    public void disconnectGuardian(String patientId, String guardianId) {
+        User patient = userRepository.findByUserId(patientId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+        User guardian = userRepository.findByUserId(guardianId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Guardian not found"));
+
+        if (!userGuardianLinkRepository.existsByPatientAndGuardian(patient, guardian)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Connection not found");
+        }
+
+        userGuardianLinkRepository.deleteByPatientAndGuardian(patient, guardian);
     }
 
     /**
@@ -76,7 +98,7 @@ public class GuardianService {
         List<UserGuardianLink> links = userGuardianLinkRepository.findByPatient(patient);
 
         return links.stream()
-                .map(link -> ConnectedPatientResponseDto.fromEntity(link.getGuardian()))
+                .map(link -> ConnectedPatientResponseDto.fromEntity(link.getGuardian(), link.getContactPhone()))
                 .collect(Collectors.toList());
     }
 

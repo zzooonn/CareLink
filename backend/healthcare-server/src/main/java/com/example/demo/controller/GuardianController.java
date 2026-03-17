@@ -20,9 +20,19 @@ public class GuardianController {
 
     @PostMapping("/connect")
     public ResponseEntity<String> connectPatientGuardian(@RequestBody GuardianConnectRequestDto request) {
-        accessControlService.ensureSelfOrConnectionParticipant(request.getPatientId(), request.getGuardianId());
-        guardianService.connectGuardian(request.getPatientId(), request.getGuardianId());
+        // 반드시 환자 본인만 보호자 연결을 요청할 수 있음 (보호자가 임의로 환자에 연결하는 것 차단)
+        accessControlService.ensureSelf(request.getPatientId());
+        guardianService.connectGuardian(request.getPatientId(), request.getGuardianId(), request.getContactPhone());
         return ResponseEntity.ok("Guardian connected successfully");
+    }
+
+    @DeleteMapping("/disconnect")
+    public ResponseEntity<Void> disconnectGuardian(
+            @RequestParam String patientId,
+            @RequestParam String guardianId) {
+        accessControlService.ensureSelf(patientId);
+        guardianService.disconnectGuardian(patientId, guardianId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/my-patients/{guardianId}")

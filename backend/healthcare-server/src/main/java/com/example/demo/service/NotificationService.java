@@ -8,6 +8,7 @@ import com.example.demo.repository.UserHealthAlertRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class NotificationService {
     private final UserHealthAlertRepository alertRepository;
     private final UserGuardianLinkRepository guardianLinkRepository;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendEmergencyAlert(User patient, String title, String message, String alertType) {
         createAndSaveAlert(patient, patient, title, message, alertType);
 

@@ -8,7 +8,8 @@ from contextlib import asynccontextmanager
 
 import torch
 import torch.nn as nn
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Security, Depends
+from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field
 from scipy.signal import butter, filtfilt, resample_poly
 import uvicorn
@@ -32,6 +33,23 @@ LABELS = ["NORM", "STTC", "MI", "CD", "HYP"]
 
 SAMPLE_DIR = os.environ.get("SAMPLE_DIR", os.path.join(ai_folder, "samples"))
 DEFAULT_THRESHOLDS = [0.6, 0.45, 0.5, 0.6, 0.7]
+
+# =============================================================================
+# 0.5) API Key 인증 설정
+# =============================================================================
+_AI_API_KEY = os.environ.get("AI_API_KEY", "").strip()
+_api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+async def verify_api_key(api_key: str = Security(_api_key_header)):
+    """
+    X-API-Key 헤더로 인증. AI_API_KEY 환경변수가 설정된 경우에만 강제.
+    미설정 시 개발 모드로 동작 (경고 출력).
+    """
+    if not _AI_API_KEY:
+        print("⚠️  [보안 경고] AI_API_KEY 환경변수가 설정되지 않았습니다. 개발 모드로 동작 중.")
+        return
+    if api_key != _AI_API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid or missing X-API-Key")
 
 def load_thresholds_from_env() -> List[float]:
     raw = os.environ.get("THRESHOLDS", "").strip()
@@ -214,7 +232,7 @@ class ConvBlock(nn.Module):
             nn.BatchNorm1d(cout),
             nn.ReLU(inplace=True),
             nn.MaxPool1d(2),
-            nn.CBAM(cout) if hasattr(nn, 'CBAM') else CBAM(cout), 
+            CBAM(cout),
         )
     def forward(self, x):
         return self.block(x)
@@ -303,13 +321,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="ECG Multi-Label Analysis API", lifespan=lifespan)
 
-# ✅ [수정 2] CORS 미들웨어 적용 (Network Timeout 방지)
+# ALLOWED_ORIGINS 환경변수에서 허용 출처 로드 (쉼표 구분)
+# 예) ALLOWED_ORIGINS=http://3.27.201.128:8080,http://localhost:8080
+_raw_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:8080,http://localhost:8081").strip()
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 모든 주소 허용 (모바일 접속 시 필수)
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-API-Key"],
 )
 
 class PredictReq(BaseModel):
@@ -321,7 +343,7 @@ class PredictReq(BaseModel):
 def health():
     return {"ok": True, "model_loaded": model is not None}
 
-@app.get("/sample_window")
+@app.get("/sample_window", dependencies=[Depends(verify_api_key)])
 def sample_window(label: Optional[str] = Query(None)):
     try:
         if label is None or str(label).strip() == "":
@@ -380,7 +402,7 @@ def sample_window(label: Optional[str] = Query(None)):
         traceback.print_exc()
         raise HTTPException(500, f"Sample server error: {str(e)}")
 
-@app.post("/predict_window")
+@app.post("/predict_window", dependencies=[Depends(verify_api_key)])
 def predict_window(req: PredictReq):
     if model is None or pre is None:
         raise HTTPException(500, "Model not ready")

@@ -10,18 +10,25 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ConnectedPatientResponseDto {
-    private String userId;      // 환자 로그인 ID
-    private String name;        // 환자 이름
-    private String phone;       // 전화번호
-    private String gender;      // 성별
+    private String userId;       // 로그인 ID
+    private String name;         // 이름
+    private String phone;        // 연락처 (보호자 링크의 contactPhone 우선, 없으면 계정 phone)
+    private String gender;       // 성별
     private LocalDate birthDate; // 생년월일
-    private String address;     // 주소
+    private String address;      // 주소
 
-    public static ConnectedPatientResponseDto fromEntity(User user){
+    /** 환자 목록 조회 시 사용 (contactPhone 없음) */
+    public static ConnectedPatientResponseDto fromEntity(User user) {
+        return fromEntity(user, null);
+    }
+
+    /** 보호자 목록 조회 시 사용 (contactPhone 우선) */
+    public static ConnectedPatientResponseDto fromEntity(User user, String contactPhone) {
         ConnectedPatientResponseDto dto = new ConnectedPatientResponseDto();
         dto.setUserId(user.getUserId());
         dto.setName(user.getName());
-        dto.setPhone(user.getPhone());
+        // 환자가 저장한 contactPhone이 있으면 우선 사용, 없으면 계정 등록 번호
+        dto.setPhone(contactPhone != null && !contactPhone.isBlank() ? contactPhone : user.getPhone());
         dto.setGender(user.getGender());
         dto.setBirthDate(user.getBirthDate());
         dto.setAddress(user.getAddress());

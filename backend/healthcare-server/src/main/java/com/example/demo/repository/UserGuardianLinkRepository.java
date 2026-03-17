@@ -10,4 +10,5 @@ public interface UserGuardianLinkRepository extends JpaRepository<UserGuardianLi
     List<UserGuardianLink> findByPatient(User patient);
     List<UserGuardianLink> findByGuardian(User guardian);
     boolean existsByPatientAndGuardian(User patient, User guardian);
+    void deleteByPatientAndGuardian(User patient, User guardian);
 }

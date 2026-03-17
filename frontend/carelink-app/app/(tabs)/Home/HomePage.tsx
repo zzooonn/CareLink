@@ -100,7 +100,7 @@ export default function HomePage() {
     const s = insightsScore;
     if (s >= 80) return { text: `Insight score: ${s} - Amazing work!`, tone: "good" as const, icon: "happy-outline" as const };
     if (s >= 60) return { text: `Insight score: ${s} - Doing well. Stay consistent.`, tone: "warn" as const, icon: "thumbs-up-outline" as const };
-    if (s >= 40) return { text: `Insight score: ${s} - Looking a bit off. Take rest.`, tone: "bad" as const, icon: "warning-outline" as const };
+    if (s >= 40) return { text: `Insight score: ${s} - Irregular trends detected. Consider consulting your caregiver.`, tone: "bad" as const, icon: "warning-outline" as const };
     return { text: `Insight score: ${s} - High risk. Alert your caregiver.`, tone: "bad" as const, icon: "alert-circle-outline" as const };
   }, [insightsScore]);
 
@@ -139,23 +139,13 @@ export default function HomePage() {
             setCaregiverAvatarIds([]);
           }
 
-          // 3. Insights
+          // 3. Insights — weeklyScore는 서버에서 계산 (glucose 35% + bp 35% + ecg 30%)
           if (API_BASE_URL && userId) {
             setLoadingInsights(true);
             const iRes = await authFetch(`/api/vitals/insights?userId=${userId}&range=7d`);
             if (iRes.ok) {
               const data = await iRes.json();
-              const glucose = data.glucose || [];
-              const bp = data.bp || [];
-              const ecg = data.ecg || [];
-              const L = Math.min(glucose.length, bp.length, ecg.length);
-              if (L > 0) {
-                let sum = 0;
-                for (let i = 0; i < L; i++) {
-                  sum += (glucose[i] * 0.35 + bp[i] * 0.35 + ecg[i] * 0.3);
-                }
-                setInsightsScore(Math.round(sum / L));
-              }
+              setInsightsScore(data.weeklyScore ?? 0);
             }
           }
         } catch (e) {
@@ -240,9 +230,9 @@ export default function HomePage() {
 
         <SummaryCard
           title="Medication reminders"
-          desc="Don't forget to take medications."
+          desc="Keep track of your daily medications."
           iconRight={<Ionicons name="notifications-outline" size={20} color="#111" />}
-          metaText="Turn on reminders for safety."
+          metaText="Enable reminders to maintain your medication schedule."
           onPress={() => router.push("/Home/Medication")}
                   />
 

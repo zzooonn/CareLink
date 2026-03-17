@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -36,6 +37,12 @@ public class PasswordResetTokenService {
 
     public void consumeToken(String userId) {
         tokens.remove(userId);
+    }
+
+    @Scheduled(fixedRateString = "${password-reset.cleanup-interval-ms:300000}")
+    public void cleanupExpiredTokens() {
+        Instant now = Instant.now();
+        tokens.entrySet().removeIf(e -> now.isAfter(e.getValue().expiresAt()));
     }
 
     private record ResetTokenRecord(String token, Instant expiresAt) {

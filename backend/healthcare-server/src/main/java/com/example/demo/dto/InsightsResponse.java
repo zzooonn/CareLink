@@ -23,6 +23,7 @@ public class InsightsResponse {
     private List<Integer> bp;        // days 길이 (0~100)
     private List<Integer> ecg;       // days 길이 (0~100)
     private int max;                 // 보통 100
+    private int weeklyScore;         // 가중 평균 종합 점수 (glucose 35% + bp 35% + ecg 30%)
 
     public static InsightsResponse from(List<UserHealthRecord> rows, int days) {
 
@@ -91,7 +92,19 @@ public class InsightsResponse {
         ));
     }
 
-    return new InsightsResponse(labels, g, b, e, 100);
+    // 데이터가 하나라도 있는 날짜만 포함해 가중 평균 계산
+    // 가중치: glucose 35% + bp 35% + ecg 30% (클라이언트 재계산 제거)
+    int dataCount = 0;
+    double scoreSum = 0.0;
+    for (int i = 0; i < days; i++) {
+        int gi = g.get(i), bi = b.get(i), ei = e.get(i);
+        if (gi == 0 && bi == 0 && ei == 0) continue; // 데이터 없는 날 제외
+        scoreSum += gi * 0.35 + bi * 0.35 + ei * 0.30;
+        dataCount++;
+    }
+    int weeklyScore = dataCount > 0 ? (int) Math.round(scoreSum / dataCount) : 0;
+
+    return new InsightsResponse(labels, g, b, e, 100, weeklyScore);
 }
 
 
