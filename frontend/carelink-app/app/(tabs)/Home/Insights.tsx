@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   /* Weekly score */
   scoreRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "baseline",
     gap: W * 0.012,
     marginBottom: H * 0.012,
   },
@@ -418,12 +418,15 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#111827",
     lineHeight: BIG_SCORE * 1.05,
+    includeFontPadding: false, // 안드로이드 특유의 폰트 위아래 패딩 제거
+    paddingVertical: H * 0.005, // 대신 수동으로 약간의 여유 공간 확보
   },
   scoreOutOf: {
     fontSize: FS_LABEL,
     fontWeight: "700",
     color: "#475569",
     marginBottom: H * 0.004,
+    marginTop: H * 0.003
   },
 
   /* Progress */
