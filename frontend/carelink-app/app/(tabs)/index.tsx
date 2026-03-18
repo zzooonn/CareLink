@@ -10,8 +10,12 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    AsyncStorage.getItem("token").then((token) => {
-      if (token) router.replace("/Home/HomePage");
+    Promise.all([
+      AsyncStorage.getItem("userId"),
+      AsyncStorage.getItem("token"),
+    ]).then(([userId, token]) => {
+      // token + userId 둘 다 있어야 자동 로그인 (_layout 가드와 동일한 조건)
+      if (userId && token) router.replace("/Home/HomePage");
     });
   }, []);
 
