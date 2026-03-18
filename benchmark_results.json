@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-03-17T14:43:05.123108",
+  "generated_at": "2026-03-17T14:56:49.361660",
   "base_url": "http://3.106.213.107:8080",
   "ai_url": "https://zoon1-carelink-ai.hf.space",
   "backend_health": {
     "status": 200,
-    "latency_ms": 4087.18
+    "latency_ms": 1947.64
   },
   "load_test": {
     "health_check": [
@@ -13,52 +13,52 @@
         "total_requests": 20,
         "success_requests": 20,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 6.6,
-        "tps": 3.03,
-        "latency_avg_ms": 329.66,
-        "latency_p50_ms": 319.74,
-        "latency_p95_ms": 390.38,
-        "latency_p99_ms": 405.76,
-        "latency_max_ms": 409.6
+        "elapsed_sec": 6.4,
+        "tps": 3.13,
+        "latency_avg_ms": 319.7,
+        "latency_p50_ms": 311.8,
+        "latency_p95_ms": 373.28,
+        "latency_p99_ms": 432.5,
+        "latency_max_ms": 447.3
       },
       {
         "concurrency": 5,
         "total_requests": 100,
         "success_requests": 100,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 9.25,
-        "tps": 10.81,
-        "latency_avg_ms": 437.25,
-        "latency_p50_ms": 340.78,
-        "latency_p95_ms": 646.65,
-        "latency_p99_ms": 1913.9,
-        "latency_max_ms": 2190.53
+        "elapsed_sec": 6.44,
+        "tps": 15.52,
+        "latency_avg_ms": 319.37,
+        "latency_p50_ms": 310.95,
+        "latency_p95_ms": 373.54,
+        "latency_p99_ms": 417.02,
+        "latency_max_ms": 426.02
       },
       {
         "concurrency": 10,
         "total_requests": 200,
         "success_requests": 200,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 6.44,
-        "tps": 31.07,
-        "latency_avg_ms": 315.24,
-        "latency_p50_ms": 309.84,
-        "latency_p95_ms": 357.53,
-        "latency_p99_ms": 397.91,
-        "latency_max_ms": 613.44
+        "elapsed_sec": 11.85,
+        "tps": 16.87,
+        "latency_avg_ms": 580.96,
+        "latency_p50_ms": 306.9,
+        "latency_p95_ms": 1007.63,
+        "latency_p99_ms": 5016.37,
+        "latency_max_ms": 5203.09
       },
       {
         "concurrency": 20,
         "total_requests": 400,
         "success_requests": 400,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 6.3,
-        "tps": 63.54,
-        "latency_avg_ms": 306.05,
-        "latency_p50_ms": 303.91,
-        "latency_p95_ms": 332.06,
-        "latency_p99_ms": 385.82,
-        "latency_max_ms": 394.83
+        "elapsed_sec": 6.77,
+        "tps": 59.04,
+        "latency_avg_ms": 324.79,
+        "latency_p50_ms": 303.04,
+        "latency_p95_ms": 412.86,
+        "latency_p99_ms": 867.03,
+        "latency_max_ms": 888.89
       }
     ],
     "vitals_insights": [
@@ -67,52 +67,52 @@
         "total_requests": 20,
         "success_requests": 20,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 9.58,
-        "tps": 2.09,
-        "latency_avg_ms": 478.94,
-        "latency_p50_ms": 338.23,
-        "latency_p95_ms": 836.51,
-        "latency_p99_ms": 2251.45,
-        "latency_max_ms": 2605.19
+        "elapsed_sec": 12.0,
+        "tps": 1.67,
+        "latency_avg_ms": 600.1,
+        "latency_p50_ms": 329.97,
+        "latency_p95_ms": 1096.12,
+        "latency_p99_ms": 4403.85,
+        "latency_max_ms": 5230.78
       },
       {
         "concurrency": 5,
         "total_requests": 100,
         "success_requests": 100,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 7.16,
-        "tps": 13.97,
-        "latency_avg_ms": 353.08,
-        "latency_p50_ms": 323.89,
-        "latency_p95_ms": 547.75,
-        "latency_p99_ms": 764.62,
-        "latency_max_ms": 780.42
+        "elapsed_sec": 6.66,
+        "tps": 15.01,
+        "latency_avg_ms": 326.85,
+        "latency_p50_ms": 320.01,
+        "latency_p95_ms": 384.35,
+        "latency_p99_ms": 527.47,
+        "latency_max_ms": 548.5
       },
       {
         "concurrency": 10,
         "total_requests": 200,
         "success_requests": 200,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 7.77,
-        "tps": 25.75,
-        "latency_avg_ms": 354.53,
-        "latency_p50_ms": 331.01,
-        "latency_p95_ms": 518.98,
-        "latency_p99_ms": 706.97,
-        "latency_max_ms": 1043.3
+        "elapsed_sec": 8.63,
+        "tps": 23.18,
+        "latency_avg_ms": 349.21,
+        "latency_p50_ms": 318.78,
+        "latency_p95_ms": 448.47,
+        "latency_p99_ms": 1000.29,
+        "latency_max_ms": 2497.29
       },
       {
         "concurrency": 20,
         "total_requests": 400,
         "success_requests": 400,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 8.29,
-        "tps": 48.25,
-        "latency_avg_ms": 363.65,
-        "latency_p50_ms": 337.14,
-        "latency_p95_ms": 534.91,
-        "latency_p99_ms": 665.18,
-        "latency_max_ms": 1082.89
+        "elapsed_sec": 7.06,
+        "tps": 56.66,
+        "latency_avg_ms": 333.3,
+        "latency_p50_ms": 315.27,
+        "latency_p95_ms": 429.83,
+        "latency_p99_ms": 615.54,
+        "latency_max_ms": 716.09
       }
     ]
   },
@@ -121,12 +121,12 @@
     "n_samples": 30,
     "success": 30,
     "errors": 0,
-    "latency_avg_ms": 2304.55,
-    "latency_p50_ms": 2271.08,
-    "latency_p95_ms": 2475.97,
-    "latency_p99_ms": 2676.63,
-    "latency_min_ms": 2195.46,
-    "latency_max_ms": 2750.97
+    "latency_avg_ms": 2279.84,
+    "latency_p50_ms": 2279.16,
+    "latency_p95_ms": 2400.15,
+    "latency_p99_ms": 2430.49,
+    "latency_min_ms": 2193.84,
+    "latency_max_ms": 2434.79
   },
   "boundary_tests": [
     {
@@ -137,9 +137,9 @@
     },
     {
       "case": "NaN 포함",
-      "status": 200,
-      "graceful": false,
-      "body": "{\"probs\":[0.00021013098012190312,0.9666948914527893,0.9581677317619324,0.09093457460403442,0.01725798286497593],\"thresho"
+      "status": 500,
+      "graceful": true,
+      "body": "{\"detail\":\"Server Error: Input contains NaN values\"}"
     },
     {
       "case": "잘못된 lead 수 (6)",
@@ -155,9 +155,9 @@
     },
     {
       "case": "잘못된 샘플링 주파수",
-      "status": 200,
-      "graceful": false,
-      "body": "{\"probs\":[0.00021013098012190312,0.9666948914527893,0.9581677317619324,0.09093457460403442,0.01725798286497593],\"thresho"
+      "status": 500,
+      "graceful": true,
+      "body": "{\"detail\":\"Server Error: fs must be a positive integer (got 0)\"}"
     }
   ]
 }

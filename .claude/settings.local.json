@@ -8,7 +8,11 @@
       "Bash(ls -la \"c:\\\\Users\\\\zoonc\\\\Desktop\\\\HealthCare\\\\frontend\\\\carelink-app\\\\app\\\\\\(tabs\\)\\\\auth\"\" 2>/dev/null || echo \"auth folder not found \")",
       "Bash(find /c/Users/zoonc/Desktop/HealthCare/backend -name *Controller.java -type f)",
       "Bash(grep -n \"@Transactional\\\\|@Query\" /c/Users/zoonc/Desktop/HealthCare/backend/healthcare-server/src/main/java/com/example/demo/service/*.java)",
-      "Bash(ls -la /c/Users/zoonc/Desktop/HealthCare/frontend/carelink-app/app/\\\\\\(tabs\\\\\\)/index.tsx)"
+      "Bash(ls -la /c/Users/zoonc/Desktop/HealthCare/frontend/carelink-app/app/\\\\\\(tabs\\\\\\)/index.tsx)",
+      "Bash(cat /c/Users/zoonc/Desktop/HealthCare/frontend/carelink-app/app/\\\\\\(tabs\\\\\\)/_layout.tsx)",
+      "Bash(xargs grep:*)",
+      "Bash(python3:*)",
+      "Bash(head -60 /c/Users/zoonc/Desktop/HealthCare/frontend/carelink-app/app/\\\\\\(tabs\\\\\\)/setting/BrainTraining.tsx)"
     ]
   }
 }

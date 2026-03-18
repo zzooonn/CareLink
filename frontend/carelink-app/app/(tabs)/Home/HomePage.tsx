@@ -50,12 +50,12 @@ const HP = W * 0.045;
 const GAP = W * 0.03;
 const CARD_GAP = W * 0.03;
 const CARD_WIDTH = W - HP * 2;
-// 기본 폰트: 노인 기준 최소 16px 이상
-const FS_H1 = W * 0.052;
-const FS_H2 = W * 0.046;
-const FS_BODY = W * 0.042;
-const FS_SUB = W * 0.038;
-const FS_CAP = W * 0.036;
+// 노인 접근성: 주요 텍스트 최소 22sp 보장 (반응형)
+const FS_H1   = Math.max(22, W * 0.055); // 헤딩1 ≥ 22sp
+const FS_H2   = Math.max(20, W * 0.048); // 헤딩2
+const FS_BODY = Math.max(18, W * 0.044); // 본문
+const FS_SUB  = Math.max(16, W * 0.040); // 보조
+const FS_CAP  = Math.max(14, W * 0.038); // 캡션
 const PROFILE = W * 0.11;
 const ICON_CIRCLE = W * 0.085;
 const ROUND_ACTION = W * 0.075;
