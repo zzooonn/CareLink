@@ -43,6 +43,7 @@ export default function Login() {
       Alert.alert("Required", "Please enter both your ID and password.");
       return;
     }
+    console.log("[DEBUG] API_BASE_URL =", API_BASE_URL);
     if (!API_BASE_URL) {
       Alert.alert(
         "Configuration Error",
@@ -85,10 +86,11 @@ export default function Login() {
         { text: "OK", onPress: () => router.replace("/Home/HomePage") },
       ]);
     } catch (err: any) {
+      console.log("[DEBUG] Login error:", err?.name, err?.message, err?.code);
       if (err?.message === "timeout" || err?.name === "AbortError") {
-        Alert.alert("Timeout", "Server is not responding. Please try again.");
+        Alert.alert("Timeout", `[${err?.name}] ${err?.message}`);
       } else {
-        Alert.alert("Connection Error", "Could not connect to the server.");
+        Alert.alert("Connection Error", `[${err?.name}] ${err?.message}`);
       }
     } finally {
       setLoading(false);

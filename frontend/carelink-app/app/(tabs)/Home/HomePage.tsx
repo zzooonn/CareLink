@@ -95,6 +95,8 @@ export default function HomePage() {
   const [caregiverAvatarIds, setCaregiverAvatarIds] = useState<number[]>([]);
   const [insightsScore, setInsightsScore] = useState<number>(0);
   const [loadingInsights, setLoadingInsights] = useState(false);
+  // 10초 이내 중복 호출 방지 (useFocusEffect가 빠르게 반복될 때 guard)
+  const lastFetchRef = useRef(0);
 
   const insightsMeta = useMemo(() => {
     const s = insightsScore;
@@ -155,6 +157,9 @@ export default function HomePage() {
           setLoadingInsights(false);
         }
       };
+      const now = Date.now();
+      if (now - lastFetchRef.current < 10_000) return; // 10초 이내 재호출 방지
+      lastFetchRef.current = now;
       fetchData();
     }, [])
   );

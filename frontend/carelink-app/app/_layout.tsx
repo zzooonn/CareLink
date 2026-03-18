@@ -13,8 +13,11 @@ export default function RootLayout() {
 
     useEffect(() => {
         const init = async () => {
-            const userId = await AsyncStorage.getItem("userId");
-            if (userId) {
+            const [userId, token] = await Promise.all([
+                AsyncStorage.getItem("userId"),
+                AsyncStorage.getItem("token"),
+            ]);
+            if (userId && token) {
                 router.replace("/(tabs)/Home/HomePage");
             } else {
                 router.replace("/(tabs)");

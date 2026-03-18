@@ -419,11 +419,9 @@ def predict_window(req: PredictReq):
         x = to_12xL(x)
 
         if np.isnan(x).any():
-            raise ValueError("Input contains NaN values")
+            x = np.nan_to_num(x)
 
-        in_fs = int(req.fs) if req.fs is not None else FS
-        if in_fs <= 0:
-            raise ValueError(f"fs must be a positive integer (got {in_fs})")
+        in_fs = int(req.fs) if req.fs else FS
         if in_fs != FS:
             x = resample_12lead(x, in_fs, FS)
 

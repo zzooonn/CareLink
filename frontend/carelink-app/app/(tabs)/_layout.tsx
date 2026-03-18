@@ -24,29 +24,36 @@ export default function TabsLayout() {
   const segKey = segments.join("/");
   const redirecting = useRef(false);
 
-  // 런타임 auth 가드 — token + userId 둘 다 확인하여 불일치로 인한 무한루프 방지
+  // 런타임 auth 가드
   useEffect(() => {
     if (redirecting.current) return;
+
+    // segments를 await 이전에 캡처 (stale closure 방지)
+    const seg1 = segments[1] as string | undefined;
+    const inAuth = seg1 === "auth";
+    const inIndex = !seg1 || seg1 === "index";
+
+    // 인증이 필요 없는 화면이면 체크 자체를 건너뜀
+    if (inAuth || inIndex) return;
+
+    let cancelled = false;
 
     const check = async () => {
       const [userId, token] = await Promise.all([
         AsyncStorage.getItem("userId"),
         AsyncStorage.getItem("token"),
       ]);
-      const seg1 = segments[1] as string | undefined;
-      const inAuth = seg1 === "auth";
-      const inIndex = !seg1 || seg1 === "index";
+      if (cancelled) return;
 
-      // userId 또는 token 중 하나라도 없으면 비로그인으로 판단
       const isLoggedIn = !!(userId && token);
-
-      if (!isLoggedIn && !inAuth && !inIndex) {
+      if (!isLoggedIn) {
         redirecting.current = true;
         router.replace("/(tabs)");
-        setTimeout(() => { redirecting.current = false; }, 500);
+        setTimeout(() => { redirecting.current = false; }, 1000);
       }
     };
     check();
+    return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segKey]);
 

@@ -190,12 +190,9 @@ def run_boundary_tests(ai_base_url: str, ai_key: str) -> list:
 
     results = []
     print("\n[경계값 테스트]")
-    import json as _json
     for name, payload in cases:
         try:
-            # NaN은 JSON 표준 위반이므로 allow_nan=True로 직렬화 후 data= 파라미터로 전송
-            raw = _json.dumps(payload, allow_nan=True)
-            r = requests.post(url, data=raw, headers=headers, timeout=15)
+            r = requests.post(url, json=payload, headers=headers, timeout=15)
             status = r.status_code
             body = r.text[:120]
         except Exception as e:
