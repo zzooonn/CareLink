@@ -21,7 +21,7 @@ export default function AppHeader() {
     // edges={["top"]}는 상단만 안전 영역을 계산하겠다는 뜻입니다.
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <View style={styles.wrap}>
-        <TouchableOpacity style={styles.left} onPress={() => router.push("/(tabs)/Home/HomePage")}>
+        <TouchableOpacity style={styles.left} onPress={() => router.replace("/(tabs)/Home/HomePage")}>
           <Image
             source={require("../assets/images/CareLinkicon.png")}
             style={styles.logo}

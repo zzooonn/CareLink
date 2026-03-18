@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, useSegments, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -21,22 +21,34 @@ const HIDDEN_TAB_BAR = { display: "none" } as const;
 export default function TabsLayout() {
   const router = useRouter();
   const segments = useSegments();
+  const segKey = segments.join("/");
+  const redirecting = useRef(false);
 
-  // 런타임 auth 가드 — 로딩 스피너 없이 단순 리다이렉트만 처리
+  // 런타임 auth 가드 — token + userId 둘 다 확인하여 불일치로 인한 무한루프 방지
   useEffect(() => {
+    if (redirecting.current) return;
+
     const check = async () => {
-      const userId = await AsyncStorage.getItem("userId");
+      const [userId, token] = await Promise.all([
+        AsyncStorage.getItem("userId"),
+        AsyncStorage.getItem("token"),
+      ]);
       const seg1 = segments[1] as string | undefined;
       const inAuth = seg1 === "auth";
       const inIndex = !seg1 || seg1 === "index";
 
-      // 비로그인 상태에서 보호된 페이지 접근 시 Welcome으로 돌려보냄
-      if (!userId && !inAuth && !inIndex) {
+      // userId 또는 token 중 하나라도 없으면 비로그인으로 판단
+      const isLoggedIn = !!(userId && token);
+
+      if (!isLoggedIn && !inAuth && !inIndex) {
+        redirecting.current = true;
         router.replace("/(tabs)");
+        setTimeout(() => { redirecting.current = false; }, 500);
       }
     };
     check();
-  }, [segments]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segKey]);
 
   return (
     <Tabs
