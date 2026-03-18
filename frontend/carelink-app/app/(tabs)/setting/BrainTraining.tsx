@@ -15,6 +15,7 @@ import { ScaledText as Text } from "../../../components/ScaledText";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authFetch } from "../../../utils/api";
+import Svg, { Polyline, Circle, Line, Text as SvgText } from "react-native-svg";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type Card = { id: string; key: string; icon: IconName; flipped: boolean; matched: boolean };
@@ -69,12 +70,55 @@ function buildDeck(): Card[] {
   return pairs;
 }
 
+type ScoreEntry = { score: number; createdAt: string };
+
+// ── 추세 차트 컴포넌트 ──────────────────────────────────────
+const CHART_W = SCREEN_W - H_PADDING * 2;
+const CHART_H = 100;
+const CHART_PAD = { top: 12, bottom: 20, left: 28, right: 8 };
+
+function ScoreTrendChart({ data }: { data: ScoreEntry[] }) {
+  if (data.length < 2) return null;
+  const scores = [...data].reverse().map(d => d.score); // 오래된 순 → 최신 순
+  const n = scores.length;
+  const minS = Math.max(0, Math.min(...scores) - 5);
+  const maxS = Math.min(100, Math.max(...scores) + 5);
+  const innerW = CHART_W - CHART_PAD.left - CHART_PAD.right;
+  const innerH = CHART_H - CHART_PAD.top - CHART_PAD.bottom;
+
+  const px = (i: number) => CHART_PAD.left + (i / (n - 1)) * innerW;
+  const py = (s: number) => CHART_PAD.top + (1 - (s - minS) / (maxS - minS)) * innerH;
+
+  const points = scores.map((s, i) => `${px(i)},${py(s)}`).join(" ");
+
+  return (
+    <View style={{ marginTop: 6, marginBottom: 4 }}>
+      <Text style={styles.chartTitle}>Score Trend (last {n} games)</Text>
+      <Svg width={CHART_W} height={CHART_H}>
+        {/* 기준선 */}
+        <Line x1={CHART_PAD.left} y1={CHART_PAD.top} x2={CHART_PAD.left} y2={CHART_PAD.top + innerH} stroke="#cbd5e1" strokeWidth={1} />
+        <Line x1={CHART_PAD.left} y1={CHART_PAD.top + innerH} x2={CHART_W - CHART_PAD.right} y2={CHART_PAD.top + innerH} stroke="#cbd5e1" strokeWidth={1} />
+        {/* Y축 레이블 */}
+        <SvgText x={CHART_PAD.left - 4} y={CHART_PAD.top + 4} fontSize={9} fill="#94a3b8" textAnchor="end">{Math.round(maxS)}</SvgText>
+        <SvgText x={CHART_PAD.left - 4} y={CHART_PAD.top + innerH + 4} fontSize={9} fill="#94a3b8" textAnchor="end">{Math.round(minS)}</SvgText>
+        {/* 꺾은선 */}
+        <Polyline points={points} fill="none" stroke="#26B4E5" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+        {/* 점 */}
+        {scores.map((s, i) => (
+          <Circle key={i} cx={px(i)} cy={py(s)} r={3.5} fill="#26B4E5" />
+        ))}
+      </Svg>
+    </View>
+  );
+}
+
 export default function BrainTraining() {
   const [deck, setDeck] = useState<Card[]>(buildDeck());
   const [active, setActive] = useState(false);
   const [moves, setMoves] = useState(0);
   const [matches, setMatches] = useState(0);
   const [bestScore, setBestScore] = useState<number | null>(null);
+  const [scoreHistory, setScoreHistory] = useState<ScoreEntry[]>([]);
 
   useEffect(() => {
     const loadBest = async () => {
@@ -85,6 +129,7 @@ export default function BrainTraining() {
         if (res.ok) {
           const data = await res.json();
           setBestScore(data.bestScore ?? 0);
+          setScoreHistory(data.recent ?? []);
         }
       } catch {}
     };
@@ -216,11 +261,17 @@ export default function BrainTraining() {
             }).then(res => {
               if (res.ok) {
                 res.json().then(data => {
-                  setBestScore(data.bestScore ?? score);
+                  const best = data.bestScore ?? score;
+                  setBestScore(best);
+                  // 추세 차트 히스토리 갱신 (최신 기록 prepend, 최대 10개)
+                  setScoreHistory(prev => [
+                    { score, createdAt: new Date().toISOString() },
+                    ...prev,
+                  ].slice(0, 10));
                   setTimeout(() => {
                     Alert.alert(
                       "Game Completed!",
-                      `All cards matched!\nMoves: ${finalMoves}\nScore: ${score}\nBest Score: ${data.bestScore ?? score}`
+                      `All cards matched!\nMoves: ${finalMoves}\nScore: ${score}\nBest Score: ${best}`
                     );
                   }, 300);
                 });
@@ -281,6 +332,7 @@ export default function BrainTraining() {
             <Text style={styles.bestText}>Best Score: {bestScore}</Text>
           </View>
         )}
+        <ScoreTrendChart data={scoreHistory} />
 
         <View style={styles.grid}>
           {deck.map((card, i) => {
@@ -392,6 +444,8 @@ const styles = StyleSheet.create({
   // ✅ 버튼 글씨 키움
   btnText: { color: "#111827", fontWeight: "800", fontSize: FS_BTN },
   btnTextPrimary: { color: "#fff", fontWeight: "900", fontSize: FS_BTN },
+
+  chartTitle: { fontSize: Math.max(13, SCREEN_W * 0.034), color: "#475569", fontWeight: "600", marginBottom: 2, textAlign: "center" },
 
   flipWrap: { width: "100%", height: "100%", position: "relative" },
   face: {
