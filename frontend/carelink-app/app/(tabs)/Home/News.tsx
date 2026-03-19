@@ -71,24 +71,44 @@ export default function NewsScreen() {
       setLoading(true);
       setFetchError(false);
 
-      const path =
-        `/api/news` +
-        `?userId=${encodeURIComponent(storedUserId)}` +
-        `&limit=5`;
+      const refreshPath = `/api/news/refresh?userId=${encodeURIComponent(storedUserId)}`;
+      const latestPath =
+        `/api/news?userId=${encodeURIComponent(storedUserId)}&limit=5`;
 
-      const res = await authFetch(path, { signal: controller.signal } as RequestInit);
+      const refreshRes = await authFetch(refreshPath, {
+        method: "POST",
+        signal: controller.signal,
+      } as RequestInit);
+
+      if (!refreshRes.ok) {
+        const msg = await refreshRes.text().catch(() => "");
+        console.log("[news refresh failed]", refreshRes.status, msg);
+        setNews([]);
+        setFetchError(true);
+        return;
+      }
+
+      const res = await authFetch(latestPath, {
+        method: "GET",
+        signal: controller.signal,
+      } as RequestInit);
+
       clearTimeout(timeoutId);
 
       if (!res.ok) {
+        const msg = await res.text().catch(() => "");
+        console.log("[news latest failed]", res.status, msg);
         setNews([]);
         setFetchError(true);
         return;
       }
 
       const data = await res.json();
+      console.log("[news latest data]", data);
       setNews(Array.isArray(data) ? data : []);
     } catch (err: any) {
       clearTimeout(timeoutId);
+      console.log("[news fetch error]", err?.name, err?.message);
       if (err?.name !== "AbortError") setFetchError(true);
       setNews([]);
     } finally {
