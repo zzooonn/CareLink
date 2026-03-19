@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import {
   View,
   StyleSheet,
@@ -10,33 +8,14 @@ import {
 } from "react-native";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import Svg, { Polyline } from "react-native-svg";
-
-// --- UI Constants ---
-const API_BASE_URL = process.env.EXPO_PUBLIC_AI_API_BASE_URL;
-const AI_API_KEY = process.env.EXPO_PUBLIC_AI_API_KEY ?? "";
+import { authFetch } from "../../../utils/api";
 
 async function aiFetch(path: string, options: RequestInit = {}) {
-  if (!API_BASE_URL) {
-    throw new Error("AI API URL is not set");
-  }
-
-  const accessToken = await AsyncStorage.getItem("token");
-
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(AI_API_KEY ? { "X-API-Key": AI_API_KEY } : {}),
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...(options.headers ?? {}),
-    },
-  });
-
+  const res = await authFetch(`/api/ecg${path}`, options);
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`HTTP ${res.status} ${text}`.trim());
   }
-
   return res;
 }
 
