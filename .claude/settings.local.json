@@ -12,7 +12,8 @@
       "Bash(cat /c/Users/zoonc/Desktop/HealthCare/frontend/carelink-app/app/\\\\\\(tabs\\\\\\)/_layout.tsx)",
       "Bash(xargs grep:*)",
       "Bash(python3:*)",
-      "Bash(head -60 /c/Users/zoonc/Desktop/HealthCare/frontend/carelink-app/app/\\\\\\(tabs\\\\\\)/setting/BrainTraining.tsx)"
+      "Bash(head -60 /c/Users/zoonc/Desktop/HealthCare/frontend/carelink-app/app/\\\\\\(tabs\\\\\\)/setting/BrainTraining.tsx)",
+      "Bash(find /c/Users/zoonc/Desktop/HealthCare/backend -type f \\\\\\(-name *.ts -o -name *.js \\\\\\))"
     ]
   }
 }

@@ -29,19 +29,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            if (jwtProvider.validateToken(token)) {
-                String userId = jwtProvider.getUserId(token);
-                UserRole role = jwtProvider.getRole(token);
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                userId,
-                                null,
-                                List.of(
-                                        new SimpleGrantedAuthority("ROLE_USER"),
-                                        new SimpleGrantedAuthority("ROLE_" + role.name())
-                                )
-                        );
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            try {
+                if (jwtProvider.validateToken(token) && !jwtProvider.isRefreshToken(token)) {
+                    String userId = jwtProvider.getUserId(token);
+                    UserRole role = jwtProvider.getRole(token);
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                    userId,
+                                    null,
+                                    List.of(
+                                            new SimpleGrantedAuthority("ROLE_USER"),
+                                            new SimpleGrantedAuthority("ROLE_" + role.name())
+                                    )
+                            );
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } catch (Exception ignored) {
+                // 유효하지 않은 토큰은 인증 없이 통과 — Spring Security가 401 처리
             }
         }
 
