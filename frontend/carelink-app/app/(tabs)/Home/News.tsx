@@ -71,18 +71,17 @@ export default function NewsScreen() {
       setLoading(true);
       setFetchError(false);
 
-      const refreshPath = `/api/news/refresh?userId=${encodeURIComponent(storedUserId)}`;
-      const latestPath =
-        `/api/news?userId=${encodeURIComponent(storedUserId)}&limit=5`;
+      const latestPath = `/api/news?userId=${encodeURIComponent(storedUserId)}&limit=5`;
 
-      const refreshRes = await authFetch(refreshPath, {
-        method: "POST",
-        signal: controller.signal,
-      } as RequestInit);
+      const refreshRes = await authFetch(
+        `/api/news/refresh?userId=${encodeURIComponent(storedUserId)}`,
+        { method: "POST", signal: controller.signal } as RequestInit
+      );
+
+      const refreshText = await refreshRes.text().catch(() => "");
+      console.log("[news refresh]", refreshRes.status, refreshText);
 
       if (!refreshRes.ok) {
-        const msg = await refreshRes.text().catch(() => "");
-        console.log("[news refresh failed]", refreshRes.status, msg);
         setNews([]);
         setFetchError(true);
         return;
