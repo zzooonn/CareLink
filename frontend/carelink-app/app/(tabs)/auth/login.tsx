@@ -24,7 +24,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchWithTimeout = async (url: string, options: any, timeout = 10000) => {
+  const fetchWithTimeout = async (url: string, options: any, timeout = 30000) => {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
     try {
