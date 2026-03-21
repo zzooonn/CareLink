@@ -2,6 +2,7 @@ import os
 import time
 import numpy as np
 import traceback
+import math
 from math import gcd
 from typing import List, Optional
 from contextlib import asynccontextmanager
@@ -120,6 +121,34 @@ def risk_level_from_probs(probs: np.ndarray) -> str:
     if abnormal >= 0.6:
         return "medium"
     return "low"
+
+
+def validate_request_matrix(x_raw: List[List[float]]) -> None:
+    if not x_raw or len(x_raw) == 0:
+        raise HTTPException(status_code=422, detail="Input data 'x' is empty")
+
+    try:
+        row_lengths = {len(row) for row in x_raw}
+    except TypeError:
+        raise HTTPException(status_code=422, detail="Input data 'x' must be a 2D numeric array")
+
+    if len(row_lengths) != 1:
+        raise HTTPException(status_code=422, detail=f"Jagged array detected. Row lengths: {row_lengths}")
+
+    for row_idx, row in enumerate(x_raw):
+        for col_idx, value in enumerate(row):
+            try:
+                num = float(value)
+            except (TypeError, ValueError):
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Input contains a non-numeric value at x[{row_idx}][{col_idx}]",
+                )
+            if not math.isfinite(num):
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Input contains NaN/Inf at x[{row_idx}][{col_idx}]",
+                )
 
 # =============================================================================
 # 1.5) 데모용 샘플 생성
@@ -398,6 +427,8 @@ def sample_window(label: Optional[str] = Query(None)):
             "ts": time.time(),
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(500, f"Sample server error: {str(e)}")
@@ -408,20 +439,17 @@ def predict_window(req: PredictReq):
         raise HTTPException(500, "Model not ready")
 
     try:
-        if not req.x or len(req.x) == 0:
-            raise ValueError("Input data 'x' is empty")
-
-        row_lengths = set(len(row) for row in req.x)
-        if len(row_lengths) != 1:
-            raise ValueError(f"Jagged array detected. Row lengths: {row_lengths}")
+        validate_request_matrix(req.x)
 
         x = np.array(req.x, dtype=np.float32)
         x = to_12xL(x)
 
-        if np.isnan(x).any():
-            x = np.nan_to_num(x)
+        if not np.isfinite(x).all():
+            raise HTTPException(status_code=422, detail="Input contains NaN/Inf values")
 
         in_fs = int(req.fs) if req.fs else FS
+        if in_fs <= 0:
+            raise HTTPException(status_code=422, detail=f"fs must be a positive integer (got {in_fs})")
         if in_fs != FS:
             x = resample_12lead(x, in_fs, FS)
 
