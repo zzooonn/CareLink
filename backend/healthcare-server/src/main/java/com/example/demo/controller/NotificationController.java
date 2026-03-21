@@ -51,11 +51,7 @@ public class NotificationController {
         User receiver = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        List<NotificationResponseDto> result = alertRepository
-                .findByReceiverOrderByCreatedAtDesc(receiver)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        List<NotificationResponseDto> result = alertRepository.findNotificationResponsesByReceiver(receiver);
 
         return ResponseEntity.ok(result);
     }
@@ -79,17 +75,5 @@ public class NotificationController {
         }
 
         return ResponseEntity.noContent().build();
-    }
-
-    private NotificationResponseDto toResponse(UserHealthAlert alert) {
-        return new NotificationResponseDto(
-                alert.getId(),
-                alert.getTitle(),
-                alert.getMessage(),
-                alert.getAlertType(),
-                alert.getPatient() != null ? alert.getPatient().getUserId() : null,
-                alert.getCreatedAt() != null ? alert.getCreatedAt().toString() : null,
-                alert.getReadAt() != null
-        );
     }
 }
