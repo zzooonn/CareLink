@@ -270,6 +270,8 @@ def main():
     endpoints = {
         "health_check": f"{args.base_url}/actuator/health",
         "vitals_insights": f"{args.base_url}/api/vitals/insights?userId={args.user_id}&range=7d",
+        "user_profile": f"{args.base_url}/api/users/{args.user_id}",
+        "notifications": f"{args.base_url}/api/notification/{args.user_id}",
     }
 
     report["load_test"] = {}
