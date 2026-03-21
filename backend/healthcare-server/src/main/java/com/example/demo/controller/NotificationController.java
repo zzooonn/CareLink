@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AlertRequestDto;
+import com.example.demo.dto.NotificationResponseDto;
 import com.example.demo.entity.User;
 import com.example.demo.entity.UserHealthAlert;
 import com.example.demo.repository.UserHealthAlertRepository;
@@ -10,12 +11,12 @@ import com.example.demo.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notification")
@@ -44,23 +45,16 @@ public class NotificationController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<Map<String, Object>>> getAlerts(@PathVariable String userId) {
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<NotificationResponseDto>> getAlerts(@PathVariable String userId) {
         accessControlService.ensureSelfOrLinkedGuardian(userId);
         User receiver = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        List<Map<String, Object>> result = alertRepository
+        List<NotificationResponseDto> result = alertRepository
                 .findByReceiverOrderByCreatedAtDesc(receiver)
                 .stream()
-                .map(a -> Map.<String, Object>of(
-                        "id", a.getId(),
-                        "title", a.getTitle(),
-                        "message", a.getMessage(),
-                        "alertType", a.getAlertType(),
-                        "patientUserId", a.getPatient().getUserId(),
-                        "createdAt", a.getCreatedAt().toString(),
-                        "read", a.getReadAt() != null
-                ))
+                .map(this::toResponse)
                 .toList();
 
         return ResponseEntity.ok(result);
@@ -85,5 +79,17 @@ public class NotificationController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    private NotificationResponseDto toResponse(UserHealthAlert alert) {
+        return new NotificationResponseDto(
+                alert.getId(),
+                alert.getTitle(),
+                alert.getMessage(),
+                alert.getAlertType(),
+                alert.getPatient() != null ? alert.getPatient().getUserId() : null,
+                alert.getCreatedAt() != null ? alert.getCreatedAt().toString() : null,
+                alert.getReadAt() != null
+        );
     }
 }

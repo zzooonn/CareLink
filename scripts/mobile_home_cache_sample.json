@@ -1,0 +1,18 @@
+{
+  "userName": "Cached User",
+  "profileImageId": 1,
+  "caregivers:list": [
+    {
+      "id": "cg-1",
+      "name": "Guardian One",
+      "phone": "01000000000",
+      "avatarId": 1
+    },
+    {
+      "id": "cg-2",
+      "name": "Guardian Two",
+      "phone": "01000000001",
+      "avatarId": 2
+    }
+  ]
+}

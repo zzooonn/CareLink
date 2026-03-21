@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-03-17T14:56:49.361660",
-  "base_url": "http://3.106.213.107:8080",
+  "generated_at": "2026-03-21T11:42:52.623075",
+  "base_url": "http://13.239.3.127:8080",
   "ai_url": "https://zoon1-carelink-ai.hf.space",
   "backend_health": {
     "status": 200,
-    "latency_ms": 1947.64
+    "latency_ms": 309.82
   },
   "load_test": {
     "health_check": [
@@ -13,52 +13,52 @@
         "total_requests": 20,
         "success_requests": 20,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 6.4,
-        "tps": 3.13,
-        "latency_avg_ms": 319.7,
-        "latency_p50_ms": 311.8,
-        "latency_p95_ms": 373.28,
-        "latency_p99_ms": 432.5,
-        "latency_max_ms": 447.3
+        "elapsed_sec": 5.82,
+        "tps": 3.44,
+        "latency_avg_ms": 290.93,
+        "latency_p50_ms": 292.34,
+        "latency_p95_ms": 302.97,
+        "latency_p99_ms": 303.03,
+        "latency_max_ms": 303.05
       },
       {
         "concurrency": 5,
         "total_requests": 100,
         "success_requests": 100,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 6.44,
-        "tps": 15.52,
-        "latency_avg_ms": 319.37,
-        "latency_p50_ms": 310.95,
-        "latency_p95_ms": 373.54,
-        "latency_p99_ms": 417.02,
-        "latency_max_ms": 426.02
+        "elapsed_sec": 5.91,
+        "tps": 16.93,
+        "latency_avg_ms": 292.18,
+        "latency_p50_ms": 292.92,
+        "latency_p95_ms": 305.2,
+        "latency_p99_ms": 307.95,
+        "latency_max_ms": 321.78
       },
       {
         "concurrency": 10,
         "total_requests": 200,
         "success_requests": 200,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 11.85,
-        "tps": 16.87,
-        "latency_avg_ms": 580.96,
-        "latency_p50_ms": 306.9,
-        "latency_p95_ms": 1007.63,
-        "latency_p99_ms": 5016.37,
-        "latency_max_ms": 5203.09
+        "elapsed_sec": 5.94,
+        "tps": 33.68,
+        "latency_avg_ms": 293.22,
+        "latency_p50_ms": 292.83,
+        "latency_p95_ms": 305.53,
+        "latency_p99_ms": 315.97,
+        "latency_max_ms": 326.64
       },
       {
         "concurrency": 20,
         "total_requests": 400,
         "success_requests": 400,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 6.77,
-        "tps": 59.04,
-        "latency_avg_ms": 324.79,
-        "latency_p50_ms": 303.04,
-        "latency_p95_ms": 412.86,
-        "latency_p99_ms": 867.03,
-        "latency_max_ms": 888.89
+        "elapsed_sec": 5.93,
+        "tps": 67.45,
+        "latency_avg_ms": 292.65,
+        "latency_p50_ms": 292.65,
+        "latency_p95_ms": 305.38,
+        "latency_p99_ms": 314.88,
+        "latency_max_ms": 322.0
       }
     ],
     "vitals_insights": [
@@ -67,52 +67,160 @@
         "total_requests": 20,
         "success_requests": 20,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 12.0,
-        "tps": 1.67,
-        "latency_avg_ms": 600.1,
-        "latency_p50_ms": 329.97,
-        "latency_p95_ms": 1096.12,
-        "latency_p99_ms": 4403.85,
-        "latency_max_ms": 5230.78
+        "elapsed_sec": 5.96,
+        "tps": 3.36,
+        "latency_avg_ms": 297.7,
+        "latency_p50_ms": 298.34,
+        "latency_p95_ms": 308.09,
+        "latency_p99_ms": 309.35,
+        "latency_max_ms": 309.66
       },
       {
         "concurrency": 5,
         "total_requests": 100,
         "success_requests": 100,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 6.66,
-        "tps": 15.01,
-        "latency_avg_ms": 326.85,
-        "latency_p50_ms": 320.01,
-        "latency_p95_ms": 384.35,
-        "latency_p99_ms": 527.47,
-        "latency_max_ms": 548.5
+        "elapsed_sec": 5.98,
+        "tps": 16.73,
+        "latency_avg_ms": 296.49,
+        "latency_p50_ms": 295.38,
+        "latency_p95_ms": 309.05,
+        "latency_p99_ms": 320.11,
+        "latency_max_ms": 327.02
       },
       {
         "concurrency": 10,
         "total_requests": 200,
         "success_requests": 200,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 8.63,
-        "tps": 23.18,
-        "latency_avg_ms": 349.21,
-        "latency_p50_ms": 318.78,
-        "latency_p95_ms": 448.47,
-        "latency_p99_ms": 1000.29,
-        "latency_max_ms": 2497.29
+        "elapsed_sec": 6.01,
+        "tps": 33.31,
+        "latency_avg_ms": 296.07,
+        "latency_p50_ms": 295.75,
+        "latency_p95_ms": 310.41,
+        "latency_p99_ms": 317.98,
+        "latency_max_ms": 329.95
       },
       {
         "concurrency": 20,
         "total_requests": 400,
         "success_requests": 400,
         "error_rate_pct": 0.0,
-        "elapsed_sec": 7.06,
-        "tps": 56.66,
-        "latency_avg_ms": 333.3,
-        "latency_p50_ms": 315.27,
-        "latency_p95_ms": 429.83,
-        "latency_p99_ms": 615.54,
-        "latency_max_ms": 716.09
+        "elapsed_sec": 6.05,
+        "tps": 66.15,
+        "latency_avg_ms": 297.59,
+        "latency_p50_ms": 295.89,
+        "latency_p95_ms": 317.72,
+        "latency_p99_ms": 337.4,
+        "latency_max_ms": 344.05
+      }
+    ],
+    "user_profile": [
+      {
+        "concurrency": 1,
+        "total_requests": 20,
+        "success_requests": 20,
+        "error_rate_pct": 0.0,
+        "elapsed_sec": 5.86,
+        "tps": 3.41,
+        "latency_avg_ms": 292.89,
+        "latency_p50_ms": 294.21,
+        "latency_p95_ms": 306.39,
+        "latency_p99_ms": 308.01,
+        "latency_max_ms": 308.42
+      },
+      {
+        "concurrency": 5,
+        "total_requests": 100,
+        "success_requests": 100,
+        "error_rate_pct": 0.0,
+        "elapsed_sec": 5.93,
+        "tps": 16.86,
+        "latency_avg_ms": 295.14,
+        "latency_p50_ms": 294.88,
+        "latency_p95_ms": 306.88,
+        "latency_p99_ms": 317.18,
+        "latency_max_ms": 327.3
+      },
+      {
+        "concurrency": 10,
+        "total_requests": 200,
+        "success_requests": 200,
+        "error_rate_pct": 0.0,
+        "elapsed_sec": 5.95,
+        "tps": 33.64,
+        "latency_avg_ms": 293.65,
+        "latency_p50_ms": 293.75,
+        "latency_p95_ms": 306.98,
+        "latency_p99_ms": 317.29,
+        "latency_max_ms": 319.89
+      },
+      {
+        "concurrency": 20,
+        "total_requests": 400,
+        "success_requests": 400,
+        "error_rate_pct": 0.0,
+        "elapsed_sec": 6.0,
+        "tps": 66.63,
+        "latency_avg_ms": 295.07,
+        "latency_p50_ms": 293.85,
+        "latency_p95_ms": 315.85,
+        "latency_p99_ms": 323.81,
+        "latency_max_ms": 336.14
+      }
+    ],
+    "notifications": [
+      {
+        "concurrency": 1,
+        "total_requests": 20,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 5.97,
+        "tps": 3.35,
+        "latency_avg_ms": 298.56,
+        "latency_p50_ms": 298.14,
+        "latency_p95_ms": 308.99,
+        "latency_p99_ms": 310.66,
+        "latency_max_ms": 311.08
+      },
+      {
+        "concurrency": 5,
+        "total_requests": 100,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 5.96,
+        "tps": 16.77,
+        "latency_avg_ms": 296.63,
+        "latency_p50_ms": 296.31,
+        "latency_p95_ms": 308.89,
+        "latency_p99_ms": 313.2,
+        "latency_max_ms": 317.54
+      },
+      {
+        "concurrency": 10,
+        "total_requests": 200,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 6.0,
+        "tps": 33.36,
+        "latency_avg_ms": 296.47,
+        "latency_p50_ms": 296.18,
+        "latency_p95_ms": 308.78,
+        "latency_p99_ms": 321.2,
+        "latency_max_ms": 325.95
+      },
+      {
+        "concurrency": 20,
+        "total_requests": 400,
+        "success_requests": 0,
+        "error_rate_pct": 100.0,
+        "elapsed_sec": 6.06,
+        "tps": 65.97,
+        "latency_avg_ms": 298.17,
+        "latency_p50_ms": 296.11,
+        "latency_p95_ms": 321.55,
+        "latency_p99_ms": 333.75,
+        "latency_max_ms": 338.1
       }
     ]
   },
@@ -121,12 +229,12 @@
     "n_samples": 30,
     "success": 30,
     "errors": 0,
-    "latency_avg_ms": 2279.84,
-    "latency_p50_ms": 2279.16,
-    "latency_p95_ms": 2400.15,
-    "latency_p99_ms": 2430.49,
-    "latency_min_ms": 2193.84,
-    "latency_max_ms": 2434.79
+    "latency_avg_ms": 2425.45,
+    "latency_p50_ms": 2395.75,
+    "latency_p95_ms": 2561.49,
+    "latency_p99_ms": 2787.44,
+    "latency_min_ms": 2322.47,
+    "latency_max_ms": 2872.67
   },
   "boundary_tests": [
     {
@@ -137,9 +245,9 @@
     },
     {
       "case": "NaN 포함",
-      "status": 500,
-      "graceful": true,
-      "body": "{\"detail\":\"Server Error: Input contains NaN values\"}"
+      "status": -1,
+      "graceful": false,
+      "body": "Out of range float values are not JSON compliant"
     },
     {
       "case": "잘못된 lead 수 (6)",
