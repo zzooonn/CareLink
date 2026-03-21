@@ -192,7 +192,10 @@ def run_boundary_tests(ai_base_url: str, ai_key: str) -> list:
     print("\n[경계값 테스트]")
     for name, payload in cases:
         try:
-            r = requests.post(url, json=payload, headers=headers, timeout=15)
+            # NaN/Inf 케이스는 requests의 기본 json 직렬화 단계에서 막힐 수 있어
+            # allow_nan=True로 raw body를 만들어 서버까지 실제로 보내 본다.
+            raw_body = json.dumps(payload, allow_nan=True)
+            r = requests.post(url, data=raw_body, headers=headers, timeout=15)
             status = r.status_code
             body = r.text[:120]
         except Exception as e:
