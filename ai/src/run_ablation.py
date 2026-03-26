@@ -22,6 +22,7 @@ import os
 import sys
 import csv
 import time
+import random
 import numpy as np
 import torch
 import torch.nn as nn
@@ -31,6 +32,18 @@ from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from scipy.signal import butter, filtfilt
 from sklearn.metrics import f1_score, roc_auc_score, confusion_matrix
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
+
+# ======================== 재현성: 랜덤 시드 고정 ========================
+ABLATION_SEED = 42
+
+def set_seed(seed: int):
+    """모든 난수 생성기를 동일 시드로 고정하여 실험 재현성 확보"""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 # ======================== 설정 ========================
 ABLATION_EPOCHS = 80        # Ablation용 에폭 (Full 학습보다 짧게)
@@ -420,10 +433,13 @@ def main():
     models_dir = os.path.join(root, "models")
     os.makedirs(models_dir, exist_ok=True)
 
+    # 모든 Ablation 조건을 동일 시드로 실행하여 공정한 비교 보장
+    set_seed(ABLATION_SEED)
+    print(f"[Reproducibility] Global seed fixed: {ABLATION_SEED}")
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
     if device.type == "cuda":
-        cudnn.benchmark = True
         print(f"GPU: {torch.cuda.get_device_name(0)}")
 
     # ======================== 실험 구성 ========================
@@ -467,6 +483,8 @@ def main():
         print(f"\n\n{'#'*60}")
         print(f"  EXPERIMENT {i+1}/{len(experiments)}")
         print(f"{'#'*60}")
+        # 각 조건도 동일 시드로 초기화하여 조건 간 공정 비교 보장
+        set_seed(ABLATION_SEED)
         result = run_single_experiment(config, data_dir, device)
         results.append(result)
 

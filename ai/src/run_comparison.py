@@ -18,6 +18,7 @@ import sys
 import argparse
 import csv
 import time
+import random
 import numpy as np
 import torch
 import torch.nn as nn
@@ -25,9 +26,23 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from scipy.signal import butter, filtfilt
+from scipy import stats as scipy_stats
 from sklearn.metrics import (f1_score, roc_auc_score, confusion_matrix,
                              classification_report, multilabel_confusion_matrix)
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
+
+# ======================== 재현성: 랜덤 시드 고정 ========================
+N_RUNS = 3
+SEEDS = [42, 123, 456]
+
+def set_seed(seed: int):
+    """모든 난수 생성기를 동일 시드로 고정하여 실험 재현성 확보"""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False  # deterministic 모드에서는 False
 
 # ======================== 설정 ========================
 EPOCHS = 100
@@ -413,6 +428,56 @@ def save_comparison_csv(results_list, path):
 # =============================================================================
 # MAIN
 # =============================================================================
+def _run_stat_tests(per_model_results: dict):
+    """
+    두 모델 간 반복 실험 결과에 대해 통계적 유의성 검정 수행.
+    - Paired t-test (Macro F1 기준)
+    - Bootstrap 95% CI (Macro AUC 기준)
+    """
+    model_names = list(per_model_results.keys())
+    if len(model_names) < 2:
+        return
+
+    m1, m2 = model_names[0], model_names[1]
+    f1_m1 = np.array([r["macro_f1"] for r in per_model_results[m1]])
+    f1_m2 = np.array([r["macro_f1"] for r in per_model_results[m2]])
+    auc_m1 = np.array([r["macro_auc"] for r in per_model_results[m1]])
+    auc_m2 = np.array([r["macro_auc"] for r in per_model_results[m2]])
+
+    print(f"\n{'='*70}")
+    print(f"  STATISTICAL SIGNIFICANCE TESTS  (N={len(f1_m1)} runs)")
+    print(f"{'='*70}")
+
+    # --- Paired t-test (Macro F1) ---
+    diff_f1 = f1_m1 - f1_m2
+    if len(diff_f1) >= 2 and diff_f1.std() > 0:
+        t_stat, p_val = scipy_stats.ttest_rel(f1_m1, f1_m2)
+    else:
+        t_stat, p_val = float("nan"), float("nan")
+    print(f"\n  [Paired t-test] Macro F1: {m1} vs {m2}")
+    print(f"    {m1}: {f1_m1.mean():.4f} ± {f1_m1.std():.4f}")
+    print(f"    {m2}: {f1_m2.mean():.4f} ± {f1_m2.std():.4f}")
+    print(f"    t={t_stat:.4f}, p={p_val:.4f}  "
+          f"{'(p<0.05: significant)' if p_val < 0.05 else '(p>=0.05: not significant)'}")
+
+    # --- Bootstrap 95% CI (Macro AUC 차이) ---
+    rng = np.random.default_rng(42)
+    n_boot = 10000
+    boot_diffs = []
+    for _ in range(n_boot):
+        idx = rng.integers(0, len(auc_m1), size=len(auc_m1))
+        boot_diffs.append((auc_m1[idx] - auc_m2[idx]).mean())
+    boot_diffs = np.array(boot_diffs)
+    ci_lo, ci_hi = np.percentile(boot_diffs, [2.5, 97.5])
+    obs_diff = (auc_m1 - auc_m2).mean()
+    print(f"\n  [Bootstrap 95% CI] Macro AUC difference ({m1} - {m2})")
+    print(f"    Observed diff: {obs_diff:+.4f}")
+    print(f"    95% CI: [{ci_lo:+.4f}, {ci_hi:+.4f}]")
+    contains_zero = ci_lo <= 0 <= ci_hi
+    print(f"    {'CI contains 0: not significant at α=0.05' if contains_zero else 'CI excludes 0: significant at α=0.05'}")
+    print(f"{'='*70}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip-train", action="store_true", help="이미 학습된 모델로 분석만")
@@ -428,10 +493,9 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
     if device.type == "cuda":
-        cudnn.benchmark = True
         print(f"GPU: {torch.cuda.get_device_name(0)}")
 
-    # Data
+    # Data (데이터 로딩은 runs 밖에서 한 번만)
     train_ds = ECGDatasetMulti(os.path.join(data_dir, "X_train.npy"),
                                os.path.join(data_dir, "y_train.npy"), augment=True)
     val_ds = ECGDatasetMulti(os.path.join(data_dir, "X_val.npy"),
@@ -457,90 +521,123 @@ def main():
     pw[4] = min(pw[4] * 1.5, 5.0)
     pw = pw.to(device)
 
-    # ======================== MODEL CONFIGS ========================
-    model_configs = [
-        {"name": "CNN_CBAM_GRU", "class": CNN_CBAM_GRU, "kwargs": {"num_classes": 5, "amp_dim": 36},
-         "path": os.path.join(models_dir, "comparison_cnn_gru.pth")},
-        {"name": "ResNet1D", "class": ResNet1D, "kwargs": {"num_classes": 5, "amp_dim": 36},
-         "path": os.path.join(models_dir, "comparison_resnet1d.pth")},
-    ]
+    # ======================== 반복 실험 (N_RUNS=3) ========================
+    # 모델별로 runs 결과를 모아 평균±표준편차 및 통계 검정에 사용
+    per_model_results = {"CNN_CBAM_GRU": [], "ResNet1D": []}
+    all_run_results = []  # CSV 저장용
 
-    all_results = []
+    for run_idx in range(N_RUNS):
+        seed = SEEDS[run_idx]
+        set_seed(seed)
+        print(f"\n\n{'#'*70}")
+        print(f"  RUN {run_idx+1}/{N_RUNS}  |  seed={seed}")
+        print(f"{'#'*70}")
 
-    for mc in model_configs:
-        print(f"\n{'='*60}")
-        print(f"  MODEL: {mc['name']}")
-        print(f"{'='*60}")
+        model_configs = [
+            {"name": "CNN_CBAM_GRU", "class": CNN_CBAM_GRU, "kwargs": {"num_classes": 5, "amp_dim": 36},
+             "path": os.path.join(models_dir, f"comparison_cnn_gru_run{run_idx}.pth")},
+            {"name": "ResNet1D", "class": ResNet1D, "kwargs": {"num_classes": 5, "amp_dim": 36},
+             "path": os.path.join(models_dir, f"comparison_resnet1d_run{run_idx}.pth")},
+        ]
 
-        model = mc["class"](**mc["kwargs"]).to(device)
-        params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        print(f"  Parameters: {params:,} ({params/1e6:.2f}M)")
+        for mc in model_configs:
+            print(f"\n{'='*60}")
+            print(f"  MODEL: {mc['name']}  [Run {run_idx+1}]")
+            print(f"{'='*60}")
 
-        # Inference time
-        model.eval()
-        xd = torch.randn(1,12,5000).to(device); ad = torch.zeros(1,36).to(device)
-        with torch.no_grad():
-            for _ in range(10): model(xd, ad)
-            times = []
-            for _ in range(50):
-                t0 = time.perf_counter(); model(xd, ad); times.append(time.perf_counter()-t0)
-        inf_ms = np.mean(times)*1000
+            model = mc["class"](**mc["kwargs"]).to(device)
+            params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+            print(f"  Parameters: {params:,} ({params/1e6:.2f}M)")
 
-        if not args.skip_train:
-            criterion = AsymmetricLoss(pos_weight=pw).to(device)
-            t0 = time.time()
-            train_model(model, train_ld, val_ld, criterion, device, mc["name"], mc["path"])
-            train_time = time.time() - t0
-        else:
-            train_time = 0
-            if not os.path.exists(mc["path"]):
-                print(f"  [SKIP] Model file not found: {mc['path']}")
-                continue
+            # Inference time
+            model.eval()
+            xd = torch.randn(1,12,5000).to(device); ad = torch.zeros(1,36).to(device)
+            with torch.no_grad():
+                for _ in range(10): model(xd, ad)
+                times = []
+                for _ in range(50):
+                    t0 = time.perf_counter(); model(xd, ad); times.append(time.perf_counter()-t0)
+            inf_ms = np.mean(times)*1000
 
-        # Load best & Test
-        try:
-            state = torch.load(mc["path"], map_location=device, weights_only=True)
-        except TypeError:
-            state = torch.load(mc["path"], map_location=device)
-        model.load_state_dict(state)
+            if not args.skip_train:
+                criterion = AsymmetricLoss(pos_weight=pw).to(device)
+                t0 = time.time()
+                train_model(model, train_ld, val_ld, criterion, device, mc["name"], mc["path"])
+                train_time = time.time() - t0
+            else:
+                train_time = 0
+                if not os.path.exists(mc["path"]):
+                    print(f"  [SKIP] Model file not found: {mc['path']}")
+                    continue
 
-        vt, vp = evaluate_return_probs(model, val_ld, device)
-        thr = find_best_thresholds(vt, vp)
-        tt, tp = evaluate_return_probs(model, test_ld, device)
-        m = compute_all_metrics(tt, tp, thr)
+            # Load best & Test
+            try:
+                state = torch.load(mc["path"], map_location=device, weights_only=True)
+            except TypeError:
+                state = torch.load(mc["path"], map_location=device)
+            model.load_state_dict(state)
 
-        print(f"\n  [TEST] {mc['name']}")
-        print(f"  Macro F1: {m['macro_f1']:.2f}% | Macro AUC: {m['macro_auc']:.2f}%")
-        for i, name in enumerate(LABELS):
-            print(f"    {name:4s} | F1: {m['per_f1'][i]:.2f}% | AUC: {m['per_auc'][i]:.2f}%")
+            vt, vp = evaluate_return_probs(model, val_ld, device)
+            thr = find_best_thresholds(vt, vp)
+            tt, tp = evaluate_return_probs(model, test_ld, device)
+            m = compute_all_metrics(tt, tp, thr)
 
-        result = {
-            "model": mc["name"], "params_M": round(params/1e6, 2),
-            "inference_ms": round(inf_ms, 2), "train_time_sec": round(train_time, 1),
-            "macro_f1": round(m["macro_f1"], 2), "macro_auc": round(m["macro_auc"], 2),
-            "micro_f1": round(m["micro_f1"], 2),
-        }
-        for i, name in enumerate(LABELS):
-            result[f"{name}_f1"] = round(m["per_f1"][i], 2)
-            result[f"{name}_auc"] = round(m["per_auc"][i], 2)
-        all_results.append(result)
+            print(f"\n  [TEST] {mc['name']}  run={run_idx+1}")
+            print(f"  Macro F1: {m['macro_f1']:.2f}% | Macro AUC: {m['macro_auc']:.2f}%")
+            for i, lbl in enumerate(LABELS):
+                print(f"    {lbl:4s} | F1: {m['per_f1'][i]:.2f}% | AUC: {m['per_auc'][i]:.2f}%")
 
-        # Error Analysis
-        error_analysis(m["y_true"], m["y_pred"], m["y_prob"], analysis_dir, mc["name"])
+            result = {
+                "run": run_idx+1, "seed": seed,
+                "model": mc["name"], "params_M": round(params/1e6, 2),
+                "inference_ms": round(inf_ms, 2), "train_time_sec": round(train_time, 1),
+                "macro_f1": round(m["macro_f1"], 2), "macro_auc": round(m["macro_auc"], 2),
+                "micro_f1": round(m["micro_f1"], 2),
+            }
+            for i, lbl in enumerate(LABELS):
+                result[f"{lbl}_f1"] = round(m["per_f1"][i], 2)
+                result[f"{lbl}_auc"] = round(m["per_auc"][i], 2)
+            all_run_results.append(result)
+            per_model_results[mc["name"]].append(result)
 
-    # ======================== COMPARISON TABLE ========================
-    csv_path = os.path.join(models_dir, "comparison_results.csv")
-    save_comparison_csv(all_results, csv_path)
+            # Error Analysis (마지막 run에서만 저장해 파일 중복 방지)
+            if run_idx == N_RUNS - 1:
+                error_analysis(m["y_true"], m["y_pred"], m["y_prob"], analysis_dir, mc["name"])
 
+    # ======================== 전체 결과 CSV 저장 ========================
+    csv_path = os.path.join(models_dir, "comparison_results_all_runs.csv")
+    keys = ["run", "seed", "model", "params_M", "inference_ms", "macro_f1", "macro_auc",
+            "micro_f1", "NORM_f1", "STTC_f1", "MI_f1", "CD_f1", "HYP_f1",
+            "NORM_auc", "STTC_auc", "MI_auc", "CD_auc", "HYP_auc", "train_time_sec"]
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=keys, extrasaction="ignore")
+        w.writeheader()
+        for r in all_run_results:
+            w.writerow(r)
+    print(f"\n  All-runs CSV saved: {csv_path}")
+
+    # ======================== 평균 ± 표준편차 요약 ========================
     print(f"\n\n{'='*70}")
-    print(f"  {'Model':<18s} {'Params':>8s} {'Inf(ms)':>8s} {'Macro F1':>9s} {'Macro AUC':>10s} {'HYP F1':>8s}")
-    print(f"  {'-'*66}")
-    for r in all_results:
-        print(f"  {r['model']:<18s} {r['params_M']:>7.2f}M {r['inference_ms']:>7.1f} "
-              f"{r['macro_f1']:>8.2f}% {r['macro_auc']:>9.2f}% {r['HYP_f1']:>7.2f}%")
+    print(f"  SUMMARY: Mean ± Std over {N_RUNS} runs")
+    print(f"  {'Model':<18s} {'Macro F1 (%)':>16s} {'Macro AUC (%)':>16s} {'HYP F1 (%)':>14s}")
+    print(f"  {'-'*68}")
+    for mname, runs in per_model_results.items():
+        if not runs:
+            continue
+        f1s  = np.array([r["macro_f1"]  for r in runs])
+        aucs = np.array([r["macro_auc"] for r in runs])
+        hyps = np.array([r["HYP_f1"]    for r in runs])
+        print(f"  {mname:<18s} "
+              f"{f1s.mean():>7.2f} ± {f1s.std():>5.2f}   "
+              f"{aucs.mean():>7.2f} ± {aucs.std():>5.2f}   "
+              f"{hyps.mean():>6.2f} ± {hyps.std():>5.2f}")
     print(f"{'='*70}")
+
+    # ======================== 통계적 유의성 검정 ========================
+    _run_stat_tests(per_model_results)
+
     print(f"\nError analysis reports: {analysis_dir}/")
-    print(f"Comparison CSV: {csv_path}")
+    print(f"All-runs CSV: {csv_path}")
 
 
 if __name__ == "__main__":

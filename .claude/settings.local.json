@@ -13,7 +13,11 @@
       "Bash(xargs grep:*)",
       "Bash(python3:*)",
       "Bash(head -60 /c/Users/zoonc/Desktop/HealthCare/frontend/carelink-app/app/\\\\\\(tabs\\\\\\)/setting/BrainTraining.tsx)",
-      "Bash(find /c/Users/zoonc/Desktop/HealthCare/backend -type f \\\\\\(-name *.ts -o -name *.js \\\\\\))"
+      "Bash(find /c/Users/zoonc/Desktop/HealthCare/backend -type f \\\\\\(-name *.ts -o -name *.js \\\\\\))",
+      "Bash(\"C:/Users/zoonc/Desktop/HealthCare/ai/venv/Scripts/python.exe\" \"c:/Users/zoonc/Desktop/HealthCare/ai/src/grad_cam_viz.py\" --model resnet --classes 0 1 2 3 4)",
+      "Bash(grep -n \"class ResNet1D\" C:/Users/zoonc/Desktop/HealthCare/ai/src/*.py)",
+      "Bash(\"C:/Users/zoonc/Desktop/HealthCare/ai/venv/Scripts/python.exe\" \"c:/Users/zoonc/Desktop/HealthCare/ai/src/grad_cam_viz.py\" --model cnn_gru --classes 0 1 2 3 4)",
+      "Bash(find c:UserszooncDesktopHealthCarethesisdiagrams -type f -name *.drawio)"
     ]
   }
 }

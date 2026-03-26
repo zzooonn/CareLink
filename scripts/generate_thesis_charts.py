@@ -12,6 +12,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import rcParams
+from sklearn.metrics import roc_curve, auc, precision_recall_curve, average_precision_score
 
 # 한중 폰트 설정 (영문 논문용이므로 기본 sans-serif 권장)
 matplotlib.rcParams["axes.unicode_minus"] = False
@@ -231,6 +232,7 @@ def chart_api_latency(benchmark_path: str = ""):
 def chart_ecg_histogram(benchmark_path: str = ""):
     latencies = list(ACTUAL_ECG_LATENCIES)
     if not latencies:
+        # TODO: 실측 데이터로 교체 필요 — benchmark_results.json의 ecg_latencies 항목 사용
         # 수정됨: 평균 2279ms, P95 약 2400ms에 맞춘 시뮬레이션 데이터 생성
         rng = np.random.default_rng(42)
         # 평균 2279, 표준편차 약 73.5 설정 시 P95가 약 2400에 근접함
@@ -254,11 +256,135 @@ def chart_ecg_histogram(benchmark_path: str = ""):
 
 
 # ============================================================
+# 차트 7: 클래스별 ROC 곡선
+# ============================================================
+def chart_roc_curves(results_npy_dir: str = ""):
+    """
+    모델 추론 결과 파일(y_true.npy, y_prob_*.npy)이 있으면 로드하고,
+    없으면 함수만 준비 상태로 종료한다.
+
+    TODO: 실측 데이터로 교체 필요 — results_npy_dir 아래에 아래 파일이 있어야 함:
+      - y_true.npy          : shape (N, 5)  정답 레이블
+      - y_prob_cnn.npy      : shape (N, 5)  CNN-CBAM-GRU 예측 확률
+      - y_prob_resnet.npy   : shape (N, 5)  ResNet1D 예측 확률
+    """
+    # --- 실측 데이터 로드 시도 ---
+    model_probs = {}
+    y_true = None
+    if results_npy_dir and os.path.isdir(results_npy_dir):
+        yt_path = os.path.join(results_npy_dir, "y_true.npy")
+        cnn_path = os.path.join(results_npy_dir, "y_prob_cnn.npy")
+        res_path = os.path.join(results_npy_dir, "y_prob_resnet.npy")
+        if os.path.exists(yt_path) and os.path.exists(cnn_path):
+            y_true = np.load(yt_path)
+            model_probs["CNN-CBAM-GRU"] = np.load(cnn_path)
+        if os.path.exists(yt_path) and os.path.exists(res_path):
+            y_true = y_true if y_true is not None else np.load(yt_path)
+            model_probs["ResNet1D"] = np.load(res_path)
+
+    if y_true is None or not model_probs:
+        print("  [chart_roc_curves] 실측 데이터 없음 — 함수 준비 완료, 데이터 공급 후 재실행 필요")
+        print("    필요 파일: y_true.npy, y_prob_cnn.npy, y_prob_resnet.npy")
+        return
+
+    # --- ROC 곡선 그리기 ---
+    fig, axes = plt.subplots(1, len(LABELS), figsize=(4 * len(LABELS), 4), sharey=True)
+    line_styles = ["-", "--"]
+    model_colors = ["#4C72B0", "#C44E52"]
+
+    for ci, label in enumerate(LABELS):
+        ax = axes[ci]
+        for mi, (mname, yp) in enumerate(model_probs.items()):
+            fpr, tpr, _ = roc_curve(y_true[:, ci], yp[:, ci])
+            roc_auc = auc(fpr, tpr)
+            ax.plot(fpr, tpr, lw=1.5, linestyle=line_styles[mi % 2],
+                    color=model_colors[mi % 2],
+                    label=f"{mname}\n(AUC={roc_auc:.3f})")
+        ax.plot([0, 1], [0, 1], "k--", lw=0.8, alpha=0.5)
+        ax.set_xlim(0, 1); ax.set_ylim(0, 1.02)
+        ax.set_xlabel("FPR", fontsize=9)
+        if ci == 0:
+            ax.set_ylabel("TPR", fontsize=9)
+        ax.set_title(label, fontsize=10, fontweight="bold")
+        ax.legend(fontsize=7, loc="lower right")
+        ax.grid(alpha=0.3)
+
+    fig.suptitle("Per-Class ROC Curves", fontsize=13, fontweight="bold")
+    plt.tight_layout()
+    savefig("fig7_roc_curves.png")
+
+
+# ============================================================
+# 차트 8: 클래스별 Precision-Recall 곡선
+# ============================================================
+def chart_pr_curves(results_npy_dir: str = ""):
+    """
+    모델 추론 결과 파일이 있으면 PR 곡선을 그린다.
+
+    TODO: 실측 데이터로 교체 필요 — chart_roc_curves와 동일한 파일 필요:
+      - y_true.npy, y_prob_cnn.npy, y_prob_resnet.npy
+    클래스 불균형이 있는 HYP 분석에 ROC 보다 PR 곡선이 더 적합함.
+    """
+    # --- 실측 데이터 로드 시도 ---
+    model_probs = {}
+    y_true = None
+    if results_npy_dir and os.path.isdir(results_npy_dir):
+        yt_path = os.path.join(results_npy_dir, "y_true.npy")
+        cnn_path = os.path.join(results_npy_dir, "y_prob_cnn.npy")
+        res_path = os.path.join(results_npy_dir, "y_prob_resnet.npy")
+        if os.path.exists(yt_path) and os.path.exists(cnn_path):
+            y_true = np.load(yt_path)
+            model_probs["CNN-CBAM-GRU"] = np.load(cnn_path)
+        if os.path.exists(yt_path) and os.path.exists(res_path):
+            y_true = y_true if y_true is not None else np.load(yt_path)
+            model_probs["ResNet1D"] = np.load(res_path)
+
+    if y_true is None or not model_probs:
+        print("  [chart_pr_curves] 실측 데이터 없음 — 함수 준비 완료, 데이터 공급 후 재실행 필요")
+        print("    필요 파일: y_true.npy, y_prob_cnn.npy, y_prob_resnet.npy")
+        return
+
+    # --- PR 곡선 그리기 ---
+    fig, axes = plt.subplots(1, len(LABELS), figsize=(4 * len(LABELS), 4), sharey=True)
+    line_styles = ["-", "--"]
+    model_colors = ["#4C72B0", "#C44E52"]
+
+    for ci, label in enumerate(LABELS):
+        ax = axes[ci]
+        # 기준선: 실제 양성 비율
+        baseline = y_true[:, ci].mean()
+        ax.axhline(baseline, color="gray", lw=0.8, linestyle=":", alpha=0.7,
+                   label=f"Baseline ({baseline:.3f})")
+
+        for mi, (mname, yp) in enumerate(model_probs.items()):
+            prec, rec, _ = precision_recall_curve(y_true[:, ci], yp[:, ci])
+            ap = average_precision_score(y_true[:, ci], yp[:, ci])
+            ax.plot(rec, prec, lw=1.5, linestyle=line_styles[mi % 2],
+                    color=model_colors[mi % 2],
+                    label=f"{mname}\n(AP={ap:.3f})")
+
+        ax.set_xlim(0, 1); ax.set_ylim(0, 1.02)
+        ax.set_xlabel("Recall", fontsize=9)
+        if ci == 0:
+            ax.set_ylabel("Precision", fontsize=9)
+        ax.set_title(label, fontsize=10, fontweight="bold")
+        ax.legend(fontsize=7, loc="upper right")
+        ax.grid(alpha=0.3)
+
+    fig.suptitle("Per-Class Precision-Recall Curves", fontsize=13, fontweight="bold")
+    plt.tight_layout()
+    savefig("fig8_pr_curves.png")
+
+
+# ============================================================
 # 메인 실행부
 # ============================================================
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--results", default="benchmark_results.json", help="Path to benchmark results")
+    p.add_argument("--npy-dir", default="", dest="npy_dir",
+                   help="실측 y_true/y_prob npy 파일 디렉터리 (ROC/PR 곡선용). "
+                        "파일: y_true.npy, y_prob_cnn.npy, y_prob_resnet.npy")
     args = p.parse_args()
 
     print("=== Generating Thesis Charts (English Version) ===")
@@ -268,6 +394,9 @@ def main():
     chart_ablation()
     chart_api_latency(args.results)
     chart_ecg_histogram(args.results)
+    # ROC/PR 곡선: --npy-dir 로 실측 데이터 디렉터리를 지정하면 실제 곡선 생성
+    chart_roc_curves(args.npy_dir)
+    chart_pr_curves(args.npy_dir)
     print(f"\n✅ Success: All charts saved in '{OUT_DIR}/'")
 
 if __name__ == "__main__":

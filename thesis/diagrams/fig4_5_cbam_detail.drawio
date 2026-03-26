@@ -1,0 +1,185 @@
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- TITLE -->
+    <mxCell id="title" value="图4.5 CBAM卷积块注意力机制内部结构图" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="100" y="10" width="960" height="36" as="geometry" />
+    </mxCell>
+
+    <!-- =================== INPUT FEATURE MAP =================== -->
+    <mxCell id="input_fm" value="输入特征图 F&#xa;shape: (B, C, L)&#xa;B=batch, C=通道数, L=序列长度" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="70" width="190" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- Arrow to channel attention -->
+    <mxCell id="a_in_ca" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#333333;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="250" y="105" /><targetPoint x="320" y="105" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- =================== CHANNEL ATTENTION MODULE =================== -->
+    <mxCell id="ca_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=50;" vertex="1" parent="1">
+      <mxGeometry x="320" y="50" width="350" height="300" as="geometry" />
+    </mxCell>
+    <mxCell id="ca_title" value="Channel Attention Module（通道注意力）" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=12;fontColor=#6a0dad;" vertex="1" parent="1">
+      <mxGeometry x="325" y="55" width="340" height="24" as="geometry" />
+    </mxCell>
+
+    <!-- AvgPool branch -->
+    <mxCell id="ca_avg" value="GlobalAvgPool&#xa;(B, C, L)→(B, C, 1)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9673a6;strokeColor=#6a0dad;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="335" y="90" width="140" height="50" as="geometry" />
+    </mxCell>
+    <!-- MaxPool branch -->
+    <mxCell id="ca_max" value="GlobalMaxPool&#xa;(B, C, L)→(B, C, 1)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9673a6;strokeColor=#6a0dad;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="335" y="160" width="140" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- Shared MLP -->
+    <mxCell id="ca_mlp" value="共享MLP&#xa;Linear(C→C/r)&#xa;ReLU&#xa;Linear(C/r→C)&#xa;reduction ratio r=16" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="500" y="110" width="150" height="80" as="geometry" />
+    </mxCell>
+
+    <mxCell id="a_avg_mlp" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#9673a6;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="475" y="115" /><targetPoint x="500" y="130" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="a_max_mlp" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#9673a6;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="475" y="185" /><targetPoint x="500" y="175" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Add + Sigmoid -->
+    <mxCell id="ca_add" value="Element-wise Add&#xa;→ Sigmoid(σ)&#xa;Mc ∈ (0,1)^C" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="500" y="230" width="150" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="a_mlp_add" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="575" y="190" /><targetPoint x="575" y="230" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- F' = Mc * F -->
+    <mxCell id="ca_out" value="F' = Mc ⊗ F&#xa;（通道维度广播乘法）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="335" y="290" width="200" height="45" as="geometry" />
+    </mxCell>
+    <mxCell id="a_add_out" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="575" y="290" /><targetPoint x="535" y="313" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Input to F' bypass arrow -->
+    <mxCell id="a_in_ca2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;strokeWidth=1;dashed=1;endArrow=open;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="155" y="140" />
+        <targetPoint x="335" y="313" />
+        <Array as="points">
+          <mxPoint x="155" y="313" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="a_in_ca2_lbl" value="F（直通）" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=10;fontStyle=3;" vertex="1" connectable="0" parent="a_in_ca2">
+      <mxGeometry x="-0.2" relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Arrow F' to SA -->
+    <mxCell id="a_ca_sa" value="F'" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#333333;strokeWidth=2;endArrow=block;endFill=1;fontSize=11;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="670" y="313" /><targetPoint x="740" y="313" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- =================== SPATIAL ATTENTION MODULE =================== -->
+    <mxCell id="sa_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;opacity=50;" vertex="1" parent="1">
+      <mxGeometry x="740" y="50" width="340" height="300" as="geometry" />
+    </mxCell>
+    <mxCell id="sa_title" value="Spatial Attention Module（空间/时序注意力）" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=12;fontColor=#006633;" vertex="1" parent="1">
+      <mxGeometry x="745" y="55" width="330" height="24" as="geometry" />
+    </mxCell>
+
+    <!-- AvgPool over channel -->
+    <mxCell id="sa_avg" value="AvgPool沿通道维度&#xa;(B,C,L)→(B,1,L)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#67AB9F;strokeColor=#006633;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="755" y="90" width="150" height="50" as="geometry" />
+    </mxCell>
+    <!-- MaxPool over channel -->
+    <mxCell id="sa_max" value="MaxPool沿通道维度&#xa;(B,C,L)→(B,1,L)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#67AB9F;strokeColor=#006633;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="755" y="160" width="150" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- Concat -->
+    <mxCell id="sa_cat" value="Concat→(B,2,L)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="920" y="120" width="130" height="40" as="geometry" />
+    </mxCell>
+    <mxCell id="a_sav_cat" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#67AB9F;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="905" y="115" /><targetPoint x="920" y="135" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="a_smx_cat" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#67AB9F;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="905" y="185" /><targetPoint x="920" y="145" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Conv1D 7×1 -->
+    <mxCell id="sa_conv" value="Conv1D(kernel=7)&#xa;→(B,1,L)&#xa;→ Sigmoid(σ)&#xa;Ms ∈ (0,1)^L" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="920" y="200" width="130" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="a_cat_conv" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="985" y="160" /><targetPoint x="985" y="200" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- F'' output -->
+    <mxCell id="sa_out" value="F'' = Ms ⊗ F'&#xa;（时序维度广播乘法）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="755" y="290" width="200" height="45" as="geometry" />
+    </mxCell>
+    <mxCell id="a_conv_out" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="985" y="270" /><targetPoint x="855" y="313" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- =================== OUTPUT =================== -->
+    <mxCell id="output_fm" value="输出精炼特征图 F''&#xa;shape: (B, C, L)&#xa;关键导联×诊断时段已加权" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="800" y="410" width="210" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="a_saout_out" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#333333;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <sourcePoint x="855" y="335" /><targetPoint x="905" y="445" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- =================== FORMULA BOX =================== -->
+    <mxCell id="formula_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;opacity=60;" vertex="1" parent="1">
+      <mxGeometry x="60" y="410" width="700" height="160" as="geometry" />
+    </mxCell>
+    <mxCell id="formula_title" value="CBAM数学公式说明" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontStyle=1;fontSize=13;fontColor=#996600;" vertex="1" parent="1">
+      <mxGeometry x="75" y="418" width="300" height="24" as="geometry" />
+    </mxCell>
+    <mxCell id="formula_1" value="通道注意力：  Mc(F) = σ(MLP(AvgPool(F)) + MLP(MaxPool(F)))" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=12;fontFamily=Courier New;" vertex="1" parent="1">
+      <mxGeometry x="75" y="448" width="660" height="24" as="geometry" />
+    </mxCell>
+    <mxCell id="formula_2" value="空间注意力：  Ms(F') = σ(Conv7×1([AvgPool_ch(F'); MaxPool_ch(F')]))" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=12;fontFamily=Courier New;" vertex="1" parent="1">
+      <mxGeometry x="75" y="476" width="660" height="24" as="geometry" />
+    </mxCell>
+    <mxCell id="formula_3" value="串联输出：     F'' = Ms(F') ⊗ F'  其中  F' = Mc(F) ⊗ F" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=12;fontFamily=Courier New;" vertex="1" parent="1">
+      <mxGeometry x="75" y="504" width="660" height="24" as="geometry" />
+    </mxCell>
+    <mxCell id="formula_note" value="⊗ = 逐元素乘法（广播）    σ = Sigmoid激活    r = 缩减比（16）" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#666666;fontStyle=3;" vertex="1" parent="1">
+      <mxGeometry x="75" y="535" width="660" height="24" as="geometry" />
+    </mxCell>
+
+    <!-- =================== ECG INSIGHT BOX =================== -->
+    <mxCell id="ecg_insight" value="在12导联ECG场景中的作用：&#xa;• 通道注意力 → 自动识别「诊断价值高的导联」（如Ⅱ、V5）&#xa;• 空间/时序注意力 → 聚焦「P波/QRS/T波等关键时域区段」" style="text;html=1;strokeColor=#b85450;fillColor=#fff0f0;align=left;fontSize=12;fontColor=#6b0000;whiteSpace=wrap;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="590" width="700" height="70" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>

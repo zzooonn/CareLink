@@ -12,7 +12,7 @@ import matplotlib
 matplotlib.use("Agg")           # 서버/headless 환경 대응
 import matplotlib.pyplot as plt
 
-from train_local import CNN_CBAM_GRU, ResNet1D, ECGDatasetMulti, LABELS
+from run_comparison import CNN_CBAM_GRU, ResNet1D, ECGDatasetMulti, LABELS
 
 
 # =============================================================================
@@ -52,7 +52,8 @@ class GradCAM1D:
         -------
         cam : (L,) numpy array, 0~1 정규화된 히트맵
         """
-        self.model.eval()
+        # GRU backward는 train 모드 필요 (cudnn 제약)
+        self.model.train()
         x_in   = x.unsqueeze(0)    # (1, 12, L)
         amp_in = amp.unsqueeze(0)  # (1, 36)
 
@@ -200,7 +201,7 @@ if __name__ == "__main__":
         model_path = os.path.join(models_dir, "best_resnet1d.pth")
     else:
         model      = CNN_CBAM_GRU(num_classes=5, amp_dim=36).to(device)
-        model_path = os.path.join(models_dir, "best_cnn_gru.pth")
+        model_path = os.path.join(models_dir, "best_cnn_cbam_gru.pth")
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"모델 파일 없음: {model_path}\n먼저 train_local.py 학습을 완료하세요.")
@@ -209,6 +210,11 @@ if __name__ == "__main__":
         state = torch.load(model_path, map_location=device, weights_only=True)
     except TypeError:
         state = torch.load(model_path, map_location=device)
+    # 체크포인트 키 이름 호환 처리 (shortcut ↔ skip)
+    fixed = {}
+    for k, v in state.items():
+        fixed[k.replace(".shortcut.", ".skip.")] = v
+    state = fixed
     model.load_state_dict(state)
     model.eval()
     print(f"Loaded: {model_path}")
