@@ -17,7 +17,11 @@
       "Bash(\"C:/Users/zoonc/Desktop/HealthCare/ai/venv/Scripts/python.exe\" \"c:/Users/zoonc/Desktop/HealthCare/ai/src/grad_cam_viz.py\" --model resnet --classes 0 1 2 3 4)",
       "Bash(grep -n \"class ResNet1D\" C:/Users/zoonc/Desktop/HealthCare/ai/src/*.py)",
       "Bash(\"C:/Users/zoonc/Desktop/HealthCare/ai/venv/Scripts/python.exe\" \"c:/Users/zoonc/Desktop/HealthCare/ai/src/grad_cam_viz.py\" --model cnn_gru --classes 0 1 2 3 4)",
-      "Bash(find c:UserszooncDesktopHealthCarethesisdiagrams -type f -name *.drawio)"
+      "Bash(find c:UserszooncDesktopHealthCarethesisdiagrams -type f -name *.drawio)",
+      "Bash(find /c/Users/zoonc/Desktop/HealthCare/backend -type f -name *News* -o -name *Scheduler*)",
+      "Bash(grep -E \"\\\\.\\(java\\)$\")",
+      "Bash(grep -r \"schedule\\\\|Schedule\\\\|reminder\\\\|Reminder\\\\|time.*notification\\\\|trigger.*notification\" /c/Users/zoonc/Desktop/HealthCare/backend/healthcare-server/src/main/java --include=*.java -l)",
+      "Bash(grep -r \"medication\\\\|reminder\\\\|push\" /c/Users/zoonc/Desktop/HealthCare/backend/healthcare-server/src/main --include=*.java -i)"
     ]
   }
 }
