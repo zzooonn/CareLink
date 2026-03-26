@@ -1,0 +1,232 @@
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="950" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- TITLE -->
+    <mxCell id="title" value="图3.4 CareLink平台数据库ER图" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="400" y="10" width="700" height="34" as="geometry" />
+    </mxCell>
+
+    <!-- ===================== users (중앙) ===================== -->
+    <mxCell id="t_users" value="users" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="430" y="55" width="260" height="400" as="geometry" />
+    </mxCell>
+    <mxCell id="u_id"   value="🔑 id : BIGINT (PK, AUTO)" style="text;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_users"><mxGeometry y="26"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_uid"  value="  user_id : VARCHAR (UNIQUE, NOT NULL)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_users"><mxGeometry y="50"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_pw"   value="  password : VARCHAR (NOT NULL)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="74"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_nm"   value="  name : VARCHAR (NOT NULL)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="98"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_gn"   value="  gender : VARCHAR (NOT NULL)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="122" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_bd"   value="  birth_date : DATE (NOT NULL)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="146" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_ph"   value="  phone : VARCHAR (NOT NULL)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="170" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_ad"   value="  address : VARCHAR (NOT NULL)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="194" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_rl"   value="  role : ENUM(PATIENT, GUARDIAN)" style="text;strokeColor=none;fillColor=#ffe6cc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;" vertex="1" parent="t_users"><mxGeometry y="218" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_pi"   value="  profile_image_id : INT (default 1)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="242" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_bt"   value="  blood_type : VARCHAR" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="266" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_al"   value="  allergies : TEXT" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="290" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_mc"   value="  medical_conditions : TEXT" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="314" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_ca"   value="  created_at : TIMESTAMP (AUTO)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="338" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="u_ua"   value="  updated_at : TIMESTAMP (AUTO)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_users"><mxGeometry y="362" width="260" height="24" as="geometry" /></mxCell>
+
+    <!-- ===================== user_health_info (1:1 with users) ===================== -->
+    <mxCell id="t_uhi" value="user_health_info" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="775" y="55" width="255" height="202" as="geometry" />
+    </mxCell>
+    <mxCell id="hi_id"  value="🔑 id : BIGINT (PK, AUTO)" style="text;strokeColor=none;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_uhi"><mxGeometry y="26"  width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hi_uid" value="🔗 user_id : BIGINT (FK, UNIQUE)" style="text;strokeColor=none;fillColor=#e1d5e7;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_uhi"><mxGeometry y="50"  width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hi_abs" value="  avg_bp_sys : BIGINT" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhi"><mxGeometry y="74"  width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hi_abd" value="  avg_bp_dia : BIGINT" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhi"><mxGeometry y="98"  width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hi_ag"  value="  avg_glucose : BIGINT" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhi"><mxGeometry y="122" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hi_lbs" value="  last_bp_sys : BIGINT" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhi"><mxGeometry y="146" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hi_lbd" value="  last_bp_dia : BIGINT" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhi"><mxGeometry y="170" width="255" height="24" as="geometry" /></mxCell>
+
+    <!-- ===================== user_health_records ===================== -->
+    <mxCell id="t_uhr" value="user_health_records" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="775" y="315" width="255" height="434" as="geometry" />
+    </mxCell>
+    <mxCell id="hr_id"  value="🔑 id : BIGINT (PK, AUTO)" style="text;strokeColor=none;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_uhr"><mxGeometry y="26"  width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_uid" value="🔗 user_id : BIGINT (FK→users.id)" style="text;strokeColor=none;fillColor=#e1d5e7;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_uhr"><mxGeometry y="50"  width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_bs"  value="  bp_sys : BIGINT" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="74"  width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_bd"  value="  bp_dia : BIGINT" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="98"  width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_gl"  value="  glucose : BIGINT" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="122" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_bsd" value="  bp_sys_diff_from_avg : DOUBLE" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="146" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_bdd" value="  bp_dia_diff_from_avg : DOUBLE" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="170" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_gd"  value="  glucose_diff_from_avg : DOUBLE" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="194" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_ba"  value="  bp_abnormal : BOOLEAN" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="218" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_ga"  value="  glucose_abnormal : BOOLEAN" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="242" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_oa"  value="  overall_abnormal : BOOLEAN" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="266" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_hr"  value="  heart_rate : BIGINT" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="290" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_er"  value="  ecg_risk_score : DOUBLE" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="314" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_ea"  value="  ecg_abnormal : BOOLEAN" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="338" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_et"  value="  ecg_anomaly_type : VARCHAR(50)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="362" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_at"  value="  anomaly_type : VARCHAR(50)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="386" width="255" height="24" as="geometry" /></mxCell>
+    <mxCell id="hr_ma"  value="  measured_at : TIMESTAMP (AUTO)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uhr"><mxGeometry y="410" width="255" height="24" as="geometry" /></mxCell>
+
+    <!-- ===================== user_guardian_links ===================== -->
+    <mxCell id="t_ugl" value="user_guardian_links" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="70" y="55" width="270" height="178" as="geometry" />
+    </mxCell>
+    <mxCell id="gl_id"  value="🔑 id : BIGINT (PK, AUTO)" style="text;strokeColor=none;fillColor=#e1d5e7;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_ugl"><mxGeometry y="26"  width="270" height="24" as="geometry" /></mxCell>
+    <mxCell id="gl_pid" value="🔗 patient_id : BIGINT (FK→users.id)" style="text;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_ugl"><mxGeometry y="50"  width="270" height="24" as="geometry" /></mxCell>
+    <mxCell id="gl_gid" value="🔗 guardian_id : BIGINT (FK→users.id)" style="text;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_ugl"><mxGeometry y="74"  width="270" height="24" as="geometry" /></mxCell>
+    <mxCell id="gl_rt"  value="  relation_type : VARCHAR" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_ugl"><mxGeometry y="98"  width="270" height="24" as="geometry" /></mxCell>
+    <mxCell id="gl_cp"  value="  contact_phone : VARCHAR" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_ugl"><mxGeometry y="122" width="270" height="24" as="geometry" /></mxCell>
+    <mxCell id="gl_uc"  value="  UNIQUE(patient_id, guardian_id)" style="text;strokeColor=none;fillColor=#ffe6cc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=3;" vertex="1" parent="t_ugl"><mxGeometry y="146" width="270" height="24" as="geometry" /></mxCell>
+
+    <!-- ===================== user_medications ===================== -->
+    <mxCell id="t_um" value="user_medications" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="70" y="315" width="260" height="250" as="geometry" />
+    </mxCell>
+    <mxCell id="m_id"  value="🔑 id : BIGINT (PK, AUTO)" style="text;strokeColor=none;fillColor=#fff2cc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_um"><mxGeometry y="26"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="m_uid" value="🔗 user_id : BIGINT (FK→users.id)" style="text;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_um"><mxGeometry y="50"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="m_nm"  value="  name : VARCHAR" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_um"><mxGeometry y="74"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="m_ds"  value="  dosage : VARCHAR" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_um"><mxGeometry y="98"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="m_mo"  value="  memo : TEXT" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_um"><mxGeometry y="122" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="m_sd"  value="  start_date : DATE" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_um"><mxGeometry y="146" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="m_ed"  value="  end_date : DATE" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_um"><mxGeometry y="170" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="m_ia"  value="  is_active : BOOLEAN (default true)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_um"><mxGeometry y="194" width="260" height="24" as="geometry" /></mxCell>
+
+    <!-- ===================== user_medication_schedules ===================== -->
+    <mxCell id="t_ums" value="user_medication_schedules" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="70" y="640" width="260" height="178" as="geometry" />
+    </mxCell>
+    <mxCell id="ms_id"  value="🔑 id : BIGINT (PK, AUTO)" style="text;strokeColor=none;fillColor=#fff2cc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;" vertex="1" parent="t_ums"><mxGeometry y="26"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ms_mid" value="🔗 medication_id : BIGINT (FK)" style="text;strokeColor=none;fillColor=#fff2cc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_ums"><mxGeometry y="50"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ms_td"  value="  time_of_day : TIME" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_ums"><mxGeometry y="74"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ms_dw"  value="  days_of_week : VARCHAR" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_ums"><mxGeometry y="98"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ms_tz"  value="  timezone : VARCHAR" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_ums"><mxGeometry y="122" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ms_ca"  value="  created_at : TIMESTAMP (AUTO)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_ums"><mxGeometry y="146" width="260" height="24" as="geometry" /></mxCell>
+
+    <!-- ===================== user_disease ===================== -->
+    <mxCell id="t_ud" value="user_disease" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="1110" y="55" width="250" height="154" as="geometry" />
+    </mxCell>
+    <mxCell id="ud_id"  value="🔑 id : BIGINT (PK, AUTO)" style="text;strokeColor=none;fillColor=#f8cecc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_ud"><mxGeometry y="26"  width="250" height="24" as="geometry" /></mxCell>
+    <mxCell id="ud_uid" value="🔗 user_id : BIGINT (FK→users.id)" style="text;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_ud"><mxGeometry y="50"  width="250" height="24" as="geometry" /></mxCell>
+    <mxCell id="ud_dn"  value="  disease_name : VARCHAR" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_ud"><mxGeometry y="74"  width="250" height="24" as="geometry" /></mxCell>
+    <mxCell id="ud_dc"  value="  disease_code : VARCHAR (ICD)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_ud"><mxGeometry y="98"  width="250" height="24" as="geometry" /></mxCell>
+    <mxCell id="ud_da"  value="  diagnosed_at : TIMESTAMP" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_ud"><mxGeometry y="122" width="250" height="24" as="geometry" /></mxCell>
+
+    <!-- ===================== user_health_alert ===================== -->
+    <mxCell id="t_uha" value="user_health_alert" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="1110" y="280" width="260" height="322" as="geometry" />
+    </mxCell>
+    <mxCell id="ha_id"  value="🔑 id : BIGINT (PK, AUTO)" style="text;strokeColor=none;fillColor=#f8cecc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_uha"><mxGeometry y="26"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ha_pid" value="🔗 patient_id : BIGINT (FK→users.id)" style="text;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_uha"><mxGeometry y="50"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ha_rid" value="🔗 receiver_id : BIGINT (FK→users.id)" style="text;strokeColor=none;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_uha"><mxGeometry y="74"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ha_hid" value="🔗 health_record_id : BIGINT (FK)" style="text;strokeColor=none;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=2;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="t_uha"><mxGeometry y="98"  width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ha_at"  value="  alert_type : VARCHAR" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uha"><mxGeometry y="122" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ha_ti"  value="  title : VARCHAR" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uha"><mxGeometry y="146" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ha_ms"  value="  message : VARCHAR(1000)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uha"><mxGeometry y="170" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ha_dt"  value="  disease_trend_id : BIGINT (nullable)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uha"><mxGeometry y="194" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ha_ca"  value="  created_at : TIMESTAMP (AUTO)" style="text;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uha"><mxGeometry y="218" width="260" height="24" as="geometry" /></mxCell>
+    <mxCell id="ha_ra"  value="  read_at : TIMESTAMP (nullable)" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;" vertex="1" parent="t_uha"><mxGeometry y="242" width="260" height="24" as="geometry" /></mxCell>
+
+    <!-- ===================== RELATIONSHIPS ===================== -->
+
+    <!-- users 1:1 user_health_info -->
+    <mxCell id="r1" value="1 : 1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;fontColor=#006633;fontStyle=1;fontSize=11;startArrow=ERone;startFill=0;endArrow=ERone;endFill=0;" edge="1" parent="1" source="u_id" target="hi_uid">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- users 1:N user_health_records -->
+    <mxCell id="r2" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;fontColor=#006633;fontStyle=1;fontSize=11;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="u_id" target="hr_uid">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="700" y="68" />
+          <mxPoint x="700" y="380" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- users 1:N user_guardian_links (patient) -->
+    <mxCell id="r3" value="1:N (patient)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#9673a6;strokeWidth=2;fontColor=#6a0dad;fontStyle=1;fontSize=10;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="u_uid" target="gl_pid">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="420" y="100" />
+          <mxPoint x="340" y="100" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- users 1:N user_guardian_links (guardian) -->
+    <mxCell id="r4" value="1:N (guardian)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#9673a6;strokeWidth=2;fontColor=#6a0dad;fontStyle=1;fontSize=10;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;dashed=1;" edge="1" parent="1" source="u_nm" target="gl_gid">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="415" y="136" />
+          <mxPoint x="345" y="136" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- users 1:N user_medications -->
+    <mxCell id="r5" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d6b656;strokeWidth=2;fontColor=#996600;fontStyle=1;fontSize=11;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="u_id" target="m_uid">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="415" y="68" />
+          <mxPoint x="385" y="68" />
+          <mxPoint x="385" y="377" />
+          <mxPoint x="330" y="377" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- user_medications 1:N user_medication_schedules -->
+    <mxCell id="r6" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d6b656;strokeWidth=2;fontColor=#996600;fontStyle=1;fontSize=11;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="m_id" target="ms_mid">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- users 1:N user_disease -->
+    <mxCell id="r7" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;fontColor=#b85450;fontStyle=1;fontSize=11;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="u_id" target="ud_uid">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="700" y="68" />
+          <mxPoint x="1085" y="68" />
+          <mxPoint x="1085" y="102" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- users 1:N user_health_alert (patient) -->
+    <mxCell id="r8" value="1:N (patient)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;fontColor=#b85450;fontStyle=1;fontSize=10;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="u_id" target="ha_pid">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="700" y="68" />
+          <mxPoint x="1095" y="68" />
+          <mxPoint x="1095" y="343" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- users 1:N user_health_alert (receiver) -->
+    <mxCell id="r9" value="1:N (receiver)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;fontColor=#b85450;fontStyle=1;fontSize=10;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;dashed=1;" edge="1" parent="1" source="u_rl" target="ha_rid">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="700" y="271" />
+          <mxPoint x="1100" y="271" />
+          <mxPoint x="1100" y="367" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- user_health_records 1:N user_health_alert -->
+    <mxCell id="r10" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;fontColor=#b85450;fontStyle=1;fontSize=11;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="hr_id" target="ha_hid">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1040" y="327" />
+          <mxPoint x="1105" y="327" />
+          <mxPoint x="1105" y="391" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ===================== LEGEND ===================== -->
+    <mxCell id="legend_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#aaaaaa;" vertex="1" parent="1">
+      <mxGeometry x="70" y="848" width="1300" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="legend_t" value="🔑 PK = Primary Key  |  🔗 FK = Foreign Key  |  실선 = 필수 관계  |  점선 = 선택적(동일 테이블 복수 FK)  |  user_guardian_links: users 테이블을 PATIENT/GUARDIAN 두 역할로 자기 참조" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontColor=#555;" vertex="1" parent="1">
+      <mxGeometry x="75" y="853" width="1290" height="50" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>

@@ -1,0 +1,170 @@
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ===== TITLE ===== -->
+    <mxCell id="title" value="图4.2 JWT双Token认证与授权流程图" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="184" y="20" width="800" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- ===== SWIMLANE HEADERS ===== -->
+    <!-- Client -->
+    <mxCell id="sw_client_hdr" value="移动端（客户端）" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=center;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="60" y="70" width="160" height="40" as="geometry" />
+    </mxCell>
+    <!-- JwtAuthFilter -->
+    <mxCell id="sw_filter_hdr" value="JwtAuthenticationFilter" style="text;html=1;strokeColor=#9673a6;fillColor=#e1d5e7;align=center;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="260" y="70" width="180" height="40" as="geometry" />
+    </mxCell>
+    <!-- JwtProvider -->
+    <mxCell id="sw_jwt_hdr" value="JwtTokenProvider" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=center;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="480" y="70" width="160" height="40" as="geometry" />
+    </mxCell>
+    <!-- Controller -->
+    <mxCell id="sw_ctrl_hdr" value="业务控制器（Controller）" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=center;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="680" y="70" width="180" height="40" as="geometry" />
+    </mxCell>
+    <!-- DB -->
+    <mxCell id="sw_db_hdr" value="PostgreSQL" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=center;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="900" y="70" width="140" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- Divider lines -->
+    <mxCell id="div1" value="" style="line;strokeColor=#cccccc;strokeWidth=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="110" width="980" height="10" as="geometry" />
+    </mxCell>
+
+    <!-- ===== STEP 1: Client sends request ===== -->
+    <mxCell id="s1_req" value="①  发送HTTP请求&#xa;Authorization: Bearer &lt;token&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="65" y="140" width="150" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="a1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="s1_req" target="s2_extract">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ===== STEP 2: Filter extracts token ===== -->
+    <mxCell id="s2_extract" value="②  从Header提取&#xa;Bearer Token字符串" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="265" y="140" width="170" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="a2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#9673a6;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="s2_extract" target="s3_validate">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ===== STEP 3: JwtProvider validates ===== -->
+    <mxCell id="s3_validate" value="③  validateToken()&#xa;验证签名+有效期&#xa;（HMAC-SHA256）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="485" y="130" width="150" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- Decision: Valid? -->
+    <mxCell id="d1_valid" value="Token有效？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="490" y="235" width="140" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="a3" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="s3_validate" target="d1_valid">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- No branch: 401 -->
+    <mxCell id="s_401" value="返回 HTTP 401&#xa;Unauthorized" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="490" y="340" width="140" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="a4_no" value="否" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;fontColor=#b85450;fontStyle=1;" edge="1" parent="1" source="d1_valid" target="s_401">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Yes branch: extract claims -->
+    <mxCell id="s4_claims" value="④  getClaims()&#xa;提取userId、role" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="680" y="230" width="170" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="a4_yes" value="是" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;fontColor=#006633;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="d1_valid" target="s4_claims">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Step 5: SecurityContext -->
+    <mxCell id="s5_ctx" value="⑤  SecurityContextHolder&#xa;设置Authentication对象&#xa;（PATIENT / GUARDIAN）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="265" y="340" width="170" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="a5" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#9673a6;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="s4_claims" target="s5_ctx">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Step 6: @PreAuthorize check -->
+    <mxCell id="s6_authz" value="⑥  @PreAuthorize&#xa;角色权限校验" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="685" y="340" width="165" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="a6" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#9673a6;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="s5_ctx" target="s6_authz">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Decision: Authorized? -->
+    <mxCell id="d2_authz" value="权限通过？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="692" y="435" width="140" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="a7" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d6b656;strokeWidth=2;" edge="1" parent="1" source="s6_authz" target="d2_authz">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- 403 branch -->
+    <mxCell id="s_403" value="返回 HTTP 403&#xa;Forbidden" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="692" y="540" width="140" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="a8_no" value="否" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#b85450;strokeWidth=2;fontColor=#b85450;fontStyle=1;" edge="1" parent="1" source="d2_authz" target="s_403">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- DB query -->
+    <mxCell id="s7_db" value="⑦  执行业务查询&#xa;（按userId过滤）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="905" y="435" width="130" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="a8_yes" value="是" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d6b656;strokeWidth=2;fontColor=#006633;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="d2_authz" target="s7_db">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Step 8: 200 response -->
+    <mxCell id="s8_200" value="⑧  返回 HTTP 200&#xa;业务数据JSON" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="65" y="540" width="150" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="a9" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="s7_db" target="s8_200">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="970" y="465" />
+          <mxPoint x="970" y="567" />
+          <mxPoint x="140" y="567" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ===== TOKEN REFRESH BOX ===== -->
+    <mxCell id="refresh_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;opacity=40;" vertex="1" parent="1">
+      <mxGeometry x="60" y="630" width="980" height="130" as="geometry" />
+    </mxCell>
+    <mxCell id="refresh_label" value="Token刷新流程（AccessToken过期时）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontStyle=1;fontSize=12;fontColor=#d79b00;" vertex="1" parent="1">
+      <mxGeometry x="75" y="638" width="400" height="24" as="geometry" />
+    </mxCell>
+
+    <mxCell id="ref1" value="AccessToken过期&#xa;（24小时后）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="75" y="665" width="140" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="ref_a1" value="POST /api/auth/refresh&#xa;{refreshToken}" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d79b00;strokeWidth=2;fontSize=10;fontStyle=2;" edge="1" parent="1" source="ref1" target="ref2">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="ref2" value="验证RefreshToken&#xa;（7天有效期）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="290" y="665" width="160" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="ref_a2" value="签发新AccessToken" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d79b00;strokeWidth=2;fontSize=10;fontStyle=2;" edge="1" parent="1" source="ref2" target="ref3">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="ref3" value="返回新AccessToken&#xa;（24小时有效）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="530" y="665" width="160" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="ref_note" value="⚠️ RefreshToken过期（7天）→ 强制重新登录" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#b85450;fontStyle=3;" vertex="1" parent="1">
+      <mxGeometry x="720" y="680" width="300" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- ===== LEGEND ===== -->
+    <mxCell id="legend" value="■ AccessToken有效期：24小时    ■ RefreshToken有效期：7天    ■ 算法：HMAC-SHA256    ■ 角色：PATIENT / GUARDIAN" style="text;html=1;strokeColor=#cccccc;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+      <mxGeometry x="60" y="780" width="980" height="30" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>

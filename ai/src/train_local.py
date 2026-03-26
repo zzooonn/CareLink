@@ -3,6 +3,7 @@
 # (개선점 적용: Amplitude Feature Injection + Threshold Tuning + Weight Clipping)
 
 import os
+import random
 import numpy as np
 import torch
 import torch.nn as nn
@@ -11,6 +12,20 @@ import torch.backends.cudnn as cudnn
 from torch.utils.data import Dataset, DataLoader
 from scipy.signal import butter, filtfilt
 from sklearn.metrics import f1_score, roc_auc_score
+
+# ======================== 재현성: 랜덤 시드 고정 ========================
+_SEED = 42
+
+def set_seed(seed: int):
+    """모든 난수 생성기를 동일 시드로 고정하여 실험 재현성 확보"""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+set_seed(_SEED)  # 모듈 로드 시점에 즉시 고정
 
 # =============================================================================
 # 1) MODEL: Amplitude Feature를 받아들이도록 수정
@@ -258,7 +273,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device:", device)
     if device.type == "cuda":
-        cudnn.benchmark = True
+        # cudnn.benchmark은 set_seed()에서 False로 설정됨 (deterministic 모드 유지)
         print("GPU:", torch.cuda.get_device_name(0))
 
     # ✅ Augment=True 로 변경 (Training set)
