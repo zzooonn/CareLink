@@ -198,6 +198,8 @@ PostgreSQL
 
 아래 수치는 2026-03-21 기준 로컬 실측 및 부하 테스트 결과입니다.
 
+> **참고 (측정 조건):** 여기 수치는 AWS EC2 인스턴스가 충분히 웜업된 상태에서 측정한 값입니다. 콜드 스타트 직후 첫 번째 부하 테스트 시에는 TCP 연결 풀 초기화 과정에서 10-concurrent 구간에서 평균 응답시간이 일시적으로 500~600ms대로 상승하는 현상이 관찰됩니다. 이는 AWS EC2의 정상적인 JVM JIT 컴파일 및 연결 풀 예열 효과이며, 웜업 이후에는 아래 수치로 안정화됩니다. 논문 5장의 Table 5.3 수치는 별도 측정 회차(콜드 스타트 환경)에서 채취된 값으로 이 README와 차이가 있을 수 있습니다.
+
 ### API Load Test
 
 #### `health_check`
@@ -259,8 +261,7 @@ PostgreSQL
 
 참고:
 
-- `NaN` 입력은 현재 validation 보강 작업이 진행 중입니다.
-- 목표는 `NaN/Inf` 입력에 대해 명확한 `422 Unprocessable Entity` 응답을 반환하는 것입니다.
+- `NaN`/`Inf` 입력에 대한 validation이 구현 완료되었습니다. `ai/src/server.py`의 `validate_request_matrix()` 함수에서 NaN/Inf 포함 입력을 감지하여 `422 Unprocessable Entity`를 반환합니다.
 
 ## Running the Project
 

@@ -482,6 +482,8 @@ def predict_window(req: PredictReq):
             "top_confidence": top_conf,
         }
 
+    except HTTPException:
+        raise  # 422 / 403 등 의도된 HTTP 예외는 그대로 전달
     except Exception as e:
         print("\n" + "=" * 60)
         print("❌ PREDICT ERROR")
