@@ -118,24 +118,24 @@ HYP（心室肥厚）是五类中F1最低的类别（56.28%），其误分类模
 | 实验配置 | Macro F1 | vs Full (F1) | HYP F1 | vs Full (HYP) |
 |:---|:---:|:---:|:---:|:---:|
 | Full（完整模型） | **74.20%** | — | **52.85%** | — |
-| w/o CBAM（→CNN-GRU） | *실험 진행 필요* | — | *실험 진행 필요* | — |
+| w/o CBAM（→CNN-GRU） | *待补充* | — | *待补充* | — |
 | w/o Amplitude Features | 72.98% | **-1.22%p** | 46.81% | **-6.04%p** |
 | w/o ASL Loss（→BCE） | 73.83% | -0.37%p | 50.09% | -2.76%p |
 | w/o Bandpass Filter | 73.86% | -0.34%p | 51.07% | -1.78%p |
 | w/o Data Augmentation | 74.60% | +0.40%p | 54.34% | +1.49%p |
 | w/o WeightedSampler | 74.99% | +0.79%p | 50.09% | -2.76%p |
 
-> **w/o CBAM 실험 안내：** CBAM 어텐션 모듈을 제거한 변형 모델(`CNN_GRU_NoCBAM`)의 훈련 및 평가 코드는 `ai/src/run_ablation.py`의 `use_cbam=False` 설정으로 구현 완료되어 있습니다. PTB-XL 데이터셋과 GPU 환경에서 `python run_ablation.py`를 실행하면 위 표에 수치를 채울 수 있습니다. CBAM의 정성적 기여는 5.3.5절 Grad-CAM 분석을 통해 이미 검증되었으며（CNN-CBAM-GRU 열지도가 ResNet1D 대비 임상 관련 구간에 더 집중됨）, 정량적 수치는 후속 실험에서 보완될 예정입니다.
+> **w/o CBAM实验说明：** 移除CBAM注意力模块的变体模型（`CNN_GRU_NoCBAM`）的训练与评估代码已通过`ai/src/run_ablation.py`中`use_cbam=False`配置完成实现。在配备PTB-XL数据集的GPU环境下执行`python run_ablation.py`，即可补充上表中的定量数值。CBAM的定性贡献已通过5.3.5节Grad-CAM分析得到验证（CNN-CBAM-GRU热图相较ResNet1D更精确地聚焦于临床相关区段），定量消融实验数值将在后续工作中补充完善。
 
 消融实验揭示了以下规律：
 
-**（1）幅度特征注入（Amplitude Features）의 기여가 가장 핵심적：** 제거 시 Macro F1 1.22%p 하락, HYP F1 6.04%p 하락. 36차원 수동 추출 진폭 통계 특징이 심층 특징과 효과적으로 상호 보완됨.
+**（1）幅度特征注入（Amplitude Features）的贡献最为关键：** 移除后Macro F1下降1.22个百分点，HYP F1下降6.04个百分点。36维手工提取的幅度统计特征与深层特征形成有效互补。
 
-**（2）CBAM 어텐션 모듈 (정성적 검증)：** 5.3.5절 Grad-CAM 분석에서 CNN-CBAM-GRU 열지도가 각 클래스의 임상 진단 근거 구간(ST 구간, QRS 복합파, PR 간격 등)에 ResNet1D보다 더 정밀하게 집중됨이 확인됨. 정량 소거 실험은 추가 예정.
+**（2）CBAM注意力模块（定性验证）：** 5.3.5节Grad-CAM分析显示，CNN-CBAM-GRU热图相较ResNet1D更精确地聚焦于各类别的临床诊断依据区段（ST段、QRS波群、PR间期等）。定量消融实验结果待补充。
 
 **（3）ASL损失函数显著改善少数类性能：** 替换为标准BCE后，HYP F1下降2.76个百分点，证明非对称损失对缓解多标签类别不均衡问题的积极作用。
 
-**（4）数据增强의 반상 효과：** 제거 시 Macro F1 +0.40%p 소폭 상승. PTB-XL 데이터셋 규모(훈련셋 약 17,000건)가 이미 충분하여 대역통과 필터 후 신호에 증강을 적용하면 오히려 분포 순도가 낮아질 수 있음.
+**（4）数据增强的反效果：** 移除后Macro F1小幅上升+0.40个百分点。PTB-XL数据集规模（训练集约17,000条）已足够充分，对经带通滤波后的信号再施加增强，反而可能降低数据分布的纯净度。
 
 **（5）WeightedSampler的权衡效应：** 移除加权采样后整体Macro F1略有提升（+0.79%p），但HYP F1同步下降2.76个百分点。这一矛盾效应揭示了加权采样的本质：主动牺牲多数类精度，换取少数类（HYP）召回率的提升。在以患者安全为优先的医疗场景中，HYP（心室肥厚）的漏报风险大于误报，因此这一策略性权衡具有合理的临床依据。
 
@@ -283,9 +283,9 @@ ECG推理延迟的分布如图5.6所示（Fig 6 — Distribution of ECG Inferenc
 
 ### 5.6.3 健壮性改进说明
 
-AI 추론 서버 `server.py`의 `validate_request_matrix()` 함수는 빈 배열, NaN/Inf 포함, 도선 수 불일치, 가변 길이 배열, 비정상 샘플링 주파수 등 5가지 이상 입력 시나리오를 사전에 탐지하여 `HTTP 422 Unprocessable Entity`를 반환한다. 이 검증 로직은 `/predict_window` 엔드포인트 내 try 블록의 첫 단계에서 호출되며, `HTTPException`을 최종 예외 처리 블록(`except HTTPException: raise`)에서 그대로 상위로 전달하도록 구현되어, 의도된 422 응답이 500으로 변환되지 않도록 보장된다.
+AI推理服务器`server.py`中的`validate_request_matrix()`函数可预先检测空数组、含NaN/Inf、导联数不匹配、可变长度数组、异常采样频率等5类异常输入场景，并返回`HTTP 422 Unprocessable Entity`。该验证逻辑在`/predict_window`端点的try块第一步被调用，通过在最终异常处理块中添加`except HTTPException: raise`，确保原始422响应直接向上传递，不会被转换为500错误。
 
-초기 버전에서 BV-02（含NaN값 입력）시나리오는 서비스 프로세스 크래시를 유발했으나, `validate_request_matrix()` 함수 내 `math.isfinite(num)` 검사 추가 및 `except HTTPException: raise` 구문 삽입으로 완전히 해결되었다. 전체 5가지 경계값 테스트 모두 `HTTP 422 Unprocessable Entity`를 반환하며 서비스 가용성은 이상 입력 조건에서도 완전히 유지된다.
+早期版本中，BV-02（含NaN值输入）场景曾导致服务进程崩溃。通过在`validate_request_matrix()`函数内添加`math.isfinite(num)`检查并插入`except HTTPException: raise`语句，该问题已完全解决。全部5项边界值测试均返回`HTTP 422 Unprocessable Entity`，服务可用性在异常输入条件下得到完全保障。
 
 ---
 
