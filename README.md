@@ -194,6 +194,41 @@ PostgreSQL
 - `GET /sample_window`
 - `POST /predict_window`
 
+## API Authentication Example
+
+모든 인증이 필요한 엔드포인트는 `Authorization: Bearer <token>` 헤더가 필요합니다.
+
+```bash
+# 1. 로그인 → 토큰 발급
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "patient001", "password": "pass1234"}'
+
+# 응답:
+# {
+#   "success": true,
+#   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+#   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+#   "role": "PATIENT"
+# }
+
+# 2. 인증된 요청
+curl http://localhost:8080/api/users/patient001 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+### API Error Codes
+
+| HTTP 상태 | 상황 | 예시 |
+|-----------|------|------|
+| `400 Bad Request` | 필수 파라미터 누락 또는 형식 오류 | userId가 공백인 회원가입 |
+| `401 Unauthorized` | 존재하지 않는 계정 또는 비밀번호 불일치 | 로그인 실패 |
+| `403 Forbidden` | 권한 없음 (타인 데이터 접근 시도) | 보호자가 환자 ID로 조회 |
+| `409 Conflict` | 중복 userId 회원가입 시도 | 기존 계정과 동일한 userId |
+| `422 Unprocessable Entity` | ECG 입력 데이터 검증 실패 | NaN 포함, lead 수 오류, 빈 배열 |
+| `429 Too Many Requests` | 로그인 5회 연속 실패 (Rate Limiting) | 15분 내 5회 초과 |
+| `500 Internal Server Error` | 예상치 못한 서버 오류 | DB 연결 실패 등 |
+
 ## Performance Snapshot
 
 아래 수치는 2026-03-21 기준 로컬 실측 및 부하 테스트 결과입니다.
@@ -337,6 +372,43 @@ gradlew.bat bootRun
 cd ai
 python src/server.py
 ```
+
+## Running Tests
+
+### Backend Unit Tests
+
+```bash
+cd backend/healthcare-server
+./gradlew test
+```
+
+테스트 결과 리포트: `backend/healthcare-server/build/reports/tests/test/index.html`
+
+주요 테스트 클래스:
+- `AuthServiceTest` — 로그인/회원가입 시나리오 (성공, 401, 409, 400)
+- `UserHealthServiceTest` — 혈압·혈당 이상 감지 로직
+- `LoginAttemptServiceTest` — Rate Limiting (5회 실패 → 429)
+
+### AI Server Tests
+
+```bash
+cd ai
+pip install -r requirements.txt
+pytest src/ -v
+```
+
+### Database Migration (Flyway)
+
+초기 DB 세팅 또는 마이그레이션 적용:
+
+```bash
+cd backend/healthcare-server
+./gradlew flywayMigrate
+```
+
+마이그레이션 파일 위치: `backend/healthcare-server/src/main/resources/db/migration/`
+- `V1__add_contact_phone.sql` — 긴급 연락처 컬럼 추가
+- `V2__add_medical_info.sql` — 혈액형·알레르기·병력 컬럼 추가
 
 ## Benchmark Scripts
 
