@@ -184,7 +184,9 @@ boolean overallAbnormal = bpAbnormal || glucoseAbnormal || ecgAbnormal;
 1. 在`user_health_alert`表中为患者本人创建HEALTH_ANOMALY类型报警记录；
 2. 查询`user_guardian_links`表获取该患者的所有绑定照护者；
 3. 为每位照护者分别创建报警记录，接收方（receiver_id）设置为照护者userId；
-4. （可选）通过FCM/APNs向照护者设备推送实时推送通知。
+4. 保호자는 다음 번에 앱을 열 때 `GET /api/notification/{userId}` 폴링을 통해 알림을 확인합니다.
+
+> **현재 구현 범위 및 제한 사항：** 현재 버전에서 이상 감지 알림은 `user_health_alert` 테이블에 영속화(Persist)되며, 보호자가 앱을 열어 알림 목록을 조회할 때 확인 가능합니다. FCM(Firebase Cloud Messaging)/APNs(Apple Push Notification service)를 통한 백그라운드 푸시 알림은 본 과제의 범위 밖으로, 현재 구현에 포함되지 않습니다. 향후 개선 방향으로는 Expo Push Notification API를 활용하여 보호자 단말에 실시간 푸시 알림을 발송하는 방식이 있으며, 이를 위해 회원가입 시 Expo Push Token을 수집하고 백엔드에 저장하는 추가 구현이 필요합니다. 약물 복용 알림(Medication Reminder)은 `expo-notifications` 로컬 알림으로 구현되어 있어, 해당 기기에서 직접 스케줄링되며 이 제한 사항의 영향을 받지 않습니다.
 
 ### 4.2.4 ECG数据处理与AI调用
 
