@@ -43,7 +43,6 @@ export default function Login() {
       Alert.alert("Required", "Please enter both your ID and password.");
       return;
     }
-    console.log("[DEBUG] API_BASE_URL =", API_BASE_URL);
     if (!API_BASE_URL) {
       Alert.alert(
         "Configuration Error",

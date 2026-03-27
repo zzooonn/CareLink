@@ -18,6 +18,11 @@ public class EcgController {
 
     @PostMapping("/predict_window")
     public ResponseEntity<String> predictWindow(@RequestBody Map<String, Object> body) {
+        if (body.get("x") == null) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":\"Missing required field: x\"}");
+        }
         @SuppressWarnings("unchecked")
         List<List<Double>> x = (List<List<Double>>) body.get("x");
         Integer fs = body.get("fs") instanceof Number n ? n.intValue() : 500;
