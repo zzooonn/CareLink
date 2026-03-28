@@ -148,7 +148,7 @@ HYP（心室肥厚）是五类中F1最低的类别（56.28%），其误分类模
 
 两模型均表现出热图分布分散、无特定聚焦区域的特征，符合正常心电图无特异性异常的临床预期。CNN-CBAM-GRU的热图相对更均匀，说明模型依赖全局节律信息做出正常判断。
 
-![图5.7 NORM类别Grad-CAM热图（左：CNN-CBAM-GRU；右：ResNet1D；红色区域为模型重点关注区段）](../figures/gradcam_CNN_CBAM_GRU_NORM.png)
+![图5.7 NORM类别Grad-CAM热图（左：CNN-CBAM-GRU；右：ResNet1D；红色区域为模型重点关注区段）](./figures/gradcam_CNN_CBAM_GRU_NORM.png)
 
 **图5.7** NORM类别Grad-CAM热图对比（CNN-CBAM-GRU vs ResNet1D，II导联）
 
@@ -156,7 +156,7 @@ HYP（心室肥厚）是五类中F1最低的类别（56.28%），其误分类模
 
 热图集中于每个心动周期的ST段与T波区间（QRS复合波之后约0.08~0.40秒），与临床上ST段抬高/压低的诊断依据高度吻合。CNN-CBAM-GRU的聚焦区域较ResNet1D更为精准，体现了CBAM空间注意力机制在时域定位上的优势。
 
-![图5.8 STTC类别Grad-CAM热图](../figures/gradcam_CNN_CBAM_GRU_STTC.png)
+![图5.8 STTC类别Grad-CAM热图](./figures/gradcam_CNN_CBAM_GRU_STTC.png)
 
 **图5.8** STTC类别Grad-CAM热图对比（CNN-CBAM-GRU vs ResNet1D，II导联）
 
@@ -164,7 +164,7 @@ HYP（心室肥厚）是五类中F1最低的类别（56.28%），其误分类模
 
 热图在QRS复合波起始区域（尤其是病理性Q波区段）呈现强激活，与心肌梗死诊断中Q波异常的核心依据一致，验证了模型学习到了具有临床意义的特征表示。
 
-![图5.9 MI类别Grad-CAM热图](../figures/gradcam_CNN_CBAM_GRU_MI.png)
+![图5.9 MI类别Grad-CAM热图](./figures/gradcam_CNN_CBAM_GRU_MI.png)
 
 **图5.9** MI类别Grad-CAM热图对比（CNN-CBAM-GRU vs ResNet1D，II导联）
 
@@ -172,7 +172,7 @@ HYP（心室肥厚）是五类中F1最低的类别（56.28%），其误分类模
 
 热图主要分布于PR间期与QRS波群，与传导障碍导致P波至QRS传导延迟的电生理机制相符。
 
-![图5.10 CD类别Grad-CAM热图](../figures/gradcam_CNN_CBAM_GRU_CD.png)
+![图5.10 CD类别Grad-CAM热图](./figures/gradcam_CNN_CBAM_GRU_CD.png)
 
 **图5.10** CD类别Grad-CAM热图对比（CNN-CBAM-GRU vs ResNet1D，II导联）
 
@@ -180,7 +180,7 @@ HYP（心室肥厚）是五类中F1最低的类别（56.28%），其误分类模
 
 热图分布较为弥散，无明显集中区域，与HYP在ECG上无单一特异性标志的临床特点一致。CNN-CBAM-GRU相较ResNet1D表现出更广泛的激活分布，表明模型通过综合多个时域区段的细微特征做出判断，而非依赖某一局部波形，这也从可解释性角度解释了CNN-CBAM-GRU在HYP类别上优于ResNet1D的原因。
 
-![图5.11 HYP类别Grad-CAM热图](../figures/gradcam_CNN_CBAM_GRU_HYP.png)
+![图5.11 HYP类别Grad-CAM热图](./figures/gradcam_CNN_CBAM_GRU_HYP.png)
 
 **图5.11** HYP类别Grad-CAM热图对比（热图弥散性体现HYP多区段特征依赖；CNN-CBAM-GRU vs ResNet1D，II导联）
 

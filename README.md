@@ -202,17 +202,17 @@ PostgreSQL
 
 #### `health_check`
 
-- 1 concurrent: avg `302.11ms`, p95 `320.03ms`, TPS `3.31`, error `0.0%`
-- 5 concurrent: avg `302.16ms`, p95 `317.12ms`, TPS `16.22`, error `0.0%`
-- 10 concurrent: avg `299.72ms`, p95 `316.01ms`, TPS `31.64`, error `0.0%`
-- 20 concurrent: avg `298.45ms`, p95 `319.02ms`, TPS `66.41`, error `0.0%`
+- 1 concurrent: avg `319.70ms`, p95 `373.28ms`, TPS `3.13`, error `0.0%`
+- 5 concurrent: avg `319.37ms`, p95 `373.54ms`, TPS `15.52`, error `0.0%`
+- 10 concurrent: avg `580.96ms`, p95 `1007.63ms`, TPS `16.87`, error `0.0%`
+- 20 concurrent: avg `324.79ms`, p95 `412.86ms`, TPS `59.04`, error `0.0%`
 
 #### `vitals_insights`
 
-- 1 concurrent: avg `321.11ms`, p95 `330.99ms`, TPS `3.11`, error `0.0%`
-- 5 concurrent: avg `322.86ms`, p95 `357.12ms`, TPS `14.65`, error `0.0%`
-- 10 concurrent: avg `310.55ms`, p95 `334.28ms`, TPS `31.57`, error `0.0%`
-- 20 concurrent: avg `307.27ms`, p95 `337.81ms`, TPS `64.21`, error `0.0%`
+- 1 concurrent: avg `600.10ms`, p95 `1096.12ms`, TPS `1.67`, error `0.0%`
+- 5 concurrent: avg `326.85ms`, p95 `384.35ms`, TPS `15.01`, error `0.0%`
+- 10 concurrent: avg `349.21ms`, p95 `448.47ms`, TPS `23.18`, error `0.0%`
+- 20 concurrent: avg `333.30ms`, p95 `429.83ms`, TPS `56.66`, error `0.0%`
 
 #### `user_profile`
 
@@ -231,10 +231,10 @@ PostgreSQL
 ### ECG Inference
 
 - Samples: `30`
-- Average latency: `2382.85ms`
-- P50 latency: `2303.27ms`
-- P95 latency: `2698.16ms`
-- Max latency: `3214.31ms`
+- Average latency: `2279.84ms`
+- P50 latency: `2279.16ms`
+- P95 latency: `2400.15ms`
+- Max latency: `2434.79ms`
 
 ### Mobile UX Measurement
 
@@ -365,7 +365,7 @@ python scripts/measure_carelink_metrics.py \
 ## Project Structure
 
 ```text
-HealthCare/
+CareLink/
 ├─ ai/
 │  ├─ src/
 │  ├─ models/
