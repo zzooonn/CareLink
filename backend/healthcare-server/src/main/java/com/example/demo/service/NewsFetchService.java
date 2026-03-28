@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Service
@@ -22,13 +23,15 @@ public class NewsFetchService {
             return null;
         }
 
-        String url =
-            "https://newsapi.org/v2/everything?"
-                + "q=" + keyword
-                + "&language=en"
-                + "&sortBy=publishedAt"
-                + "&pageSize=5"
-                + "&apiKey=" + apiKey;
+        String url = UriComponentsBuilder
+                .fromHttpUrl("https://newsapi.org/v2/everything")
+                .queryParam("q", keyword)
+                .queryParam("language", "en")
+                .queryParam("sortBy", "publishedAt")
+                .queryParam("pageSize", 5)
+                .queryParam("apiKey", apiKey)
+                .build()
+                .toUriString();
 
         log.info("[news] query={}", keyword);
 
