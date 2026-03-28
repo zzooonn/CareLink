@@ -104,11 +104,9 @@ AI分析结果包含五类标签的概率值（`probs: [norm, sttc, mi, cd, hyp]
 | 认证 | POST | /api/auth/refresh | Token刷新 |
 | 认证 | POST | /api/auth/forgot-password | 密码找回验证 |
 | 认证 | POST | /api/auth/reset-password | 密码重置 |
-| 认证 | POST | /api/auth/find-id | 通过邮箱查找用户ID |
+| 认证 | POST | /api/auth/find-id | 通过姓名、生日与手机号查找用户ID |
 | 用户 | GET | /api/users/{userId} | 获取用户信息 |
 | 用户 | PUT | /api/users/{userId} | 更新用户信息 |
-| 用户 | GET | /api/users/{userId}/health-info | 获取用户健康基本信息 |
-| 用户 | PUT | /api/users/{userId}/health-info | 更新用户健康基本信息 |
 | 体征 | POST | /api/vitals | 提交生命体征 |
 | 体征 | GET | /api/vitals/summary | 获取健康汇总 |
 | 体征 | GET | /api/vitals/insights | 获取健康趋势 |
@@ -122,6 +120,7 @@ AI分析结果包含五类标签的概率值（`probs: [norm, sttc, mi, cd, hyp]
 | 照护者 | DELETE | /api/guardian/disconnect | 解除照护者绑定 |
 | 照护者 | GET | /api/guardian/my-guardians/{patientId} | 获取照护者列表 |
 | 照护者 | GET | /api/guardian/my-patients/{guardianId} | 获取患者列表 |
+| 通知 | POST | /api/notification/send | 手动发送健康报警通知 |
 | 通知 | GET | /api/notification/{userId} | 获取通知列表 |
 | 通知 | PATCH | /api/notification/{userId}/{alertId}/read | 标记通知已读 |
 | 疾病资讯 | GET | /api/news | 获取疾病趋势新闻列表 |
