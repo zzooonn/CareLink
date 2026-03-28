@@ -103,7 +103,6 @@ export default function NewsScreen() {
       }
 
       const data = await res.json();
-      console.log("[news latest data]", data);
       setNews(Array.isArray(data) ? data : []);
     } catch (err: any) {
       clearTimeout(timeoutId);
