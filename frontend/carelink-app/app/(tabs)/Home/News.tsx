@@ -1,22 +1,30 @@
 // app/(tabs)/Home/News.tsx
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   Alert,
-  RefreshControl,
   FlatList,
-  useWindowDimensions,
-  Platform,
+  RefreshControl,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { ScaledText as Text } from "../../../components/ScaledText";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ScaledText as Text } from "../../../components/ScaledText";
 import { authFetch } from "../../../utils/api";
+import {
+  palette,
+  pressShadow,
+  radius,
+  shadow,
+  spacing,
+  typeScale,
+  webShell,
+} from "../../../constants/design";
 
 type NewsItem = {
   id: number;
@@ -25,12 +33,8 @@ type NewsItem = {
   url: string;
 };
 
-// Placeholder type
-type NewsRow = NewsItem & { __placeholder?: boolean };
-
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const TIMEOUT_MS = 8000;
-
 
 export default function NewsScreen() {
   const [searchText, setSearchText] = useState("");
@@ -38,22 +42,6 @@ export default function NewsScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [fetchError, setFetchError] = useState(false);
-
-  const { height: H } = useWindowDimensions();
-
-  // ---- ?믪씠 怨꾩궛 ?섏젙: 5媛?-> 4媛쒕줈 以꾩뿬??移대뱶 ?ш린 ?뺣? ----
-  const LIST_TOP_PADDING = 16;
-  const LIST_BOTTOM_PADDING = 24;
-  const SEARCH_AREA_HEIGHT = 50 + 20; // input(50) + marginBottom(20)
-  const SAFE_EXTRA = Platform.OS === "ios" ? 8 : 12;
-
-  const LIST_AVAILABLE_HEIGHT =
-    H - (LIST_TOP_PADDING + LIST_BOTTOM_PADDING + SEARCH_AREA_HEIGHT + SAFE_EXTRA);
-
-  const GAP = 16; // 媛꾧꺽???댁쭩 ?섎┝
-  // ?ш린??/ 5 ???/ 4濡?蹂寃쏀븯??移대뱶 ?믪씠瑜??ㅼ?
-  const VISIBLE_ITEMS = 4; 
-  const CARD_HEIGHT = Math.max(150, Math.floor((LIST_AVAILABLE_HEIGHT - GAP * (VISIBLE_ITEMS - 1)) / VISIBLE_ITEMS));
 
   const fetchNews = useCallback(async () => {
     if (!API_BASE_URL) return;
@@ -72,7 +60,6 @@ export default function NewsScreen() {
       setFetchError(false);
 
       const latestPath = `/api/news?userId=${encodeURIComponent(storedUserId)}&limit=5`;
-
       const refreshRes = await authFetch(
         `/api/news/refresh?userId=${encodeURIComponent(storedUserId)}`,
         { method: "POST", signal: controller.signal } as RequestInit
@@ -131,27 +118,11 @@ export default function NewsScreen() {
     const q = searchText.trim().toLowerCase();
     if (!q) return news;
     return news.filter(
-      (n) =>
-        (n.title || "").toLowerCase().includes(q) ||
-        (n.diseaseName || "").toLowerCase().includes(q)
+      (item) =>
+        (item.title || "").toLowerCase().includes(q) ||
+        (item.diseaseName || "").toLowerCase().includes(q)
     );
   }, [news, searchText]);
-
-  const listData: NewsRow[] = useMemo(() => {
-    const base: NewsRow[] = filtered.map((x) => ({ ...x, __placeholder: false }));
-    // 理쒖냼 4媛쒕뒗 梨꾩썙吏?꾨줉 ?ㅼ젙 (?붾㈃ 苑?李④쾶)
-    const need = Math.max(0, VISIBLE_ITEMS - base.length);
-    for (let i = 0; i < need; i++) {
-      base.push({
-        id: -1000 - i,
-        diseaseName: "",
-        title: "",
-        url: "",
-        __placeholder: true,
-      });
-    }
-    return base;
-  }, [filtered]);
 
   const openLink = async (url?: string) => {
     if (!url) return;
@@ -163,47 +134,77 @@ export default function NewsScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: NewsRow }) => {
-    if (item.__placeholder) {
-      return <View style={[styles.card, styles.cardPlaceholder, { height: CARD_HEIGHT }]} />;
-    }
+  const emptyTitle = fetchError
+    ? "Unable to load trends"
+    : news.length === 0
+      ? "No trend updates yet"
+      : "No matching results";
+
+  const emptyBody = fetchError
+    ? "Pull down to retry the latest disease news."
+    : news.length === 0
+      ? "New personalized articles will appear here after the server prepares them."
+      : "Try a broader disease name or keyword.";
+
+  const renderItem = ({ item }: { item: NewsItem }) => (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={styles.badgeRow}>
+          <View style={styles.dot} />
+          <Text style={styles.badgeText} numberOfLines={1}>
+            {item.diseaseName || "Health"}
+          </Text>
+        </View>
+        <Text style={styles.metaText}>Personalized</Text>
+      </View>
+
+      <Text style={styles.cardTitle} numberOfLines={3}>
+        {item.title}
+      </Text>
+
+      <TouchableOpacity
+        style={styles.learnMoreBtn}
+        activeOpacity={0.85}
+        onPress={() => openLink(item.url)}
+      >
+        <Text style={styles.learnMoreText}>Read More</Text>
+        <Ionicons name="arrow-forward" size={17} color={palette.primaryDark} />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderEmpty = () => {
+    if (loading) return null;
 
     return (
-      <View style={[styles.card, { height: CARD_HEIGHT }]}>
-        <View style={styles.cardHeader}>
-          <View style={styles.badgeRow}>
-            <View style={styles.dot} />
-            <Text style={styles.badgeText}>{item.diseaseName}</Text>
-          </View>
-
-          <Text style={styles.metaText}>Personalized Health News</Text>
+      <View style={styles.emptyBox}>
+        <View style={styles.emptyIcon}>
+          <Ionicons
+            name={fetchError ? "cloud-offline-outline" : "newspaper-outline"}
+            size={24}
+            color={fetchError ? palette.rescue : palette.primary}
+          />
         </View>
-
-        <Text style={styles.cardTitle} numberOfLines={3}>
-          {item.title}
-        </Text>
-
-        <TouchableOpacity
-          style={styles.learnMoreBtn}
-          activeOpacity={0.7}
-          onPress={() => openLink(item.url)}
-        >
-          <Text style={styles.learnMoreText}>Read More</Text>
-          <Text style={styles.chevron}>{">"}</Text>
-        </TouchableOpacity>
+        <Text style={styles.emptyTitle}>{emptyTitle}</Text>
+        <Text style={styles.emptyText}>{emptyBody}</Text>
       </View>
     );
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right"]}>
-      <View style={styles.whiteBody}>
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
+      <View style={styles.body}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Disease Trends</Text>
+          <Text style={styles.subtitle}>Latest personalized health news</Text>
+        </View>
+
+        <View style={styles.searchShell}>
+          <Ionicons name="search" size={19} color={palette.muted} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search by disease or keyword"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={palette.faint}
             value={searchText}
             onChangeText={setSearchText}
             autoCapitalize="none"
@@ -211,46 +212,29 @@ export default function NewsScreen() {
           />
         </View>
 
-        {loading && (
-          <View style={{ paddingTop: 12 }}>
-            <ActivityIndicator size="large" color="#0F766E" />
-          </View>
-        )}
-
-        {!loading && fetchError && (
-          <View style={styles.emptyBox}>
-            <Text style={[styles.emptyText, { color: "#ef4444" }]}>
-              Failed to load news. Pull down to retry.
-            </Text>
-          </View>
-        )}
-
-        {!loading && !fetchError && news.length === 0 && (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>
-              No news available yet.
-            </Text>
-          </View>
-        )}
-
-        {!loading && news.length > 0 && filtered.length === 0 && (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>No results found.</Text>
-          </View>
-        )}
-
         <FlatList
-          data={listData}
+          data={loading || fetchError ? [] : filtered}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
-          ItemSeparatorComponent={() => <View style={{ height: GAP }} />}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: 16,
-            paddingBottom: 24,
-          }}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListHeaderComponent={
+            loading ? (
+              <View style={styles.loadingBox}>
+                <ActivityIndicator size="large" color={palette.primary} />
+                <Text style={styles.loadingText}>Loading trends</Text>
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={renderEmpty}
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0F766E" />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={palette.primary}
+            />
+          }
         />
       </View>
     </SafeAreaView>
@@ -258,116 +242,174 @@ export default function NewsScreen() {
 }
 
 const styles = StyleSheet.create({
-  // 諛곌꼍???곗깋?쇰줈 蹂寃?
-  safe: { flex: 1, backgroundColor: "#FFFFFF" },
-  whiteBody: { flex: 1, backgroundColor: "#FFFFFF" },
-
-  searchContainer: { paddingHorizontal: 16, marginBottom: 20 },
+  safe: {
+    flex: 1,
+    backgroundColor: palette.canvas,
+  },
+  body: {
+    ...webShell,
+    flex: 1,
+    width: "100%",
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+  },
+  header: {
+    gap: spacing.xs,
+    paddingBottom: spacing.md,
+  },
+  title: {
+    color: palette.ink,
+    fontSize: typeScale.title,
+    fontWeight: "900",
+  },
+  subtitle: {
+    color: palette.muted,
+    fontSize: typeScale.meta,
+    fontWeight: "700",
+  },
+  searchShell: {
+    minHeight: 54,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    ...shadow,
+  },
   searchInput: {
-    backgroundColor: "#F3F4F6", // 諛앹? ?뚯깋 諛곌꼍
-    borderRadius: 14,
-    height: 52,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: "#13201C", // 寃??湲??
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    flex: 1,
+    minWidth: 0,
+    color: palette.ink,
+    fontSize: typeScale.body,
+    fontWeight: "700",
+    paddingVertical: 0,
   },
-
+  listContent: {
+    flexGrow: 1,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
+  },
+  separator: {
+    height: spacing.md,
+  },
   card: {
-    borderRadius: 20, // ?κ?湲??쎄컙 ??
-    padding: 18,
-    backgroundColor: "#FFFFFF", // 移대뱶 諛곌꼍 ?곗깋
+    minHeight: 152,
+    borderRadius: radius.card,
+    padding: spacing.lg,
+    backgroundColor: palette.surface,
     borderWidth: 1,
-    borderColor: "#E5E7EB", // ?고븳 ?뚯깋 ?뚮몢由?
-
-    // 洹몃┝??(??諛곌꼍??留욊쾶 議곗젙)
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-
+    borderColor: palette.line,
     justifyContent: "space-between",
-    overflow: "hidden",
+    ...shadow,
   },
-
-  cardPlaceholder: {
-    opacity: 0.5,
-    backgroundColor: "#F9FAFB",
-    borderColor: "#F3F4F6",
-  },
-
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: spacing.sm,
   },
-
   badgeRow: {
+    flex: 1,
+    minWidth: 0,
+    maxWidth: "72%",
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-    backgroundColor: "#F4FAF6", // ?꾩＜ ?고븳 ?뚮옉
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    backgroundColor: palette.primarySoft,
     borderWidth: 1,
-    borderColor: "#D9F2EC",
+    borderColor: palette.line,
   },
-
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 999,
-    backgroundColor: "#0F766E", // ?뚮?????
+    width: 7,
+    height: 7,
+    borderRadius: radius.pill,
+    backgroundColor: palette.primary,
   },
-
   badgeText: {
-    color: "#115E59", // 吏숈? ?뚮? 湲??
-    fontSize: 12,
-    fontWeight: "700",
+    flex: 1,
+    minWidth: 0,
+    color: palette.primaryDark,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
   },
-
   metaText: {
-    color: "#6B7280", // ?뚯깋 ?띿뒪??
-    fontSize: 11,
-    fontWeight: "600",
-  },
-
-  cardTitle: {
-    marginTop: 8,
-    fontSize: 18, // ?고듃 ?ъ씠利??ㅼ?
+    color: palette.muted,
+    fontSize: typeScale.caption,
     fontWeight: "800",
-    color: "#13201C", // 吏꾪븳 寃??
-    lineHeight: 26,
   },
-
+  cardTitle: {
+    marginTop: spacing.md,
+    color: palette.ink,
+    fontSize: typeScale.cardTitle,
+    lineHeight: 25,
+    fontWeight: "900",
+  },
   learnMoreBtn: {
-    marginTop: 10,
+    marginTop: spacing.md,
+    minHeight: 42,
     alignSelf: "flex-start",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: "#F3F4F6", // 踰꾪듉 諛곌꼍 諛앹? ?뚯깋
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.card,
+    backgroundColor: palette.primarySoft,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: spacing.xs,
+    ...pressShadow,
   },
-
-  learnMoreText: { 
-    fontSize: 14, 
-    fontWeight: "700", 
-    color: "#1F2937" // 踰꾪듉 湲??寃??吏꾪쉶??
+  learnMoreText: {
+    fontSize: typeScale.meta,
+    fontWeight: "900",
+    color: palette.primaryDark,
   },
-  
-  chevron: { 
-    fontSize: 18, 
-    fontWeight: "800", 
-    color: "#1F2937", 
-    marginTop: -2 
+  loadingBox: {
+    minHeight: 220,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
   },
-
-  emptyBox: { paddingHorizontal: 16, paddingTop: 16 },
-  emptyText: { color: "#6B7280", textAlign: 'center' },
+  loadingText: {
+    color: palette.muted,
+    fontSize: typeScale.meta,
+    fontWeight: "800",
+  },
+  emptyBox: {
+    minHeight: 250,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xl,
+    ...shadow,
+  },
+  emptyIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: palette.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.sm,
+  },
+  emptyTitle: {
+    color: palette.ink,
+    fontSize: typeScale.cardTitle,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  emptyText: {
+    marginTop: spacing.xs,
+    color: palette.muted,
+    fontSize: typeScale.meta,
+    lineHeight: 20,
+    fontWeight: "700",
+    textAlign: "center",
+  },
 });
