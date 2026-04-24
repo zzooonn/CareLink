@@ -24,7 +24,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";
 import { authFetch } from "../../../utils/api";
 
-// ✅ 알림 핸들러
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -87,7 +86,6 @@ export default function MedicationScreen() {
     })();
   }, []);
 
-  // 백엔드에서 약 목록 로드 + 알림 재스케줄
   const loadMedications = useCallback(async () => {
     const userId = await AsyncStorage.getItem("userId");
     if (!userId) return;
@@ -103,7 +101,6 @@ export default function MedicationScreen() {
 
       const data: { id: string; name: string; dosage: string; freq: string }[] = await res.json();
 
-      // 기존 알림 전부 취소 후 재스케줄
       await Notifications.cancelAllScheduledNotificationsAsync();
 
       const medsWithNotifs: Med[] = await Promise.all(
@@ -212,12 +209,11 @@ export default function MedicationScreen() {
     try {
       setSaving(true);
 
-      // 기존 알림 취소
+      // 湲곗〈 ?뚮┝ 痍⑥냼
       if (editing?.notificationId) {
         await Notifications.cancelScheduledNotificationAsync(editing.notificationId);
       }
 
-      // 새 알림 스케줄
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: { title: "Medication", body: `Take ${name} (${dosage})`, sound: "default" },
         trigger: {
@@ -227,7 +223,6 @@ export default function MedicationScreen() {
         },
       });
 
-      // 백엔드 저장
       const res = editing
         ? await authFetch(`/api/medications/${userId}/${editing.id}`, {
             method: "PUT",
@@ -269,12 +264,12 @@ export default function MedicationScreen() {
           <View style={styles.rowBetween}>
             <Text style={styles.sectionTitle}>Medicine List</Text>
             <TouchableOpacity onPress={openAdd}>
-              <Ionicons name="add-circle" size={W * 0.09} color="#26B4E5" />
+              <Ionicons name="add-circle" size={W * 0.09} color="#0F766E" />
             </TouchableOpacity>
           </View>
 
           {loadingMeds ? (
-            <ActivityIndicator size="large" color="#26B4E5" style={{ marginTop: 40 }} />
+            <ActivityIndicator size="large" color="#0F766E" style={{ marginTop: 40 }} />
           ) : loadError ? (
             <Text style={{ textAlign: "center", color: "#ef4444", marginTop: 40, fontWeight: "600" }}>
               Failed to load medications. Pull to refresh.
@@ -290,11 +285,11 @@ export default function MedicationScreen() {
                 <View key={m.id} style={styles.card}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.medName}>{m.name}</Text>
-                    <Text style={styles.subtitle}>{`${m.dosage} • ${m.freq}`}</Text>
+                    <Text style={styles.subtitle}>{`${m.dosage} ??${m.freq}`}</Text>
                   </View>
                   <View style={styles.cardActions}>
                     <TouchableOpacity onPress={() => openEdit(m)} style={styles.iconBtn}>
-                      <Ionicons name="pencil" size={W * 0.055} color="#26B4E5" />
+                      <Ionicons name="pencil" size={W * 0.055} color="#0F766E" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => removeMed(m.id)} style={styles.iconBtn}>
                       <Ionicons name="trash" size={W * 0.055} color="#ef4444" />
@@ -307,7 +302,7 @@ export default function MedicationScreen() {
 
           <Text style={[styles.sectionTitle, { marginTop: 40, marginBottom: 10 }]}>Settings</Text>
           <View style={{ flexDirection: "row", gap: W * 0.03 }}>
-            <TouchableOpacity style={[styles.smallBtn, { backgroundColor: "#f8fafc" }]} onPress={async () => {
+            <TouchableOpacity style={[styles.smallBtn, { backgroundColor: "#F8FBF9" }]} onPress={async () => {
               const list = await Notifications.getAllScheduledNotificationsAsync();
               Alert.alert("Status", `${list.length} alarms active.`);
             }}>
@@ -417,7 +412,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   medName: { fontSize: FS_MED, fontWeight: "800", color: "#000000" },
-  subtitle: { color: "#475569", marginTop: 4, fontSize: FS_SUB, fontWeight: "600" },
+  subtitle: { color: "#66736F", marginTop: 4, fontSize: FS_SUB, fontWeight: "600" },
   cardActions: { flexDirection: "row", gap: W * 0.04 },
   iconBtn: { padding: 4 },
 
@@ -445,6 +440,6 @@ const styles = StyleSheet.create({
 
   btn: { borderRadius: R_INPUT, paddingVertical: 12, paddingHorizontal: 20 },
   btnGhost: { backgroundColor: "#F1F5F9" },
-  btnPrimary: { backgroundColor: "#26B4E5" },
+  btnPrimary: { backgroundColor: "#0F766E" },
   btnText: { fontWeight: "800", fontSize: FS_BTN },
 });

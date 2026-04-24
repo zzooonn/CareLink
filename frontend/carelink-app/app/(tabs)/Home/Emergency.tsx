@@ -17,18 +17,18 @@ import { authFetch } from "../../../utils/api";
 
 const { width: W, height: H } = Dimensions.get("window");
 
-/* ---------- ✅ Caregivers 연동 (AsyncStorage) ---------- */
+/* ---------- ??Caregivers ?곕룞 (AsyncStorage) ---------- */
 const CAREGIVERS_STORAGE_KEY = "caregivers:list";
 
 type Caregiver = {
-  id: string; // 로컬 row id
-  userId: string; // 앱 회원 userId
+  id: string; // 濡쒖뺄 row id
+  userId: string; // ???뚯썝 userId
   name: string;
   phone: string;
   avatarId: number; // 1~12
 };
 
-/* ---------- ✅ 로컬 아바타 (1~12) ---------- */
+/* ---------- ??濡쒖뺄 ?꾨컮? (1~12) ---------- */
 const AVATAR_LIST = [
   { id: 1, source: require("../../../assets/avatar/avatar1.png") },
   { id: 2, source: require("../../../assets/avatar/avatar2.png") },
@@ -86,7 +86,7 @@ export default function EmergencyScreen() {
   const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
   const [vitalInfo, setVitalInfo] = useState<VitalInfo>({ bloodType: null, allergies: null, medicalConditions: null });
 
-  // ✅ 화면 들어올 때마다 caregivers + vital info 최신 로드
+  // ???붾㈃ ?ㅼ뼱???뚮쭏??caregivers + vital info 理쒖떊 濡쒕뱶
   useFocusEffect(
     useCallback(() => {
       const load = async () => {
@@ -154,7 +154,7 @@ export default function EmergencyScreen() {
           <Text style={styles.sosText}>SOS Emergency</Text>
         </TouchableOpacity>
 
-        {/* Emergency Contacts (Caregivers 연동) */}
+        {/* Emergency Contacts (Caregivers ?곕룞) */}
         <Text style={styles.sectionTitle}>Emergency Contacts</Text>
 
         {hasCaregivers ? (
@@ -164,7 +164,7 @@ export default function EmergencyScreen() {
                 key={c.id}
                 style={styles.contactCard}
                 activeOpacity={0.9}
-                onPress={() => onCall(c.phone)} // ✅ 카드 누르면 바로 전화
+                onPress={() => onCall(c.phone)} // ??移대뱶 ?꾨Ⅴ硫?諛붾줈 ?꾪솕
               >
                 <Image source={pickAvatarSource(c.avatarId)} style={styles.contactAvatar} />
 
@@ -216,7 +216,7 @@ export default function EmergencyScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#F8FBF9",
   },
   container: {
     flex: 1,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FS_SECTION,
     fontWeight: "700",
-    color: "#111827",
+    color: "#13201C",
     marginTop: H * 0.01,
     marginBottom: H * 0.01,
   },
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: GAP,
     borderWidth: BORDER,
-    borderColor: "#e5e7eb",
+    borderColor: "#DBE7E1",
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: W * 0.01,
@@ -274,26 +274,26 @@ const styles = StyleSheet.create({
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_R,
-    backgroundColor: "#e5e7eb",
+    backgroundColor: "#DBE7E1",
   },
   contactName: {
     fontSize: FS_NAME,
     fontWeight: "700",
-    color: "#111827",
+    color: "#13201C",
   },
   contactRole: {
-    color: "#6b7280",
+    color: "#66736F",
     marginTop: H * 0.003,
     fontSize: FS_ROLE,
   },
   callBtn: {
-    backgroundColor: "#AEE9FA",
+    backgroundColor: "#BFEBDD",
     paddingVertical: PAD_BTN_V,
     paddingHorizontal: PAD_BTN_H,
     borderRadius: R_BTN,
   },
   callBtnText: {
-    color: "#0c4a6e",
+    color: "#115E59",
     fontWeight: "700",
     fontSize: FS_BTN,
   },
@@ -303,19 +303,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: R_CARD,
     borderWidth: BORDER,
-    borderColor: "#e5e7eb",
+    borderColor: "#DBE7E1",
     padding: PAD_CARD,
     marginBottom: H * 0.012,
   },
   emptyTitle: {
     fontSize: FS_BODY,
     fontWeight: "800",
-    color: "#111827",
+    color: "#13201C",
   },
   emptySub: {
     marginTop: H * 0.006,
     fontSize: W * 0.032,
-    color: "#64748b",
+    color: "#66736F",
     lineHeight: W * 0.045,
   },
 
@@ -323,12 +323,12 @@ const styles = StyleSheet.create({
   fallbackAvatar: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#D7F1FB",
+    backgroundColor: "#D9F2EC",
   },
   fallbackAvatarText: {
     fontSize: FS_NAME,
     fontWeight: "800",
-    color: "#0c4a6e",
+    color: "#115E59",
   },
 
   /* Generic Card */
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: R_CARD,
     borderWidth: BORDER,
-    borderColor: "#e5e7eb",
+    borderColor: "#DBE7E1",
     padding: PAD_CARD,
     marginBottom: H * 0.012,
     shadowColor: "#000",
@@ -345,14 +345,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: H * 0.002 },
   },
   cardLine: {
-    color: "#111827",
+    color: "#13201C",
     marginBottom: H * 0.006,
     fontSize: FS_BODY,
   },
 
   /* Resource */
   resourceCard: {
-    backgroundColor: "#D7F1FB",
+    backgroundColor: "#D9F2EC",
   },
   resourceText: {
     color: "#0f172a",

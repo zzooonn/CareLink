@@ -2,18 +2,21 @@ import { useEffect, useRef } from "react";
 import { useRouter, useSegments, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Dimensions } from "react-native";
 import AppHeader from "../../components/AppHeader";
-
-const { width: W } = Dimensions.get("window");
+import { palette, radius } from "../../constants/design";
 
 const TAB_BAR_STYLE = {
-  backgroundColor: "#fff",
-  borderTopWidth: 0,
-  elevation: 0,
-  shadowOpacity: 0,
-  height: 82,
-  paddingBottom: 12,
+  backgroundColor: palette.surface,
+  borderTopWidth: 1,
+  borderTopColor: palette.line,
+  height: 78,
+  paddingBottom: 10,
+  paddingTop: 8,
+  elevation: 8,
+  shadowColor: "#0b2b24",
+  shadowOpacity: 0.08,
+  shadowRadius: 18,
+  shadowOffset: { width: 0, height: -8 },
 } as const;
 
 const HIDDEN_TAB_BAR = { display: "none" } as const;
@@ -24,16 +27,16 @@ export default function TabsLayout() {
   const segKey = segments.join("/");
   const redirecting = useRef(false);
 
-  // 런타임 auth 가드
+  // ?고???auth 媛??
   useEffect(() => {
     if (redirecting.current) return;
 
-    // segments를 await 이전에 캡처 (stale closure 방지)
+    // segments瑜?await ?댁쟾??罹≪쿂 (stale closure 諛⑹?)
     const seg1 = segments[1] as string | undefined;
     const inAuth = seg1 === "auth";
     const inIndex = !seg1 || seg1 === "index";
 
-    // 인증이 필요 없는 화면이면 체크 자체를 건너뜀
+    // ?몄쬆???꾩슂 ?녿뒗 ?붾㈃?대㈃ 泥댄겕 ?먯껜瑜?嫄대꼫?
     if (inAuth || inIndex) return;
 
     let cancelled = false;
@@ -48,7 +51,7 @@ export default function TabsLayout() {
       const isLoggedIn = !!(userId && token);
       if (!isLoggedIn) {
         redirecting.current = true;
-        router.replace("/(tabs)");
+        router.replace("/");
         setTimeout(() => { redirecting.current = false; }, 1000);
       }
     };
@@ -65,13 +68,17 @@ export default function TabsLayout() {
         header: () => <AppHeader />,
         tabBarShowLabel: true,
         tabBarLabelStyle: {
-          fontSize: W * 0.028,
-          fontWeight: "600",
+          fontSize: 12,
+          fontWeight: "800",
           marginBottom: 4,
         },
+        tabBarItemStyle: {
+          borderRadius: radius.card,
+          marginHorizontal: 4,
+        },
         tabBarStyle: TAB_BAR_STYLE,
-        tabBarActiveTintColor: "#00AEEF",
-        tabBarInactiveTintColor: "#111827",
+        tabBarActiveTintColor: palette.primary,
+        tabBarInactiveTintColor: palette.muted,
         tabBarIcon: ({ color, size, focused }) => {
           let icon: keyof typeof Ionicons.glyphMap;
 
@@ -89,24 +96,24 @@ export default function TabsLayout() {
               icon = "ellipse-outline";
           }
 
-          return <Ionicons name={icon} size={size} color={color} />;
+          return <Ionicons name={icon} size={focused ? size + 1 : size} color={color} />;
         },
       })}
     >
-      {/* Welcome: 탭바에서 완전 제거 (공간 차지 X) + 이 화면에선 탭바 숨김 */}
+      {/* Welcome: ??컮?먯꽌 ?꾩쟾 ?쒓굅 (怨듦컙 李⑥? X) + ???붾㈃?먯꽑 ??컮 ?④? */}
       <Tabs.Screen
         name="index"
-        options={{ href: null, tabBarStyle: HIDDEN_TAB_BAR }}
+        options={{ href: null, headerShown: false, tabBarStyle: HIDDEN_TAB_BAR }}
       />
 
       <Tabs.Screen name="Home" options={{ title: "Home" }} />
       <Tabs.Screen name="profile" options={{ title: "Profile" }} />
       <Tabs.Screen name="setting" options={{ title: "Settings" }} />
 
-      {/* auth: 탭바 버튼 숨김 + 탭바 자체도 숨김 (로그인/회원가입 화면) */}
+      {/* auth: ??컮 踰꾪듉 ?④? + ??컮 ?먯껜???④? (濡쒓렇???뚯썝媛???붾㈃) */}
       <Tabs.Screen
         name="auth"
-        options={{ href: null, tabBarStyle: HIDDEN_TAB_BAR }}
+        options={{ href: null, headerShown: false, tabBarStyle: HIDDEN_TAB_BAR }}
       />
     </Tabs>
   );

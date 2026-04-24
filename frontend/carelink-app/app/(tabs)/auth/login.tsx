@@ -1,21 +1,23 @@
 import React, { useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Image,
-  Dimensions,
-  Alert,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
+  View,
 } from "react-native";
-import { ScaledText as Text } from "../../../components/ScaledText";
-import { useRouter, Stack } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ScaledText as Text } from "../../../components/ScaledText";
+import { palette, pressShadow, radius, shadow, spacing, typeScale, webShell } from "../../../constants/design";
 
-const { width, height } = Dimensions.get("window");
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 export default function Login() {
@@ -24,7 +26,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchWithTimeout = async (url: string, options: any, timeout = 30000) => {
+  const fetchWithTimeout = async (url: string, options: RequestInit, timeout = 30000) => {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
     try {
@@ -100,159 +102,233 @@ export default function Login() {
     <>
       <Stack.Screen />
 
-      <KeyboardAvoidingView
-        style={{ flex: 1, backgroundColor: "#f7f9fb" }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
+          style={styles.keyboard}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-        {/* Brand Header */}
-        <View style={styles.brandContainer}>
-          <Image
-            source={require("../../../assets/images/CareLinkicon.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.brand}>CareLink</Text>
-        </View>
-
-        {/* Login Card */}
-        <View style={styles.card}>
-          <Text style={styles.loginTitle}>{loading ? "Logging in..." : "Login"}</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="User ID"
-            placeholderTextColor="#999"
-            value={userId}
-            onChangeText={setUserId}
-            autoCapitalize="none"
-            editable={!loading}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            secureTextEntry
-            placeholderTextColor="#999"
-            value={password}
-            onChangeText={setPassword}
-            editable={!loading}
-          />
-
-          <TouchableOpacity
-            style={[styles.loginButton, loading && { opacity: 0.6 }]}
-            onPress={handleLogin}
-            disabled={loading}
+          <ScrollView
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.loginButtonText}>{loading ? "Please wait..." : "Login"}</Text>
-          </TouchableOpacity>
+            <View style={styles.shell}>
+              <View style={styles.brandRow}>
+                <View style={styles.logoMark}>
+                  <Image
+                    source={require("../../../assets/images/CareLinkicon.png")}
+                    style={styles.logo}
+                    resizeMode="contain"
+                  />
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.kicker}>CARELINK ACCESS</Text>
+                  <Text style={styles.brand}>Welcome back</Text>
+                </View>
+              </View>
 
-          <View style={styles.authLinksRow}>
-            <TouchableOpacity onPress={() => router.push("/(tabs)/auth/find-id")} disabled={loading}>
-              <Text style={[styles.forgotText, loading && { opacity: 0.6 }]}>Find ID</Text>
-            </TouchableOpacity>
-            <Text style={styles.divider}>|</Text>
-            <TouchableOpacity onPress={() => router.push("/(tabs)/auth/forgot-password")} disabled={loading}>
-              <Text style={[styles.forgotText, loading && { opacity: 0.6 }]}>Forgot Password?</Text>
-            </TouchableOpacity>
-          </View>
+              <View style={styles.card}>
+                <Text style={styles.loginTitle}>{loading ? "Checking credentials" : "Login"}</Text>
 
-          <TouchableOpacity onPress={() => router.push("/(tabs)/auth/data-agreement")} disabled={loading} style={{ marginTop: height * 0.02 }}>
-            <Text style={[styles.signupText, loading && { opacity: 0.6 }]}>
-              Don't have an account? <Text style={{ fontWeight: "bold" }}>Sign Up</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+                <View style={styles.inputShell}>
+                  <Ionicons name="person-outline" size={20} color={palette.muted} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="User ID"
+                    placeholderTextColor={palette.faint}
+                    value={userId}
+                    onChangeText={setUserId}
+                    autoCapitalize="none"
+                    editable={!loading}
+                  />
+                </View>
+
+                <View style={styles.inputShell}>
+                  <Ionicons name="lock-closed-outline" size={20} color={palette.muted} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    secureTextEntry
+                    placeholderTextColor={palette.faint}
+                    value={password}
+                    onChangeText={setPassword}
+                    editable={!loading}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.loginButton, loading && styles.disabled]}
+                  onPress={handleLogin}
+                  disabled={loading}
+                  activeOpacity={0.85}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={palette.surface} />
+                  ) : (
+                    <Ionicons name="shield-checkmark-outline" size={20} color={palette.surface} />
+                  )}
+                  <Text style={styles.loginButtonText}>{loading ? "Please wait" : "Login"}</Text>
+                </TouchableOpacity>
+
+                <View style={styles.authLinksRow}>
+                  <TouchableOpacity onPress={() => router.push("/(tabs)/auth/find-id")} disabled={loading}>
+                    <Text style={[styles.linkText, loading && styles.disabledText]}>Find ID</Text>
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
+                  <TouchableOpacity onPress={() => router.push("/(tabs)/auth/forgot-password")} disabled={loading}>
+                    <Text style={[styles.linkText, loading && styles.disabledText]}>Forgot Password?</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => router.push("/(tabs)/auth/data-agreement")}
+                  disabled={loading}
+                  style={styles.signupLink}
+                >
+                  <Text style={[styles.signupText, loading && styles.disabledText]}>
+                    {"Don't have an account? "}
+                    <Text style={styles.signupStrong}>Sign Up</Text>
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: palette.canvas,
+  },
+  keyboard: {
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
-    alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: width * 0.08,
-    paddingVertical: height * 0.05,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xl,
   },
-  brandContainer: {
+  shell: {
+    ...webShell,
+    gap: spacing.lg,
+  },
+  brandRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: height * 0.04,
+    gap: spacing.sm,
+  },
+  logoMark: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.card,
+    backgroundColor: palette.surface,
+    borderWidth: 1,
+    borderColor: palette.line,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadow,
   },
   logo: {
-    width: width * 0.1,
-    height: height * 0.05,
-    marginRight: width * 0.02,
+    width: 34,
+    height: 34,
+    tintColor: palette.primary,
+  },
+  kicker: {
+    color: palette.primary,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
   },
   brand: {
-    fontSize: width * 0.07,
-    fontWeight: "bold",
-    color: "#111",
+    color: palette.ink,
+    fontSize: typeScale.title,
+    fontWeight: "900",
   },
   card: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    paddingVertical: height * 0.04,
-    paddingHorizontal: width * 0.06,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 6,
-    alignItems: "center",
+    backgroundColor: palette.surface,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    padding: spacing.lg,
+    gap: spacing.md,
+    ...shadow,
   },
   loginTitle: {
-    fontSize: width * 0.06,
-    fontWeight: "bold",
-    marginBottom: height * 0.03,
-    color: "#111",
+    color: palette.ink,
+    fontSize: typeScale.section,
+    fontWeight: "900",
+  },
+  inputShell: {
+    minHeight: 54,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surfaceMuted,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   input: {
-    width: "100%",
-    backgroundColor: "#f1f3f6",
-    borderRadius: 10,
-    paddingVertical: height * 0.015,
-    paddingHorizontal: width * 0.04,
-    fontSize: width * 0.04,
-    marginBottom: height * 0.02,
-    color: "#333",
+    flex: 1,
+    minWidth: 0,
+    color: palette.ink,
+    fontSize: typeScale.body,
+    fontWeight: "700",
+    paddingVertical: 0,
   },
   loginButton: {
-    backgroundColor: "#0ea5e9",
-    borderRadius: 10,
-    width: "100%",
-    paddingVertical: height * 0.018,
+    minHeight: 54,
+    borderRadius: radius.card,
+    backgroundColor: palette.primary,
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: height * 0.01,
+    justifyContent: "center",
+    gap: spacing.sm,
+    ...pressShadow,
+  },
+  disabled: {
+    opacity: 0.68,
   },
   loginButtonText: {
-    color: "#fff",
-    fontSize: width * 0.045,
-    fontWeight: "bold",
+    color: palette.surface,
+    fontSize: typeScale.body,
+    fontWeight: "900",
   },
   authLinksRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: height * 0.015,
-    gap: width * 0.03,
+    justifyContent: "center",
+    gap: spacing.md,
   },
   divider: {
-    color: "#d1d5db",
-    fontSize: width * 0.04,
+    width: 1,
+    height: 16,
+    backgroundColor: palette.line,
   },
-  forgotText: {
-    color: "#0ea5e9",
-    fontSize: width * 0.04,
+  linkText: {
+    color: palette.primaryDark,
+    fontSize: typeScale.meta,
+    fontWeight: "800",
+  },
+  signupLink: {
+    alignItems: "center",
   },
   signupText: {
-    color: "#6b7280",
-    fontSize: width * 0.038,
+    color: palette.muted,
+    fontSize: typeScale.meta,
     textAlign: "center",
+    fontWeight: "700",
+  },
+  signupStrong: {
+    color: palette.primaryDark,
+    fontWeight: "900",
+  },
+  disabledText: {
+    opacity: 0.6,
   },
 });

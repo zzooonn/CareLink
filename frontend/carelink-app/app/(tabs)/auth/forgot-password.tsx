@@ -85,7 +85,7 @@ export default function ForgotPassword() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#f7f9fb" }}
+      style={{ flex: 1, backgroundColor: "#F4FAF6" }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
@@ -162,7 +162,7 @@ export default function ForgotPassword() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#f7f9fb",
+    backgroundColor: "#F4FAF6",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: width * 0.08,
@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
     width: width * 0.1,
     height: height * 0.05,
     marginRight: width * 0.02,
+    tintColor: "#0F766E",
   },
   brand: {
     fontSize: width * 0.07,
@@ -204,13 +205,13 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: width * 0.035,
-    color: "#6b7280",
+    color: "#66736F",
     textAlign: "center",
     marginBottom: height * 0.025,
   },
   input: {
     width: "100%",
-    backgroundColor: "#f1f3f6",
+    backgroundColor: "#F8FBF9",
     borderRadius: 10,
     paddingVertical: height * 0.015,
     paddingHorizontal: width * 0.04,
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   loginButton: {
-    backgroundColor: "#0ea5e9",
+    backgroundColor: "#0F766E",
     borderRadius: 10,
     width: "100%",
     paddingVertical: height * 0.018,
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   backText: {
-    color: "#0ea5e9",
+    color: "#0F766E",
     fontSize: width * 0.038,
   },
 });

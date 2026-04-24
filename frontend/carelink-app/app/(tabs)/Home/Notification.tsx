@@ -15,10 +15,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";
 import { authFetch } from "../../../utils/api";
 
-/* ✅ Caregivers와 동일 */
+/* ??Caregivers? ?숈씪 */
 const CAREGIVERS_STORAGE_KEY = "caregivers:list";
 
-/* ✅ 로컬 아바타 (1~12) */
+/* ??濡쒖뺄 ?꾨컮? (1~12) */
 const AVATAR_LIST = [
   { id: 1, source: require("../../../assets/avatar/avatar1.png") },
   { id: 2, source: require("../../../assets/avatar/avatar2.png") },
@@ -39,13 +39,13 @@ function pickAvatarSource(id?: number) {
   return AVATAR_LIST.find((a) => a.id === safeId)?.source ?? AVATAR_LIST[0].source;
 }
 
-/* ✅ 여기서 fallback도 로컬로 (무조건 보이게) */
+/* ???ш린??fallback??濡쒖뺄濡?(臾댁“嫄?蹂댁씠寃? */
 const DEFAULT_AVATAR_SOURCE = pickAvatarSource(1);
 
-/* ✅ Caregivers 저장 구조 */
+/* ??Caregivers ???援ъ“ */
 type Caregiver = {
-  id: string;      // 로컬 row id
-  userId: string;  // 연동 키
+  id: string;      // 濡쒖뺄 row id
+  userId: string;
   name: string;
   phone: string;
   avatarId: number; // 1~12
@@ -53,12 +53,10 @@ type Caregiver = {
 
 export type NotificationItem = {
   id: string;
-  actorUserId?: string; // ✅ 이 값으로 caregivers와 매칭
+  actorUserId?: string; // ????媛믪쑝濡?caregivers? 留ㅼ묶
   message: string;
   createdAt: string | number | Date;
   read?: boolean;
-
-  // (선택) 예전 방식 호환이 필요하면 남겨도 됨
   avatar?: string;
 };
 
@@ -108,21 +106,21 @@ function formatRelativeTime(dateLike: string | number | Date) {
   return d.toLocaleDateString();
 }
 
-/** ✅ item + map으로 최종 source 결정 */
+/** ??item + map?쇰줈 理쒖쥌 source 寃곗젙 */
 function resolveAvatarSource(
   item: NotificationItem,
   avatarIdByUserId: Record<string, number>
 ): ImageSourcePropType {
-  // 1) actorUserId로 caregivers avatarId 매칭되면 로컬 사용
+  // 1) actorUserId濡?caregivers avatarId 留ㅼ묶?섎㈃ 濡쒖뺄 ?ъ슜
   if (item.actorUserId) {
     const avatarId = avatarIdByUserId[item.actorUserId];
     if (typeof avatarId === "number") return pickAvatarSource(avatarId);
   }
 
-  // 2) (호환) item.avatar url 있으면 사용
+  // 2) (?명솚) item.avatar url ?덉쑝硫??ъ슜
   if (item.avatar) return { uri: item.avatar };
 
-  // 3) 무조건 보이게 로컬 fallback
+  // 3) 臾댁“嫄?蹂댁씠寃?濡쒖뺄 fallback
   return DEFAULT_AVATAR_SOURCE;
 }
 
@@ -147,8 +145,7 @@ const NotificationRow = ({
         style={styles.avatar}
         resizeMode="cover"
         onError={(e) => {
-          // 디버깅용: 여기 찍히면 source가 문제거나 파일 경로/번들 문제일 수 있어요
-          console.log("Avatar load error:", e.nativeEvent);
+          // ?붾쾭源낆슜: ?ш린 李랁엳硫?source媛 臾몄젣嫄곕굹 ?뚯씪 寃쎈줈/踰덈뱾 臾몄젣?????덉뼱??          console.log("Avatar load error:", e.nativeEvent);
         }}
       />
       <View style={styles.textWrap}>
@@ -239,7 +236,7 @@ export default function NotificationScreen({ data, onPressItem }: Props) {
 
       <FlatList
         data={list}
-        extraData={avatarIdByUserId}  // ✅ 이거 꼭! (매핑 바뀌면 row 다시 그림)
+        extraData={avatarIdByUserId}  // ???닿굅 瑗? (留ㅽ븨 諛붾뚮㈃ row ?ㅼ떆 洹몃┝)
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <NotificationRow
@@ -269,12 +266,12 @@ const styles = StyleSheet.create({
     paddingTop: PAD_TOP,
     paddingBottom: PAD_HEADER_BOTTOM,
     borderBottomWidth: BORDER,
-    borderBottomColor: "#f1f5f9",
+    borderBottomColor: "#F8FBF9",
   },
   header: {
     fontSize: FS_HEADER,
     fontWeight: "800",
-    color: "#111827",
+    color: "#13201C",
     textAlign: "center",
   },
 
@@ -294,7 +291,7 @@ const styles = StyleSheet.create({
     width: AV,
     height: AV,
     borderRadius: AV / 2,
-    backgroundColor: "#e5e7eb",
+    backgroundColor: "#DBE7E1",
   },
 
   textWrap: {
@@ -304,7 +301,7 @@ const styles = StyleSheet.create({
 
   message: {
     fontSize: FS_MSG,
-    color: "#111827",
+    color: "#13201C",
     lineHeight: LH_MSG,
   },
   unread: { fontWeight: "700" },

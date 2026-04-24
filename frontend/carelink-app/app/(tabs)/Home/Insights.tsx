@@ -28,7 +28,7 @@ type InsightsApi = {
   glucose: number[];    // 0~100
   bp: number[];         // 0~100
   ecg: number[];        // 0~100
-  max: number;          // 보통 100
+  max: number;          // 蹂댄넻 100
 };
 
 const { width: W, height: H } = Dimensions.get("window");
@@ -66,11 +66,11 @@ const BAR_GAP = W * 0.012;
 const COLORS = {
   glucose: "#f59e0b",
   bp: "#22c55e",
-  ecg: "#8b5cf6",
-  total: "#111827",
+  ecg: "#0D9488",
+  total: "#13201C",
 };
 
-// ???�경변??(?? http://localhost:8080 or http://10.0.2.2:8080)
+// ???占쎄꼍蹂??(?? http://localhost:8080 or http://10.0.2.2:8080)
 const BACKEND_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 export default function InsightsScreen() {
@@ -80,7 +80,7 @@ export default function InsightsScreen() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // ???�버?�서 받�? vitals
+  // ???占쎈쾭?占쎌꽌 諛쏉옙? vitals
   const [vitals, setVitals] = useState<InsightsApi>({
     labels: ["-", "-", "-", "-", "-", "-", "-"],
     glucose: [0, 0, 0, 0, 0, 0, 0],
@@ -119,7 +119,7 @@ export default function InsightsScreen() {
 
         const data = (await res.json()) as InsightsApi;
 
-        // ??방어: 배열 길이 불일�???UI 깨짐 방�?
+        // ??諛⑹뼱: 諛곗뿴 湲몄씠 遺덉씪占???UI 源⑥쭚 諛⑼옙?
         const n = data.labels?.length ?? 0;
         if (!n || !data.glucose || !data.bp || !data.ecg) {
           throw new Error("Invalid insights response shape");
@@ -136,7 +136,7 @@ export default function InsightsScreen() {
     run();
   }, [range]);
 
-  // ??종합 ?�수 (가중치 ?�시)
+  // ??醫낇빀 ?占쎌닔 (媛以묒튂 ?占쎌떆)
   const totals = useMemo(() => {
     const wG = 0.35,
       wB = 0.35,
@@ -147,7 +147,7 @@ export default function InsightsScreen() {
     );
   }, [vitals]);
 
-  // ???�균 ?�수
+  // ???占쎄퇏 ?占쎌닔
   const avg = useMemo(() => {
     const mean = (arr: number[]) =>
       Math.round(arr.reduce((a, b) => a + b, 0) / Math.max(1, arr.length));
@@ -159,7 +159,7 @@ export default function InsightsScreen() {
     };
   }, [vitals, totals]);
 
-  // ??주간 ?�수 (?�시??: totals ?�균
+  // ??二쇨컙 ?占쎌닔 (?占쎌떆??: totals ?占쎄퇏
   const weeklyScore = useMemo(() => {
     const a = totals.reduce((x, y) => x + y, 0) / Math.max(1, totals.length);
     return Math.round(a);
@@ -170,8 +170,8 @@ export default function InsightsScreen() {
     setOpenSelect(false);
   };
 
-  // ??x�??�벨: ?�버 labels ?�용 (7d�?7�? 30d�?30개�?
-  // UI가 30/365???�무 빽빽?????�으???�표?�용?�으�?7d�??�쁘�??�고 ?�으�??�기?�서 downsample ?�면 ??
+  // ??x占??占쎈꺼: ?占쎈쾭 labels ?占쎌슜 (7d占?7占? 30d占?30媛쒙옙?
+  // UI媛 30/365???占쎈Т 鍮쎈뭣?????占쎌쑝???占쏀몴?占쎌슜?占쎌쑝占?7d占??占쎌걯占??占쎄퀬 ?占쎌쑝占??占쎄린?占쎌꽌 downsample ?占쎈㈃ ??
   const xLabels = vitals.labels;
 
   return (
@@ -195,7 +195,7 @@ export default function InsightsScreen() {
             <Ionicons
               name={openSelect ? "chevron-up" : "chevron-down"}
               size={W * 0.05}
-              color="#111827"
+              color="#13201C"
             />
           </TouchableOpacity>
 
@@ -204,7 +204,7 @@ export default function InsightsScreen() {
               {(Object.keys(ranges) as RangeKey[]).map((k) => (
                 <TouchableOpacity
                   key={k}
-                  style={[styles.selectItem, k === range && { backgroundColor: "#f1f5f9" }]}
+                  style={[styles.selectItem, k === range && { backgroundColor: "#F8FBF9" }]}
                   onPress={() => selectItem(k)}
                   activeOpacity={0.85}
                 >
@@ -219,7 +219,7 @@ export default function InsightsScreen() {
         {loading && (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 }}>
             <ActivityIndicator />
-            <Text style={{ color: "#475569", fontWeight: "700" }}>Loading insights...</Text>
+            <Text style={{ color: "#66736F", fontWeight: "700" }}>Loading insights...</Text>
           </View>
         )}
         {err && (
@@ -247,7 +247,7 @@ export default function InsightsScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Vitals score (Glucose / BP / ECG)</Text>
 
-          {/* ?�균 ?�약 */}
+          {/* ?占쎄퇏 ?占쎌빟 */}
           <View style={styles.pillRow}>
             <View style={styles.pill}>
               <View style={[styles.pillDot, { backgroundColor: COLORS.glucose }]} />
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: FS_PAGE,
     fontWeight: "800",
-    color: "#111827",
+    color: "#13201C",
     marginVertical: H * 0.012,
   },
 
@@ -370,31 +370,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: BORDER,
-    borderColor: "#e5e7eb",
+    borderColor: "#DBE7E1",
     borderRadius: RADIUS * 0.8,
     paddingVertical: SELECT_PV,
     paddingHorizontal: SELECT_PH,
     backgroundColor: "#fff",
   },
   selectText: {
-    color: "#111827",
+    color: "#13201C",
     fontWeight: "600",
     fontSize: FS_SELECT,
   },
   selectMenu: {
     marginTop: H * 0.008,
     borderWidth: BORDER,
-    borderColor: "#e5e7eb",
+    borderColor: "#DBE7E1",
     borderRadius: RADIUS * 0.8,
     backgroundColor: "#fff",
     overflow: "hidden",
   },
   selectItem: { paddingVertical: SELECT_PV, paddingHorizontal: SELECT_PH },
-  selectItemText: { color: "#111827", fontSize: FS_SELECT },
+  selectItemText: { color: "#13201C", fontSize: FS_SELECT },
 
   /* Cards */
   card: {
-    backgroundColor: "#D7F1FB",
+    backgroundColor: "#D9F2EC",
     borderRadius: RADIUS,
     padding: CARD_PAD,
     marginTop: CARD_MT,
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: FS_CARD_TITLE,
     fontWeight: "700",
-    color: "#111827",
+    color: "#13201C",
     marginBottom: H * 0.012,
   },
 
@@ -416,15 +416,15 @@ const styles = StyleSheet.create({
   bigScore: {
     fontSize: BIG_SCORE,
     fontWeight: "800",
-    color: "#111827",
+    color: "#13201C",
     lineHeight: BIG_SCORE * 1.05,
-    includeFontPadding: false, // 안드로이드 특유의 폰트 위아래 패딩 제거
-    paddingVertical: H * 0.005, // 대신 수동으로 약간의 여유 공간 확보
+    includeFontPadding: false, // ?덈뱶濡쒖씠???뱀쑀???고듃 ?꾩븘???⑤뵫 ?쒓굅
+    paddingVertical: H * 0.005, // ????섎룞?쇰줈 ?쎄컙???ъ쑀 怨듦컙 ?뺣낫
   },
   scoreOutOf: {
     fontSize: FS_LABEL,
     fontWeight: "700",
-    color: "#475569",
+    color: "#66736F",
     marginBottom: H * 0.004,
     marginTop: H * 0.003
   },
@@ -438,11 +438,11 @@ const styles = StyleSheet.create({
   progressFill: {
     height: TRACK_H,
     borderRadius: TRACK_H / 2,
-    backgroundColor: "#60a5fa",
+    backgroundColor: "#0F766E",
   },
   progressLabel: {
     textAlign: "right",
-    color: "#111827",
+    color: "#13201C",
     marginTop: H * 0.01,
     fontWeight: "700",
     fontSize: FS_LABEL,
@@ -470,8 +470,8 @@ const styles = StyleSheet.create({
     height: DOT * 0.8,
     borderRadius: (DOT * 0.8) / 2,
   },
-  pillLabel: { color: "#111827", fontWeight: "700", fontSize: FS_TICK },
-  pillValue: { color: "#111827", fontWeight: "800", fontSize: FS_TICK },
+  pillLabel: { color: "#13201C", fontWeight: "700", fontSize: FS_TICK },
+  pillValue: { color: "#13201C", fontWeight: "800", fontSize: FS_TICK },
 
   pillStrong: {
     flexDirection: "row",
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     paddingVertical: H * 0.008,
     paddingHorizontal: W * 0.035,
     borderRadius: 999,
-    backgroundColor: "#111827",
+    backgroundColor: "#13201C",
     minWidth: W * 0.32,
   },
   pillStrongLabel: { color: "#fff", fontWeight: "800", fontSize: FS_TICK },
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     paddingRight: W * 0.02,
   },
   yTick: {
-    color: "#475569",
+    color: "#66736F",
     fontSize: FS_TICK,
   },
   barsWrap: {
@@ -525,13 +525,13 @@ const styles = StyleSheet.create({
   },
   dayTotal: {
     marginTop: H * 0.008,
-    color: "#111827",
+    color: "#13201C",
     fontSize: FS_TICK,
     fontWeight: "800",
   },
   xTick: {
     marginTop: H * 0.004,
-    color: "#111827",
+    color: "#13201C",
     fontSize: FS_TICK,
     fontWeight: "700",
   },
@@ -553,11 +553,11 @@ const styles = StyleSheet.create({
     height: DOT,
     borderRadius: DOT / 2,
   },
-  legendText: { color: "#111827", fontSize: FS_LABEL, fontWeight: "700" },
+  legendText: { color: "#13201C", fontSize: FS_LABEL, fontWeight: "700" },
 
   noteText: {
     marginTop: H * 0.01,
-    color: "#475569",
+    color: "#66736F",
     fontSize: FS_TICK,
   },
 });

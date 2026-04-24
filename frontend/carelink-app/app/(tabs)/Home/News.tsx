@@ -41,7 +41,7 @@ export default function NewsScreen() {
 
   const { height: H } = useWindowDimensions();
 
-  // ---- 높이 계산 수정: 5개 -> 4개로 줄여서 카드 크기 확대 ----
+  // ---- ?믪씠 怨꾩궛 ?섏젙: 5媛?-> 4媛쒕줈 以꾩뿬??移대뱶 ?ш린 ?뺣? ----
   const LIST_TOP_PADDING = 16;
   const LIST_BOTTOM_PADDING = 24;
   const SEARCH_AREA_HEIGHT = 50 + 20; // input(50) + marginBottom(20)
@@ -50,8 +50,8 @@ export default function NewsScreen() {
   const LIST_AVAILABLE_HEIGHT =
     H - (LIST_TOP_PADDING + LIST_BOTTOM_PADDING + SEARCH_AREA_HEIGHT + SAFE_EXTRA);
 
-  const GAP = 16; // 간격도 살짝 늘림
-  // 여기서 / 5 대신 / 4로 변경하여 카드 높이를 키움
+  const GAP = 16; // 媛꾧꺽???댁쭩 ?섎┝
+  // ?ш린??/ 5 ???/ 4濡?蹂寃쏀븯??移대뱶 ?믪씠瑜??ㅼ?
   const VISIBLE_ITEMS = 4; 
   const CARD_HEIGHT = Math.max(150, Math.floor((LIST_AVAILABLE_HEIGHT - GAP * (VISIBLE_ITEMS - 1)) / VISIBLE_ITEMS));
 
@@ -139,7 +139,7 @@ export default function NewsScreen() {
 
   const listData: NewsRow[] = useMemo(() => {
     const base: NewsRow[] = filtered.map((x) => ({ ...x, __placeholder: false }));
-    // 최소 4개는 채워지도록 설정 (화면 꽉 차게)
+    // 理쒖냼 4媛쒕뒗 梨꾩썙吏?꾨줉 ?ㅼ젙 (?붾㈃ 苑?李④쾶)
     const need = Math.max(0, VISIBLE_ITEMS - base.length);
     for (let i = 0; i < need; i++) {
       base.push({
@@ -189,7 +189,7 @@ export default function NewsScreen() {
           onPress={() => openLink(item.url)}
         >
           <Text style={styles.learnMoreText}>Read More</Text>
-          <Text style={styles.chevron}>›</Text>
+          <Text style={styles.chevron}>{">"}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -213,7 +213,7 @@ export default function NewsScreen() {
 
         {loading && (
           <View style={{ paddingTop: 12 }}>
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color="#0F766E" />
           </View>
         )}
 
@@ -250,7 +250,7 @@ export default function NewsScreen() {
             paddingBottom: 24,
           }}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0F766E" />}
         />
       </View>
     </SafeAreaView>
@@ -258,30 +258,30 @@ export default function NewsScreen() {
 }
 
 const styles = StyleSheet.create({
-  // 배경을 흰색으로 변경
+  // 諛곌꼍???곗깋?쇰줈 蹂寃?
   safe: { flex: 1, backgroundColor: "#FFFFFF" },
   whiteBody: { flex: 1, backgroundColor: "#FFFFFF" },
 
   searchContainer: { paddingHorizontal: 16, marginBottom: 20 },
   searchInput: {
-    backgroundColor: "#F3F4F6", // 밝은 회색 배경
+    backgroundColor: "#F3F4F6", // 諛앹? ?뚯깋 諛곌꼍
     borderRadius: 14,
     height: 52,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#111827", // 검정 글씨
+    color: "#13201C", // 寃??湲??
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
 
   card: {
-    borderRadius: 20, // 둥글기 약간 더
+    borderRadius: 20, // ?κ?湲??쎄컙 ??
     padding: 18,
-    backgroundColor: "#FFFFFF", // 카드 배경 흰색
+    backgroundColor: "#FFFFFF", // 移대뱶 諛곌꼍 ?곗깋
     borderWidth: 1,
-    borderColor: "#E5E7EB", // 연한 회색 테두리
+    borderColor: "#E5E7EB", // ?고븳 ?뚯깋 ?뚮몢由?
 
-    // 그림자 (흰 배경에 맞게 조정)
+    // 洹몃┝??(??諛곌꼍??留욊쾶 議곗젙)
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -311,35 +311,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
-    backgroundColor: "#EFF6FF", // 아주 연한 파랑
+    backgroundColor: "#F4FAF6", // ?꾩＜ ?고븳 ?뚮옉
     borderWidth: 1,
-    borderColor: "#DBEAFE",
+    borderColor: "#D9F2EC",
   },
 
   dot: {
     width: 6,
     height: 6,
     borderRadius: 999,
-    backgroundColor: "#3B82F6", // 파란색 점
+    backgroundColor: "#0F766E", // ?뚮?????
   },
 
   badgeText: {
-    color: "#1E40AF", // 짙은 파란 글씨
+    color: "#115E59", // 吏숈? ?뚮? 湲??
     fontSize: 12,
     fontWeight: "700",
   },
 
   metaText: {
-    color: "#6B7280", // 회색 텍스트
+    color: "#6B7280", // ?뚯깋 ?띿뒪??
     fontSize: 11,
     fontWeight: "600",
   },
 
   cardTitle: {
     marginTop: 8,
-    fontSize: 18, // 폰트 사이즈 키움
+    fontSize: 18, // ?고듃 ?ъ씠利??ㅼ?
     fontWeight: "800",
-    color: "#111827", // 진한 검정
+    color: "#13201C", // 吏꾪븳 寃??
     lineHeight: 26,
   },
 
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: "#F3F4F6", // 버튼 배경 밝은 회색
+    backgroundColor: "#F3F4F6", // 踰꾪듉 諛곌꼍 諛앹? ?뚯깋
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   learnMoreText: { 
     fontSize: 14, 
     fontWeight: "700", 
-    color: "#1F2937" // 버튼 글씨 검정(진회색)
+    color: "#1F2937" // 踰꾪듉 湲??寃??吏꾪쉶??
   },
   
   chevron: { 

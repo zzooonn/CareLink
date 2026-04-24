@@ -461,6 +461,7 @@ const styles = StyleSheet.create({
   logo: {
     width: width * 0.12,
     height: height * 0.06,
+    tintColor: "#0F766E",
   },
   brand: {
     fontSize: width * 0.07,
@@ -502,7 +503,7 @@ const styles = StyleSheet.create({
   },
   avatarLabel: {
     fontSize: width * 0.035,
-    color: "#6b7280",
+    color: "#66736F",
     marginBottom: height * 0.015,
     fontWeight: "600",
   },
@@ -510,12 +511,12 @@ const styles = StyleSheet.create({
     width: width * 0.25,
     height: width * 0.25,
     borderRadius: (width * 0.25) / 2,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#F8FBF9",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: height * 0.02,
     borderWidth: 4,
-    borderColor: "#e0f2fe",
+    borderColor: "#D9F2EC",
     overflow: "hidden",
   },
   selectedAvatar: {
@@ -533,12 +534,12 @@ const styles = StyleSheet.create({
     height: width * 0.14,
     borderRadius: (width * 0.14) / 2,
     borderWidth: 2,
-    borderColor: "#e2e8f0",
+    borderColor: "#DBE7E1",
     overflow: "hidden",
     backgroundColor: "#fff",
   },
   avatarOptionSelected: {
-    borderColor: "#0ea5e9",
+    borderColor: "#0F766E",
     borderWidth: 3,
     transform: [{ scale: 1.05 }],
   },
@@ -560,12 +561,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 10,
-    backgroundColor: "#e0f2fe",
+    backgroundColor: "#D9F2EC",
     justifyContent: "center",
     alignItems: "center",
   },
   pwToggleText: {
-    color: "#0284c7",
+    color: "#115E59",
     fontWeight: "800",
   },
   inputSpacer: {
@@ -579,14 +580,14 @@ const styles = StyleSheet.create({
   },
   genderButton: {
     flex: 1,
-    backgroundColor: "#f1f3f6",
+    backgroundColor: "#F8FBF9",
     borderRadius: 10,
     paddingVertical: height * 0.015,
     alignItems: "center",
     justifyContent: "center",
   },
   genderButtonSelected: {
-    backgroundColor: "#0ea5e9",
+    backgroundColor: "#0F766E",
   },
   genderText: {
     fontSize: width * 0.035,
@@ -598,7 +599,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   input: {
-    backgroundColor: "#f1f3f6",
+    backgroundColor: "#F8FBF9",
     borderRadius: 10,
     paddingVertical: height * 0.015,
     paddingHorizontal: width * 0.04,
@@ -607,7 +608,7 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.02,
   },
   iosPickerBox: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#F8FBF9",
     borderRadius: 14,
     paddingTop: 10,
     paddingHorizontal: 8,
@@ -619,7 +620,7 @@ const styles = StyleSheet.create({
   },
   iosDoneBtn: {
     marginTop: 10,
-    backgroundColor: "#0ea5e9",
+    backgroundColor: "#0F766E",
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
@@ -640,19 +641,19 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderWidth: 2,
-    borderColor: "#0ea5e9",
+    borderColor: "#0F766E",
     borderRadius: 4,
     marginRight: 8,
   },
   checkedBox: {
-    backgroundColor: "#0ea5e9",
+    backgroundColor: "#0F766E",
   },
   checkboxLabel: {
     fontSize: width * 0.04,
     color: "#111",
   },
   joinButton: {
-    backgroundColor: "#0ea5e9",
+    backgroundColor: "#0F766E",
     borderRadius: 10,
     paddingVertical: height * 0.018,
     alignItems: "center",

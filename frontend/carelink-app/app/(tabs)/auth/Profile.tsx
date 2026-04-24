@@ -35,11 +35,10 @@ type UserProfile = {
   address: string;
   role: UserRole;
 
-  // ✅ 백엔드가 내려주면 자동 반영되게 optional
+  // ??諛깆뿏?쒓? ?대젮二쇰㈃ ?먮룞 諛섏쁺?섍쾶 optional
   profileImageId?: number;
-  profile_image_id?: number; // snake_case 대비
-
-  // ✅ Vital info
+  profile_image_id?: number; // snake_case ?鍮?
+  // ??Vital info
   bloodType?: string;
   allergies?: string;
   medicalConditions?: string;
@@ -56,7 +55,7 @@ type Guardian = {
 const { width: W, height: H } = Dimensions.get("window");
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-/* ---------------- ✅ Avatar mapping ---------------- */
+/* ---------------- ??Avatar mapping ---------------- */
 
 const AVATAR_LIST = [
   { id: 1, source: require("../../../assets/avatar/avatar1.png") },
@@ -156,7 +155,7 @@ export default function ProfileScreen() {
   const [form, setForm] = useState<UserProfile | null>(null);
   const [editingKey, setEditingKey] = useState<keyof UserProfile | null>(null);
 
-  // ✅ 아바타 id + 모달 상태
+  // ???꾨컮? id + 紐⑤떖 ?곹깭
   const [profileImageId, setProfileImageId] = useState<number>(1);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
@@ -179,7 +178,6 @@ export default function ProfileScreen() {
 
   const avatarSource = useMemo(() => pickAvatarSource(profileImageId), [profileImageId]);
 
-  // ✅ 아바타 선택 처리: 선택 즉시 반영 + 로컬 저장
   const applyAvatar = async (id: number) => {
     setProfileImageId(id);
     try {
@@ -204,7 +202,7 @@ export default function ProfileScreen() {
           return;
         }
 
-        // ✅ 0) 로컬 저장된 아바타 먼저 적용
+        // ??0) 濡쒖뺄 ??λ맂 ?꾨컮? 癒쇱? ?곸슜
         const cachedAvatarId = await AsyncStorage.getItem("profileImageId");
         if (cachedAvatarId) {
           const n = Number(cachedAvatarId);
@@ -224,7 +222,7 @@ export default function ProfileScreen() {
         setOriginal(u);
         setForm(u);
 
-        // ✅ 서버가 profileImageId 내려주면 동기화(백이 지원할 때만)
+        // ???쒕쾭媛 profileImageId ?대젮二쇰㈃ ?숆린??諛깆씠 吏?먰븷 ?뚮쭔)
         const serverAvatarId =
           typeof u.profileImageId === "number"
             ? u.profileImageId
@@ -311,7 +309,7 @@ export default function ProfileScreen() {
       setForm(updated);
       setEditingKey(null);
 
-      // ✅ 로컬 캐시는 유지 (Home/Profile 동일 반영)
+      // ??濡쒖뺄 罹먯떆???좎? (Home/Profile ?숈씪 諛섏쁺)
       await AsyncStorage.setItem("profileImageId", String(profileImageId));
       await AsyncStorage.setItem("userName", form.name.trim());
 
@@ -335,12 +333,12 @@ export default function ProfileScreen() {
       >
         {/* Profile Header */}
         <View style={styles.imageContainer}>
-          {/* ✅ 아바타 클릭하면 모달 오픈 */}
+          {/* ???꾨컮? ?대┃?섎㈃ 紐⑤떖 ?ㅽ뵂 */}
           <TouchableOpacity activeOpacity={0.85} onPress={() => setAvatarModalOpen(true)}>
             <View>
               <Image source={avatarSource} style={styles.profileImg} />
               <View style={styles.avatarHint}>
-                <Ionicons name="pencil" size={W * 0.04} color="#111827" />
+                <Ionicons name="pencil" size={W * 0.04} color="#13201C" />
                 <Text style={[styles.avatarHintText, ms(W * 0.03)]}>Change</Text>
               </View>
             </View>
@@ -352,13 +350,13 @@ export default function ProfileScreen() {
             <View style={styles.badge}>
               <Text style={[styles.badgeText, ms(FS_BADGE)]}>{age !== null ? `${age} years old` : "Age N/A"}</Text>
             </View>
-            <View style={[styles.badge, { backgroundColor: "#60a5fa" }]}>
+            <View style={[styles.badge, { backgroundColor: "#0F766E" }]}>
               <Text style={[styles.badgeText, ms(FS_BADGE)]}>{genderLabel(user?.gender)}</Text>
             </View>
           </View>
         </View>
 
-        {/* ✅ Avatar Picker Modal */}
+        {/* ??Avatar Picker Modal */}
         <Modal
           visible={avatarModalOpen}
           transparent
@@ -374,7 +372,7 @@ export default function ProfileScreen() {
               <View style={styles.modalHeader}>
                 <Text style={[styles.modalTitle, ms(W * 0.045)]}>Choose your avatar</Text>
                 <TouchableOpacity onPress={() => setAvatarModalOpen(false)} activeOpacity={0.85}>
-                  <Ionicons name="close" size={W * 0.07} color="#111827" />
+                  <Ionicons name="close" size={W * 0.07} color="#13201C" />
                 </TouchableOpacity>
               </View>
 
@@ -519,7 +517,7 @@ export default function ProfileScreen() {
               <View style={styles.emptyBox}>
                 <Text style={[styles.emptyText, ms(FS_LABEL)]}>No emergency contacts linked.</Text>
                 <Text style={[styles.emptySub, ms(W * 0.032)]}>
-                  Once you connect a guardian, you’ll be able to call them directly from here.
+                  Once you connect a guardian, you?셪l be able to call them directly from here.
                 </Text>
               </View>
             ) : (
@@ -527,13 +525,13 @@ export default function ProfileScreen() {
                 {guardians.slice(0, 2).map((g, idx) => (
                   <TouchableOpacity
                     key={g.userId}
-                    style={[styles.contactBox, idx === 1 && { backgroundColor: "#e5e7eb" }]}
+                    style={[styles.contactBox, idx === 1 && { backgroundColor: "#DBE7E1" }]}
                     activeOpacity={0.85}
                     onPress={() => callPhone(g.phone)}
                   >
                     <View style={styles.contactTop}>
                       <Text style={[styles.contactNum, ms(W * 0.042)]}>{idx + 1}</Text>
-                      <Ionicons name="call-outline" size={W * 0.045} color="#111827" />
+                      <Ionicons name="call-outline" size={W * 0.045} color="#13201C" />
                     </View>
                     <Text style={[styles.contactLabel, ms(FS_LABEL)]} numberOfLines={1}>
                       {g.name || g.userId}
@@ -576,7 +574,7 @@ function InfoItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-/* ---------- Tap → Edit item ---------- */
+/* ---------- Tap ??Edit item ---------- */
 function EditableInfoItem({
   label,
   value,
@@ -633,25 +631,25 @@ const styles = StyleSheet.create({
   imageContainer: { alignItems: "center", marginTop: H * 0.012 },
   profileImg: { width: IMG, height: IMG, borderRadius: IMG_R, marginBottom: H * 0.01 },
 
-  // ✅ 아바타 위에 “Change” 뱃지
+  // ???꾨컮? ?꾩뿉 ?쏞hange??諭껋?
   avatarHint: {
     position: "absolute",
     right: -W * 0.005,
     bottom: H * 0.006,
-    backgroundColor: "#e0f2fe",
+    backgroundColor: "#D9F2EC",
     paddingVertical: H * 0.004,
     paddingHorizontal: W * 0.02,
     borderRadius: W * 0.04,
     flexDirection: "row",
     alignItems: "center",
   },
-  avatarHintText: { marginLeft: W * 0.01, fontWeight: "800", color: "#111827", fontSize: W * 0.03 },
+  avatarHintText: { marginLeft: W * 0.01, fontWeight: "800", color: "#13201C", fontSize: W * 0.03 },
 
-  name: { fontSize: FS_NAME, fontWeight: "700", color: "#111827" },
+  name: { fontSize: FS_NAME, fontWeight: "700", color: "#13201C" },
 
   badgeRow: { flexDirection: "row", gap: GAP, marginTop: H * 0.008 },
   badge: {
-    backgroundColor: "#22d3ee",
+    backgroundColor: "#0F766E",
     borderRadius: BADGE_R,
     paddingVertical: BADGE_PV,
     paddingHorizontal: BADGE_PH,
@@ -661,22 +659,22 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FS_TITLE,
     fontWeight: "700",
-    color: "#111827",
+    color: "#13201C",
     marginTop: H * 0.028,
     marginBottom: H * 0.012,
   },
 
   infoSection: { marginTop: H * 0.002 },
   infoItem: { marginBottom: H * 0.012 },
-  infoLabel: { fontSize: FS_LABEL, color: "#6b7280", marginBottom: H * 0.006 },
-  infoValue: { fontSize: FS_VALUE, color: "#111827", fontWeight: "600", marginBottom: H * 0.006 },
+  infoLabel: { fontSize: FS_LABEL, color: "#66736F", marginBottom: H * 0.006 },
+  infoValue: { fontSize: FS_VALUE, color: "#13201C", fontWeight: "600", marginBottom: H * 0.006 },
 
-  divider: { height: Math.max(1, H * 0.0012), backgroundColor: "#e5e7eb" },
+  divider: { height: Math.max(1, H * 0.0012), backgroundColor: "#DBE7E1" },
 
   contactRow: { flexDirection: "row", gap: W * 0.03, marginBottom: H * 0.03 },
   contactBox: {
     flex: 1,
-    backgroundColor: "#bae6fd",
+    backgroundColor: "#D9F2EC",
     borderRadius: CONTACT_R,
     paddingVertical: CONTACT_PV,
     paddingHorizontal: W * 0.03,
@@ -687,26 +685,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: H * 0.006,
   },
-  contactNum: { fontWeight: "800", fontSize: W * 0.042, color: "#111827" },
-  contactLabel: { fontSize: FS_LABEL, color: "#111827", fontWeight: "700", marginBottom: H * 0.002 },
-  contactPhone: { fontSize: W * 0.032, color: "#334155" },
+  contactNum: { fontWeight: "800", fontSize: W * 0.042, color: "#13201C" },
+  contactLabel: { fontSize: FS_LABEL, color: "#13201C", fontWeight: "700", marginBottom: H * 0.002 },
+  contactPhone: { fontSize: W * 0.032, color: "#13201C" },
 
   emptyBox: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#F8FBF9",
     borderRadius: CONTACT_R,
     padding: W * 0.04,
     marginBottom: H * 0.03,
   },
-  emptyText: { fontSize: FS_LABEL, fontWeight: "800", color: "#111827" },
+  emptyText: { fontSize: FS_LABEL, fontWeight: "800", color: "#13201C" },
   emptySub: {
     marginTop: H * 0.006,
     fontSize: W * 0.032,
-    color: "#475569",
+    color: "#66736F",
     lineHeight: W * 0.045,
   },
 
   updateBtn: {
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#0F766E",
     borderRadius: BTN_R,
     paddingVertical: BTN_PV,
     alignItems: "center",
@@ -715,16 +713,16 @@ const styles = StyleSheet.create({
 
   input: {
     borderWidth: BORDER,
-    borderColor: "#e5e7eb",
+    borderColor: "#DBE7E1",
     borderRadius: INPUT_R,
     paddingVertical: INPUT_PV,
     paddingHorizontal: INPUT_PH,
     fontSize: FS_VALUE,
-    color: "#111827",
+    color: "#13201C",
     marginBottom: H * 0.008,
   },
 
-  /* ✅ modal */
+  /* ??modal */
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
@@ -744,10 +742,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: H * 0.012,
   },
-  modalTitle: { fontSize: W * 0.045, fontWeight: "800", color: "#111827" },
+  modalTitle: { fontSize: W * 0.045, fontWeight: "800", color: "#13201C" },
   modalSubText: {
     marginTop: H * 0.01,
-    color: "#6b7280",
+    color: "#66736F",
     fontSize: W * 0.032,
   },
 
@@ -761,13 +759,13 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: "#e2e8f0",
+    borderColor: "#DBE7E1",
     overflow: "hidden",
     marginBottom: H * 0.012,
     backgroundColor: "#fff",
   },
   avatarItemSelected: {
-    borderColor: "#0ea5e9",
+    borderColor: "#0F766E",
     borderWidth: 3,
     transform: [{ scale: 1.02 }],
   },
@@ -780,7 +778,7 @@ const styles = StyleSheet.create({
     width: W * 0.06,
     height: W * 0.06,
     borderRadius: W * 0.03,
-    backgroundColor: "#0ea5e9",
+    backgroundColor: "#0F766E",
     alignItems: "center",
     justifyContent: "center",
   },
