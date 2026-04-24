@@ -4,22 +4,20 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ImageBackground,
   Image,
-  Dimensions,
   ScrollView,
   Alert,
   ActivityIndicator,
   Platform,
   KeyboardAvoidingView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter } from "expo-router";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-
-const { width, height } = Dimensions.get("window");
+import { palette, pressShadow, radius, shadow, spacing, typeScale, webShell } from "../../../constants/design";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
@@ -189,7 +187,7 @@ export default function SignUp() {
 
       Alert.alert("Success", "Account created successfully!");
       router.push("../auth/login");
-    } catch (e) {
+    } catch {
       Alert.alert("Connection Error", "Could not connect to the server.");
     } finally {
       setSignUpLoading(false);
@@ -197,28 +195,32 @@ export default function SignUp() {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-    <ScrollView
-      contentContainerStyle={styles.scrollContainer}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      <ImageBackground
-        source={require("../../../assets/images/signupbackground.png")}
-        style={styles.background}
-        resizeMode="cover"
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboard}
       >
-        <View style={styles.header}>
-          <Image
-            source={require("../../../assets/images/CareLinkicon.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.brand}>CareLink</Text>
-          <Text style={styles.slogan}>Track health, stay connected</Text>
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.shell}>
+            <View style={styles.brandRow}>
+              <View style={styles.logoMark}>
+                <Image
+                  source={require("../../../assets/images/CareLinkicon.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.brandCopy}>
+                <Text style={styles.kicker}>CARELINK ONBOARDING</Text>
+                <Text style={styles.brand}>Create account</Text>
+              </View>
+            </View>
 
-        <View style={styles.card}>
+            <View style={styles.card}>
           <Text style={styles.title}>Sign Up</Text>
 
           <View style={styles.avatarSection}>
@@ -229,6 +231,7 @@ export default function SignUp() {
             </View>
 
             <ScrollView
+              style={styles.avatarCarousel}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.avatarScrollContent}
@@ -252,7 +255,7 @@ export default function SignUp() {
           <TextInput
             style={styles.input}
             placeholder="User ID"
-            placeholderTextColor="#999"
+            placeholderTextColor={palette.faint}
             value={userId}
             onChangeText={setUserId}
             autoCapitalize="none"
@@ -262,7 +265,7 @@ export default function SignUp() {
             <TextInput
               style={[styles.input, styles.passwordInput]}
               placeholder="Password"
-              placeholderTextColor="#999"
+              placeholderTextColor={palette.faint}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!pwVisible}
@@ -285,7 +288,7 @@ export default function SignUp() {
             <TextInput
               style={[styles.input, styles.passwordInput]}
               placeholder="Confirm Password"
-              placeholderTextColor="#999"
+              placeholderTextColor={palette.faint}
               value={passwordConfirm}
               onChangeText={setPasswordConfirm}
               secureTextEntry={!pwConfirmVisible}
@@ -307,7 +310,7 @@ export default function SignUp() {
           <TextInput
             style={styles.input}
             placeholder="Name"
-            placeholderTextColor="#999"
+            placeholderTextColor={palette.faint}
             value={name}
             onChangeText={setName}
           />
@@ -338,9 +341,9 @@ export default function SignUp() {
           <TouchableOpacity activeOpacity={0.85} onPress={openBirthPicker}>
             <View pointerEvents="none">
               <TextInput
-                style={[styles.input, { color: "#000" }]}
+                style={[styles.input, { color: palette.ink }]}
                 placeholder="Date of Birth (YYYY-MM-DD)"
-                placeholderTextColor="#999"
+                placeholderTextColor={palette.faint}
                 value={birthDate}
                 editable={false}
               />
@@ -381,7 +384,7 @@ export default function SignUp() {
             style={styles.input}
             placeholder="Phone Number"
             keyboardType="phone-pad"
-            placeholderTextColor="#999"
+            placeholderTextColor={palette.faint}
             value={phone}
             onChangeText={setPhone}
           />
@@ -389,7 +392,7 @@ export default function SignUp() {
           <TextInput
             style={styles.input}
             placeholder="Address"
-            placeholderTextColor="#999"
+            placeholderTextColor={palette.faint}
             value={address}
             onChangeText={setAddress}
           />
@@ -398,7 +401,7 @@ export default function SignUp() {
             <TextInput
               style={styles.input}
               placeholder="Guardian ID (Optional)"
-              placeholderTextColor="#999"
+              placeholderTextColor={palette.faint}
               value={guardianId}
               onChangeText={setGuardianId}
               autoCapitalize="none"
@@ -428,95 +431,107 @@ export default function SignUp() {
           >
             {signUpLoading ? (
               <View style={styles.loadingRow}>
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={palette.surface} />
                 <Text style={styles.joinButtonText}>Signing up...</Text>
               </View>
             ) : (
               <Text style={styles.joinButtonText}>Join</Text>
             )}
           </TouchableOpacity>
-        </View>
-      </ImageBackground>
-    </ScrollView>
-    </KeyboardAvoidingView>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: palette.canvas,
+  },
+  keyboard: {
+    flex: 1,
+  },
   scrollContainer: {
     flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xl,
   },
-  background: {
-    flex: 1,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    paddingBottom: 32,
+  shell: {
+    ...webShell,
+    gap: spacing.lg,
   },
-  header: {
+  brandRow: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: height * 0.08,
-    marginBottom: height * 0.02,
+    gap: spacing.sm,
+  },
+  logoMark: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.card,
+    backgroundColor: palette.surface,
+    borderWidth: 1,
+    borderColor: palette.line,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadow,
   },
   logo: {
-    width: width * 0.12,
-    height: height * 0.06,
-    tintColor: "#0F766E",
+    width: 34,
+    height: 34,
+    tintColor: palette.primary,
+  },
+  brandCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  kicker: {
+    color: palette.primary,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
   },
   brand: {
-    fontSize: width * 0.07,
-    fontWeight: "bold",
-    color: "#fff",
-    textShadowColor: "rgba(0,0,0,0.4)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-  },
-  slogan: {
-    color: "#090909ff",
-    fontWeight: "500",
-    fontSize: width * 0.035,
-    marginTop: height * 0.005,
+    color: palette.ink,
+    fontSize: typeScale.title,
+    fontWeight: "900",
   },
   card: {
-    backgroundColor: "#fff",
-    width: "88%",
-    borderRadius: 20,
-    paddingVertical: height * 0.04,
-    paddingHorizontal: width * 0.06,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
-    marginBottom: height * 0.05,
+    backgroundColor: palette.surface,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    padding: spacing.lg,
+    gap: spacing.md,
+    ...shadow,
   },
   title: {
-    fontSize: width * 0.06,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: height * 0.02,
-    textAlign: "center",
+    fontSize: typeScale.section,
+    fontWeight: "900",
+    color: palette.ink,
   },
   avatarSection: {
+    width: "100%",
     alignItems: "center",
-    marginBottom: height * 0.03,
+    gap: spacing.sm,
   },
   avatarLabel: {
-    fontSize: width * 0.035,
-    color: "#66736F",
-    marginBottom: height * 0.015,
-    fontWeight: "600",
+    fontSize: typeScale.meta,
+    color: palette.muted,
+    fontWeight: "800",
   },
   selectedAvatarWrapper: {
-    width: width * 0.25,
-    height: width * 0.25,
-    borderRadius: (width * 0.25) / 2,
-    backgroundColor: "#F8FBF9",
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: palette.surfaceMuted,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: height * 0.02,
     borderWidth: 4,
-    borderColor: "#D9F2EC",
+    borderColor: palette.primarySoft,
     overflow: "hidden",
   },
   selectedAvatar: {
@@ -524,22 +539,27 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "cover",
   },
+  avatarCarousel: {
+    width: "100%",
+    maxWidth: "100%",
+    overflow: "hidden",
+  },
   avatarScrollContent: {
-    paddingHorizontal: 5,
-    paddingVertical: 5,
-    gap: 12,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
+    gap: spacing.sm,
   },
   avatarOption: {
-    width: width * 0.14,
-    height: width * 0.14,
-    borderRadius: (width * 0.14) / 2,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     borderWidth: 2,
-    borderColor: "#DBE7E1",
+    borderColor: palette.line,
     overflow: "hidden",
-    backgroundColor: "#fff",
+    backgroundColor: palette.surface,
   },
   avatarOptionSelected: {
-    borderColor: "#0F766E",
+    borderColor: palette.primary,
     borderWidth: 3,
     transform: [{ scale: 1.05 }],
   },
@@ -557,115 +577,119 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   pwToggle: {
-    marginLeft: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: "#D9F2EC",
+    marginLeft: spacing.sm,
+    minHeight: 54,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.card,
+    backgroundColor: palette.primarySoft,
     justifyContent: "center",
     alignItems: "center",
   },
   pwToggleText: {
-    color: "#115E59",
+    color: palette.primaryDark,
     fontWeight: "800",
   },
   inputSpacer: {
-    height: height * 0.02,
+    height: 0,
   },
   genderContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: height * 0.02,
-    gap: 10,
+    gap: spacing.sm,
   },
   genderButton: {
     flex: 1,
-    backgroundColor: "#F8FBF9",
-    borderRadius: 10,
-    paddingVertical: height * 0.015,
+    backgroundColor: palette.surfaceMuted,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    minHeight: 48,
     alignItems: "center",
     justifyContent: "center",
   },
   genderButtonSelected: {
-    backgroundColor: "#0F766E",
+    backgroundColor: palette.primary,
+    borderColor: palette.primary,
   },
   genderText: {
-    fontSize: width * 0.035,
-    fontWeight: "600",
-    color: "#999",
+    fontSize: typeScale.meta,
+    fontWeight: "800",
+    color: palette.muted,
   },
   genderTextSelected: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: palette.surface,
+    fontWeight: "900",
   },
   input: {
-    backgroundColor: "#F8FBF9",
-    borderRadius: 10,
-    paddingVertical: height * 0.015,
-    paddingHorizontal: width * 0.04,
-    fontSize: width * 0.04,
-    color: "#333",
-    marginBottom: height * 0.02,
+    minHeight: 54,
+    backgroundColor: palette.surfaceMuted,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    paddingHorizontal: spacing.md,
+    fontSize: typeScale.body,
+    fontWeight: "700",
+    color: palette.ink,
   },
   iosPickerBox: {
-    backgroundColor: "#F8FBF9",
-    borderRadius: 14,
-    paddingTop: 10,
-    paddingHorizontal: 8,
-    paddingBottom: 12,
-    marginBottom: height * 0.02,
+    backgroundColor: palette.surfaceMuted,
+    borderRadius: radius.card,
+    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingBottom: spacing.md,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: palette.line,
     overflow: "hidden",
   },
   iosDoneBtn: {
-    marginTop: 10,
-    backgroundColor: "#0F766E",
+    marginTop: spacing.sm,
+    backgroundColor: palette.primary,
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: radius.card,
     alignItems: "center",
   },
   iosDoneText: {
-    color: "#fff",
+    color: palette.surface,
     fontWeight: "800",
-    fontSize: width * 0.04,
+    fontSize: typeScale.body,
   },
   checkboxContainer: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    marginTop: height * 0.005,
-    marginBottom: height * 0.02,
+    minHeight: 32,
   },
   checkbox: {
     width: 22,
     height: 22,
     borderWidth: 2,
-    borderColor: "#0F766E",
-    borderRadius: 4,
+    borderColor: palette.primary,
+    borderRadius: radius.xs,
     marginRight: 8,
   },
   checkedBox: {
-    backgroundColor: "#0F766E",
+    backgroundColor: palette.primary,
   },
   checkboxLabel: {
-    fontSize: width * 0.04,
-    color: "#111",
+    fontSize: typeScale.meta,
+    color: palette.ink,
+    fontWeight: "700",
   },
   joinButton: {
-    backgroundColor: "#0F766E",
-    borderRadius: 10,
-    paddingVertical: height * 0.018,
+    backgroundColor: palette.primary,
+    borderRadius: radius.card,
+    minHeight: 54,
     alignItems: "center",
-    marginTop: height * 0.01,
+    justifyContent: "center",
+    ...pressShadow,
   },
   joinButtonDisabled: {
     opacity: 0.6,
   },
   joinButtonText: {
-    color: "#fff",
-    fontSize: width * 0.045,
-    fontWeight: "bold",
+    color: palette.surface,
+    fontSize: typeScale.body,
+    fontWeight: "900",
   },
   loadingRow: {
     flexDirection: "row",

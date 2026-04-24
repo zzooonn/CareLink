@@ -16,6 +16,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authFetch } from "../../../utils/api";
 import Svg, { Polyline, Circle, Line, Text as SvgText } from "react-native-svg";
+import { palette, pressShadow, radius, shadow, spacing, typeScale, webShell } from "../../../constants/design";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type Card = { id: string; key: string; icon: IconName; flipped: boolean; matched: boolean };
@@ -35,17 +36,15 @@ const ICON_POOL: IconName[] = [
 
 const COLS = 4, PAIRS = 12, CARD_MARGIN = 8, H_PADDING = 16;
 const PERSPECTIVE = 800;
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
-const CARD_SIZE = Math.floor((SCREEN_W - H_PADDING * 2 - CARD_MARGIN * (COLS - 1)) / COLS);
+const { width: SCREEN_W } = Dimensions.get("window");
+const BOARD_WIDTH = Math.min(SCREEN_W - H_PADDING * 2, 360);
+const CARD_SIZE = Math.floor((BOARD_WIDTH - CARD_MARGIN * (COLS - 1)) / COLS);
 
 // ??status 湲???ш쾶(諛섏쓳??
-const FS_STATUS = Math.max(14, SCREEN_W * 0.048);
+const FS_STATUS = typeScale.body;
 
 // ??踰꾪듉 ?ш린/湲??諛섏쓳???좏겙 異붽?
-const BTN_PV = Math.max(12, SCREEN_H * 0.016);        // ?몃줈 ?⑤뵫 (湲곗〈 10蹂대떎 ??
-const BTN_PH = Math.max(18, SCREEN_W * 0.06);         // 媛濡??⑤뵫 (湲곗〈 16蹂대떎 ??
-const BTN_R = Math.max(10, SCREEN_W * 0.03);          // radius ?쎄컙 ?ㅼ?
-const FS_BTN = Math.max(15, SCREEN_W * 0.045);        // 踰꾪듉 湲???ш쾶
+const FS_BTN = typeScale.body;
 
 function pickRandom<T>(arr: T[], n: number): T[] {
   const src = [...arr], out: T[] = [];
@@ -73,7 +72,7 @@ function buildDeck(): Card[] {
 type ScoreEntry = { score: number; createdAt: string };
 
 // ?? 異붿꽭 李⑦듃 而댄룷?뚰듃 ??????????????????????????????????????
-const CHART_W = SCREEN_W - H_PADDING * 2;
+const CHART_W = BOARD_WIDTH;
 const CHART_H = 100;
 const CHART_PAD = { top: 12, bottom: 20, left: 28, right: 8 };
 
@@ -318,21 +317,25 @@ export default function BrainTraining() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: SCREEN_H * 0.03 }}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.statusRow}>
-          <Text style={styles.status}>Matches: {matches}/{PAIRS}</Text>
-          <Text style={styles.status}>Moves: {moves}</Text>
-        </View>
-        {bestScore !== null && (
-          <View style={styles.bestRow}>
-            <Text style={styles.bestText}>Best Score: {bestScore}</Text>
+        <View style={styles.shell}>
+        <View style={styles.summaryPanel}>
+          <View style={styles.statusRow}>
+            <Text style={styles.status}>Matches: {matches}/{PAIRS}</Text>
+            <Text style={styles.status}>Moves: {moves}</Text>
           </View>
-        )}
-        <ScoreTrendChart data={scoreHistory} />
+          {bestScore !== null && (
+            <View style={styles.bestRow}>
+              <Text style={styles.bestText}>Best Score: {bestScore}</Text>
+            </View>
+          )}
+          <ScoreTrendChart data={scoreHistory} />
+        </View>
 
+        <View style={styles.boardPanel}>
         <View style={styles.grid}>
           {deck.map((card, i) => {
             const frontRotateY = flips[i].interpolate({
@@ -359,7 +362,7 @@ export default function BrainTraining() {
                       { transform: [{ perspective: PERSPECTIVE }, { rotateY: frontRotateY }] },
                     ]}
                   >
-                    <Ionicons name="help" size={24} color="#8A9692" />
+                    <Ionicons name="help" size={24} color={palette.faint} />
                   </Animated.View>
 
                   <Animated.View
@@ -369,12 +372,13 @@ export default function BrainTraining() {
                       { transform: [{ perspective: PERSPECTIVE }, { rotateY: backRotateY }] },
                     ]}
                   >
-                    <Ionicons name={card.icon} size={30} color="#13201C" />
+                    <Ionicons name={card.icon} size={30} color={palette.ink} />
                   </Animated.View>
                 </View>
               </TouchableOpacity>
             );
           })}
+        </View>
         </View>
 
         <View style={styles.controlsRow}>
@@ -396,61 +400,91 @@ export default function BrainTraining() {
             <Text style={styles.btnText}>Restart</Text>
           </TouchableOpacity>
         </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#fff", paddingHorizontal: H_PADDING },
+  safe: { flex: 1, backgroundColor: palette.canvas },
+  scroll: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: 118,
+  },
+  shell: {
+    ...webShell,
+    gap: spacing.md,
+  },
+  summaryPanel: {
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: spacing.md,
+    ...shadow,
+  },
+  statusRow: { flexDirection: "row", justifyContent: "space-between", gap: spacing.sm },
+  status: { color: palette.ink, fontWeight: "900", fontSize: FS_STATUS },
+  bestRow: { alignItems: "center", marginTop: spacing.xs },
+  bestText: { color: palette.primaryDark, fontWeight: "900", fontSize: typeScale.meta },
 
-  statusRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
-  status: { color: "#13201C", fontWeight: "700", fontSize: FS_STATUS },
-  bestRow: { alignItems: "center", marginBottom: 8 },
-  bestText: { color: "#0F766E", fontWeight: "700", fontSize: FS_STATUS * 0.85 },
-
-  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
+  boardPanel: {
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: spacing.sm,
+    alignItems: "center",
+    ...shadow,
+  },
+  grid: { width: BOARD_WIDTH, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   card: {
     width: CARD_SIZE,
     height: CARD_SIZE,
-    borderRadius: 12,
-    backgroundColor: "#F8FBF9",
+    borderRadius: radius.card,
+    backgroundColor: palette.surfaceMuted,
     marginBottom: CARD_MARGIN,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: palette.line,
   },
 
   controlsRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 12,
-    marginTop: 14,
-    paddingBottom: 16,
+    gap: spacing.sm,
   },
 
   // ??踰꾪듉 ?ш린 ?ㅼ?
   btn: {
-    paddingVertical: BTN_PV,
-    paddingHorizontal: BTN_PH,
-    borderRadius: BTN_R,
-    backgroundColor: "#eef2f7",
-    minWidth: SCREEN_W * 0.32,     // ??踰꾪듉 理쒖냼 ?덈퉬(?뺤떎??而?蹂댁씠寃?
+    backgroundColor: palette.surface,
+    borderWidth: 1,
+    borderColor: palette.line,
+    paddingVertical: 14,
+    paddingHorizontal: 22,
+    borderRadius: radius.card,
+    minWidth: Math.min(180, Math.max(132, BOARD_WIDTH * 0.32)),
     alignItems: "center",
+    ...pressShadow,
   },
-  btnPrimary: { backgroundColor: "#0F766E" },
+  btnPrimary: { backgroundColor: palette.primary, borderColor: palette.primary },
 
   // ??踰꾪듉 湲???ㅼ?
-  btnText: { color: "#13201C", fontWeight: "800", fontSize: FS_BTN },
-  btnTextPrimary: { color: "#fff", fontWeight: "900", fontSize: FS_BTN },
+  btnText: { color: palette.ink, fontWeight: "900", fontSize: FS_BTN },
+  btnTextPrimary: { color: palette.surface, fontWeight: "900", fontSize: FS_BTN },
 
-  chartTitle: { fontSize: Math.max(13, SCREEN_W * 0.034), color: "#66736F", fontWeight: "600", marginBottom: 2, textAlign: "center" },
+  chartTitle: { fontSize: typeScale.caption, color: palette.muted, fontWeight: "800", marginBottom: spacing.xs, textAlign: "center" },
 
   flipWrap: { width: "100%", height: "100%", position: "relative" },
   face: {
     position: "absolute",
     top: 0, left: 0, right: 0, bottom: 0,
-    borderRadius: 12,
+    borderRadius: radius.card,
     alignItems: "center",
     justifyContent: "center",
     backfaceVisibility: "hidden" as any,
