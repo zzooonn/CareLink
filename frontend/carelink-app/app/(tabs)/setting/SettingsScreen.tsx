@@ -39,7 +39,7 @@ function pickAvatarSource(id?: number) {
 
 const { width: W, height: H } = Dimensions.get("window");
 
-/* ---------- Responsive Tokens (Vitals.tsx 스타일 참고) ---------- */
+/* ---------- Responsive Tokens (Vitals.tsx ?ㅽ???李멸퀬) ---------- */
 const HP = W * 0.05;
 
 const FS_TITLE = W * 0.05;
@@ -59,7 +59,7 @@ const GRID_V_GAP = H * 0.02;
 
 const BORDER = Math.max(1, W * 0.0025);
 
-/* ✅ 어떤 화면에서도 다 들어오게: 버튼 높이 상한(너무 커지지 않게) */
+/* ???대뼡 ?붾㈃?먯꽌?????ㅼ뼱?ㅺ쾶: 踰꾪듉 ?믪씠 ?곹븳(?덈Т 而ㅼ?吏 ?딄쾶) */
 const BTN_H = Math.min(H * 0.12, 92);
 
 export default function SettingsScreen() {
@@ -99,12 +99,12 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
-      {/* ✅ ScrollView 적용: flexGrow를 통해 화면 전체를 채우면서 스크롤 지원 */}
+      {/* ??ScrollView ?곸슜: flexGrow瑜??듯빐 ?붾㈃ ?꾩껜瑜?梨꾩슦硫댁꽌 ?ㅽ겕濡?吏??*/}
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 위 영역(타이틀/프로필/그리드) */}
+        {/* ???곸뿭(??댄?/?꾨줈??洹몃━?? */}
         <View style={styles.topSection}>
           {/* Title */}
           <Text style={styles.title}>Settings</Text>
@@ -119,7 +119,7 @@ export default function SettingsScreen() {
             {!!userName && <Text style={styles.family}>{userName}</Text>}
           </View>
 
-          {/* Feature Buttons (2*2 유지) */}
+          {/* Feature Buttons (2*2 ?좎?) */}
           <View style={styles.grid}>
             <FeatureButton label="Vital Data Log" onPress={() => go("/(tabs)/Home/Vitals")} />
             <FeatureButton label="Medication Planner" onPress={() => go("/(tabs)/Home/Medication")} />
@@ -150,10 +150,10 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* ✅ 동적 여백: 내용이 꽉 차도 로그아웃 버튼 위에 최소한의 공간을 보장 */}
+        {/* ???숈쟻 ?щ갚: ?댁슜??苑?李⑤룄 濡쒓렇?꾩썐 踰꾪듉 ?꾩뿉 理쒖냼?쒖쓽 怨듦컙??蹂댁옣 */}
         <View style={{ height: H * 0.04 }} />
         
-        {/* 아래 영역(Log out 고정 느낌) */}
+        {/* ?꾨옒 ?곸뿭(Log out 怨좎젙 ?먮굦) */}
         <TouchableOpacity
           onPress={handleLogout}
           style={styles.logoutBtn}
@@ -181,30 +181,30 @@ function FeatureButton({ label, onPress }: { label: string; onPress: () => void 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
 
-  /* ✅ ScrollView 컨텐츠 스타일 설정 */
+  /* ??ScrollView 而⑦뀗痢??ㅽ????ㅼ젙 */
   scrollContent: {
-    flexGrow: 1, // 화면에 꽉 차지 않아도 전체 높이를 차지하도록 설정
+    flexGrow: 1, // ?붾㈃??苑?李⑥? ?딆븘???꾩껜 ?믪씠瑜?李⑥??섎룄濡??ㅼ젙
     paddingHorizontal: HP,
     paddingTop: H * 0.01,
     paddingBottom: H * 0.03,
-    justifyContent: "space-between", // topSection과 로그아웃 버튼을 위아래로 분리
+    justifyContent: "space-between", // topSection怨?濡쒓렇?꾩썐 踰꾪듉???꾩븘?섎줈 遺꾨━
   },
 
   topSection: {
-    // 위쪽 컨텐츠들을 하나로 묶어주는 역할
+    // ?꾩そ 而⑦뀗痢좊뱾???섎굹濡?臾띠뼱二쇰뒗 ??븷
   },
 
   title: {
     textAlign: "center",
     fontSize: FS_TITLE,
     fontWeight: "800",
-    color: "#111827",
+    color: "#13201C",
     marginTop: H * 0.008,
     marginBottom: H * 0.012,
   },
   separator: {
     height: BORDER,
-    backgroundColor: "#e5e7eb",
+    backgroundColor: "#DBE7E1",
     marginBottom: H * 0.018,
   },
 
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   family: {
     fontWeight: "600",
     fontSize: FS_FAMILY,
-    color: "#111827",
+    color: "#13201C",
     marginBottom: H * 0.02,
   },
 
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     width: "48%",
     height: BTN_H,
     borderRadius: R_BTN,
-    backgroundColor: "#28add8",
+    backgroundColor: "#0F766E",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: PAD_BTN_H,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   fontSizeLabel: {
     fontSize: W * 0.038,
     fontWeight: "700",
-    color: "#374151",
+    color: "#66736F",
     marginBottom: H * 0.012,
   },
   fontSizeRow: {
@@ -275,20 +275,20 @@ const styles = StyleSheet.create({
     paddingVertical: H * 0.012,
     borderRadius: W * 0.03,
     borderWidth: 1.5,
-    borderColor: "#e5e7eb",
+    borderColor: "#DBE7E1",
     backgroundColor: "#f9fafb",
     gap: H * 0.004,
   },
   fontSizeBtnActive: {
-    borderColor: "#0ea5e9",
-    backgroundColor: "#e0f2fe",
+    borderColor: "#0F766E",
+    backgroundColor: "#D9F2EC",
   },
   fontSizeBtnText: {
-    color: "#6b7280",
+    color: "#66736F",
     fontWeight: "700",
   },
   fontSizeBtnTextActive: {
-    color: "#0284c7",
+    color: "#115E59",
   },
   fontSizeSubText: {
     fontSize: W * 0.028,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  /* ✅ Log out 버튼: 자동 마진으로 항상 제일 아래로 밀어냄 */
+  /* ??Log out 踰꾪듉: ?먮룞 留덉쭊?쇰줈 ??긽 ?쒖씪 ?꾨옒濡?諛?대깂 */
   logoutBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
 
     backgroundColor: "#fff5f5",
     
-    marginTop: "auto", // 스크롤 안에서 하단 고정 역할을 함
+    marginTop: "auto",
   },
   logoutText: {
     color: "#ef4444",

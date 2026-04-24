@@ -11,7 +11,6 @@ import {
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { useRouter } from "expo-router";
 
-// ✅ TS(.tsx)에서 implicit any 방지: 타입 지정
 const clamp = (v: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, v));
 
@@ -40,7 +39,7 @@ export default function DataAgreement() {
   const [isChecked, setIsChecked] = useState(false);
   const { width, height } = useWindowDimensions();
 
-  // ✅ 0/undefined 방어(특정 환경에서 width/height가 순간 0일 수 있어요)
+  // ??0/undefined 諛⑹뼱(?뱀젙 ?섍꼍?먯꽌 width/height媛 ?쒓컙 0?????덉뼱??
   const safeWidth = width || 360;
   const safeHeight = height || 640;
 
@@ -65,7 +64,7 @@ export default function DataAgreement() {
 
     const lineHeight = clamp(bodySize * 1.5, 18, 28);
 
-    // ✅ 태블릿에서 너무 좁아 보이던 부분 해결: 상한 1200
+    // ???쒕툝由우뿉???덈Т 醫곸븘 蹂댁씠??遺遺??닿껐: ?곹븳 1200
     const contentMaxWidth = clamp(safeWidth * 0.95, 320, 1200);
 
     return {
@@ -98,12 +97,12 @@ export default function DataAgreement() {
       keyboardShouldPersistTaps="handled"
     >
       <View style={{ width: "100%", maxWidth: s.contentMaxWidth }}>
-        {/* CareLink 로고 */}
+        {/* CareLink 濡쒓퀬 */}
         <View style={[styles.header, { marginBottom: s.gapMd }]}>
           <View style={styles.brandContainer}>
             <Image
               source={require("../../../assets/images/CareLinkicon.png")}
-              style={{ width: s.logoW, height: s.logoH, marginRight: 8 }}
+              style={{ width: s.logoW, height: s.logoH, marginRight: 8, tintColor: "#0F766E" }}
               resizeMode="contain"
             />
             <Text style={[styles.brand, { fontSize: s.brandSize }]}>
@@ -112,7 +111,7 @@ export default function DataAgreement() {
           </View>
         </View>
 
-        {/* 제목 */}
+        {/* ?쒕ぉ */}
         <Text
           style={[
             styles.title,
@@ -122,7 +121,7 @@ export default function DataAgreement() {
           Data Source Agreement
         </Text>
 
-        {/* 설명 박스 */}
+        {/* ?ㅻ챸 諛뺤뒪 */}
         <View
           style={[
             styles.infoBox,
@@ -144,10 +143,10 @@ export default function DataAgreement() {
             To provide you with personalized health management services, we request your
             explicit consent to:{"\n\n"}
             HEALTH DATA COLLECTION:{"\n"}
-            • Access and process health data classified as special categories of personal data{"\n"}
-            • Collect biometric information from connected health devices and wearables{"\n"}
-            • Store your medical history, prescriptions, and wellness metrics{"\n"}
-            • Process sensitive health information that may reveal your health status{"\n\n"}
+            ??Access and process health data classified as special categories of personal data{"\n"}
+            ??Collect biometric information from connected health devices and wearables{"\n"}
+            ??Store your medical history, prescriptions, and wellness metrics{"\n"}
+            ??Process sensitive health information that may reveal your health status{"\n\n"}
             YOUR LEGAL RIGHTS UNDER GDPR:{"\n"}
             1. Right to be informed: Clear, transparent communication about data processing{"\n"}
             2. Right of access: Request a copy of all personal health data we hold{"\n"}
@@ -169,7 +168,7 @@ export default function DataAgreement() {
           </Text>
         </View>
 
-        {/* 체크박스 영역 */}
+        {/* 泥댄겕諛뺤뒪 ?곸뿭 */}
         <TouchableOpacity
           style={[styles.checkboxContainer, { marginBottom: s.gapLg }]}
           onPress={() => setIsChecked((p) => !p)}
@@ -191,14 +190,14 @@ export default function DataAgreement() {
           </Text>
         </TouchableOpacity>
 
-        {/* 다음 단계 버튼 */}
+        {/* ?ㅼ쓬 ?④퀎 踰꾪듉 */}
         <TouchableOpacity
           style={[
             styles.continueButton,
             {
               borderRadius: s.radius,
               paddingVertical: s.btnVPad,
-              backgroundColor: isChecked ? "#0ea5e9" : "#9acfe4",
+              backgroundColor: isChecked ? "#0F766E" : "#A7DCCF",
               ...(Platform.OS === "android" ? { elevation: 1 } : {}),
             },
           ]}
@@ -239,7 +238,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   infoBox: {
-    backgroundColor: "#d9f2ff",
+    backgroundColor: "#D9F2EC",
   },
   infoText: {
     color: "#333",
@@ -251,11 +250,11 @@ const styles = StyleSheet.create({
   },
   checkbox: {
     borderWidth: 2,
-    borderColor: "#0ea5e9",
+    borderColor: "#0F766E",
     marginRight: 10,
   },
   checkedBox: {
-    backgroundColor: "#0ea5e9",
+    backgroundColor: "#0F766E",
   },
   checkboxLabel: {
     color: "#111",

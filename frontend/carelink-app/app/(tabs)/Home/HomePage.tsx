@@ -1,22 +1,27 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
+  ActivityIndicator,
   Dimensions,
   FlatList,
-  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useFocusEffect } from "expo-router";
+import { type Href, useFocusEffect, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { authFetch } from "../../../utils/api";
+import { palette, pressShadow, radius, shadow, spacing, typeScale, webShell } from "../../../constants/design";
 
-const { width: W, height: H } = Dimensions.get("window");
+const { width: WINDOW_WIDTH } = Dimensions.get("window");
+const SHELL_WIDTH = Math.min(WINDOW_WIDTH, 520);
+const HORIZONTAL_PADDING = spacing.md;
+const CARD_WIDTH = SHELL_WIDTH - HORIZONTAL_PADDING * 2;
+const CARD_GAP = spacing.sm;
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const CAREGIVERS_STORAGE_KEY = "caregivers:list";
@@ -45,49 +50,76 @@ type Caregiver = {
   avatarId: number;
 };
 
-/* ---------- UI Constants ---------- */
-const HP = W * 0.045;
-const GAP = W * 0.03;
-const CARD_GAP = W * 0.03;
-const CARD_WIDTH = W - HP * 2;
-// 노인 접근성: 주요 텍스트 최소 22sp 보장 (반응형)
-const FS_H1   = Math.max(22, W * 0.055); // 헤딩1 ≥ 22sp
-const FS_H2   = Math.max(20, W * 0.048); // 헤딩2
-const FS_BODY = Math.max(18, W * 0.044); // 본문
-const FS_SUB  = Math.max(16, W * 0.040); // 보조
-const FS_CAP  = Math.max(14, W * 0.038); // 캡션
-const PROFILE = W * 0.11;
-const ICON_CIRCLE = W * 0.085;
-const ROUND_ACTION = W * 0.075;
-const RADIUS_L = W * 0.045;
-const RADIUS_M = W * 0.04;
-const PAD_CARD = W * 0.045;
-const PAD_ROW_V = H * 0.016;
-const CARD_MIN_H = H * 0.18;
-const DOT = W * 0.016;
-const AV_STACK_W = W * 0.18;
-const AV_STACK_H = W * 0.08;
-const AVATAR = W * 0.07;
-const AVATAR_SHIFT = W * 0.04;
+type NewsCard = {
+  id: string;
+  title: string;
+  desc: string;
+  route: Href;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  tint: string;
+  accent: string;
+};
 
-const NEWS_CARDS = [
-  { id: "c1", title: "Disease Trends", desc: "Check the latest safety guidelines.", route: "/Home/News", icon: "newspaper-outline" },
-  { id: "c2", title: "Vitals Snapshot", desc: "Check blood pressure, glucose & ECG score at a glance.", route: "/Home/Vitals", icon: "pulse-outline" },
-  { id: "c3", title: "Brain Training", desc: "Flip cards, earn points, and keep your mind sharp.", route: "/setting/BrainTraining", icon: "game-controller-outline" },
-  { id: "c4", title: "ECG Simulator", desc: "Real-time simulated ECG powered by your model.", route: "/Home/ECGSimulatorScreen", icon: "heart-outline" },
+const NEWS_CARDS: NewsCard[] = [
+  {
+    id: "c1",
+    title: "Disease Trends",
+    desc: "Latest public health signals and safety guidance.",
+    route: "/Home/News",
+    icon: "newspaper-outline",
+    label: "Watch",
+    tint: palette.clinicalSoft,
+    accent: palette.clinical,
+  },
+  {
+    id: "c2",
+    title: "Vitals Snapshot",
+    desc: "Blood pressure, glucose, and ECG score in one review.",
+    route: "/Home/Vitals",
+    icon: "pulse-outline",
+    label: "Log",
+    tint: palette.successSoft,
+    accent: palette.success,
+  },
+  {
+    id: "c3",
+    title: "Brain Training",
+    desc: "Short memory rounds that keep the routine light.",
+    route: "/setting/BrainTraining",
+    icon: "game-controller-outline",
+    label: "Train",
+    tint: palette.signalSoft,
+    accent: palette.signal,
+  },
+  {
+    id: "c4",
+    title: "ECG Simulator",
+    desc: "A model-backed ECG stream for rhythm checks.",
+    route: "/Home/ECGSimulatorScreen",
+    icon: "heart-outline",
+    label: "Sim",
+    tint: palette.rescueSoft,
+    accent: palette.rescue,
+  },
 ];
 
 function pickAvatarSource(profileImageId?: number) {
   const id = profileImageId ?? 1;
-  return AVATAR_LIST.find((a) => a.id === id)?.source ?? AVATAR_LIST[0].source;
+  return AVATAR_LIST.find((avatar) => avatar.id === id)?.source ?? AVATAR_LIST[0].source;
 }
 
+function getToneColor(tone: MetaTone) {
+  if (tone === "good") return palette.success;
+  if (tone === "warn") return palette.signal;
+  if (tone === "bad") return palette.rescue;
+  return palette.muted;
+}
 
 export default function HomePage() {
   const [page, setPage] = useState(0);
-  const listRef = useRef<FlatList>(null);
+  const listRef = useRef<FlatList<NewsCard>>(null);
   const router = useRouter();
-
 
   const [myName, setMyName] = useState<string>("");
   const [myAvatarId, setMyAvatarId] = useState<number>(1);
@@ -95,16 +127,18 @@ export default function HomePage() {
   const [caregiverAvatarIds, setCaregiverAvatarIds] = useState<number[]>([]);
   const [insightsScore, setInsightsScore] = useState<number>(0);
   const [loadingInsights, setLoadingInsights] = useState(false);
-  // 10초 이내 중복 호출 방지 (useFocusEffect가 빠르게 반복될 때 guard)
   const lastFetchRef = useRef(0);
 
   const insightsMeta = useMemo(() => {
     const s = insightsScore;
-    if (s >= 80) return { text: `Insight score: ${s} - Amazing work!`, tone: "good" as const, icon: "happy-outline" as const };
-    if (s >= 60) return { text: `Insight score: ${s} - Doing well. Stay consistent.`, tone: "warn" as const, icon: "thumbs-up-outline" as const };
-    if (s >= 40) return { text: `Insight score: ${s} - Irregular trends detected. Consider consulting your caregiver.`, tone: "bad" as const, icon: "warning-outline" as const };
-    return { text: `Insight score: ${s} - High risk. Alert your caregiver.`, tone: "bad" as const, icon: "alert-circle-outline" as const };
+    if (s >= 80) return { text: `Insight score ${s}: stable routine`, tone: "good" as const, icon: "checkmark-circle-outline" as const };
+    if (s >= 60) return { text: `Insight score ${s}: keep monitoring`, tone: "warn" as const, icon: "trending-up-outline" as const };
+    if (s >= 40) return { text: `Insight score ${s}: irregular trend`, tone: "bad" as const, icon: "warning-outline" as const };
+    return { text: `Insight score ${s}: caregiver review needed`, tone: "bad" as const, icon: "alert-circle-outline" as const };
   }, [insightsScore]);
+
+  const apiStatus = API_BASE_URL ? "API configured" : "API setup needed";
+  const scoreColor = getToneColor(insightsMeta.tone);
 
   useFocusEffect(
     useCallback(() => {
@@ -112,8 +146,7 @@ export default function HomePage() {
         try {
           setLoadingMe(true);
           const userId = await AsyncStorage.getItem("userId");
-          
-          // 1. Profile Info (Cache First)
+
           const cachedName = await AsyncStorage.getItem("userName");
           const cachedImg = await AsyncStorage.getItem("profileImageId");
           if (cachedName) setMyName(cachedName);
@@ -132,16 +165,14 @@ export default function HomePage() {
             }
           }
 
-          // 2. Caregivers
           const cgRaw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
           if (cgRaw) {
             const parsed = JSON.parse(cgRaw) as Caregiver[];
-            setCaregiverAvatarIds(parsed.map(c => c.avatarId || 1).slice(0, 3));
+            setCaregiverAvatarIds(parsed.map((caregiver) => caregiver.avatarId || 1).slice(0, 3));
           } else {
             setCaregiverAvatarIds([]);
           }
 
-          // 3. Insights — weeklyScore는 서버에서 계산 (glucose 35% + bp 35% + ecg 30%)
           if (API_BASE_URL && userId) {
             setLoadingInsights(true);
             const iRes = await authFetch(`/api/vitals/insights?userId=${userId}&range=7d`);
@@ -157,8 +188,9 @@ export default function HomePage() {
           setLoadingInsights(false);
         }
       };
+
       const now = Date.now();
-      if (now - lastFetchRef.current < 10_000) return; // 10초 이내 재호출 방지
+      if (now - lastFetchRef.current < 10_000) return;
       lastFetchRef.current = now;
       fetchData();
     }, [])
@@ -172,24 +204,71 @@ export default function HomePage() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-        
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ position: "relative" }}>
-            <Image source={pickAvatarSource(myAvatarId)} style={styles.profile} />
-            {loadingMe && <View style={styles.profileLoadingOverlay}><ActivityIndicator size="small" /></View>}
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.statusPanel}>
+          <View style={styles.heroTop}>
+            <View style={styles.profileWrap}>
+              <Image source={pickAvatarSource(myAvatarId)} style={styles.profile} />
+              {loadingMe && (
+                <View style={styles.profileLoadingOverlay}>
+                  <ActivityIndicator size="small" color={palette.primary} />
+                </View>
+              )}
+            </View>
+
+            <View style={styles.heroCopy}>
+              <Text style={styles.kicker}>TODAY</Text>
+              <Text style={styles.headerTitle} numberOfLines={2}>
+                {myName ? `${myName}'s dashboard` : "Care dashboard"}
+              </Text>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.headerTitle, { fontSize: FS_H1 }]}>{myName ? `${myName}'s Dashboard` : "CareLink Dashboard"}</Text>
-            <Text style={[styles.subtle, { fontSize: FS_SUB }]}>Alerts for today</Text>
+
+          <View style={styles.signalGrid}>
+            <MetricTile
+              label="Insights"
+              value={loadingInsights ? "Syncing" : `${insightsScore}/100`}
+              icon="analytics-outline"
+              color={scoreColor}
+            />
+            <MetricTile
+              label="Care team"
+              value={`${caregiverAvatarIds.length} linked`}
+              icon="people-outline"
+              color={palette.clinical}
+            />
           </View>
-          <TouchableOpacity onPress={() => router.push("/Home/Notification")}>
-            <Text style={[styles.seeAll, { fontSize: FS_CAP }]}>SEE ALL</Text>
-          </TouchableOpacity>
+
+          <View style={styles.scoreTrack}>
+            <View
+              style={[
+                styles.scoreFill,
+                {
+                  width: `${Math.max(4, Math.min(100, insightsScore))}%`,
+                  backgroundColor: scoreColor,
+                },
+              ]}
+            />
+          </View>
+
+          <View style={styles.statusFooter}>
+            <View style={styles.statusDot} />
+            <Text style={styles.statusText}>{apiStatus}</Text>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/Home/Notification")} activeOpacity={0.8}>
+              <Text style={styles.statusLink}>Review alerts</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Carousel */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Priority actions</Text>
+          <Text style={styles.sectionMeta}>{page + 1}/{NEWS_CARDS.length}</Text>
+        </View>
+
         <View>
           <FlatList
             ref={listRef}
@@ -199,17 +278,35 @@ export default function HomePage() {
             showsHorizontalScrollIndicator={false}
             snapToInterval={CARD_WIDTH + CARD_GAP}
             decelerationRate="fast"
-            contentContainerStyle={{ paddingRight: HP }}
+            contentContainerStyle={styles.carouselContent}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity activeOpacity={0.9} onPress={() => router.push(item.route as any)} style={[styles.newsCard, { width: CARD_WIDTH, marginRight: CARD_GAP }]}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => router.push(item.route)}
+                style={[
+                  styles.newsCard,
+                  {
+                    width: CARD_WIDTH,
+                    marginRight: CARD_GAP,
+                    backgroundColor: item.tint,
+                    borderColor: item.accent,
+                  },
+                ]}
+              >
                 <View style={styles.newsHeader}>
-                  <Text style={[styles.newsTitle, { fontSize: FS_H1 }]}>{item.title}</Text>
-                  <View style={styles.iconCircle}><Ionicons name={item.icon as any} size={20} color="#111" /></View>
+                  <View style={[styles.iconCircle, { backgroundColor: item.accent }]}>
+                    <Ionicons name={item.icon} size={22} color={palette.surface} />
+                  </View>
+                  <Text style={[styles.newsLabel, { color: item.accent }]}>{item.label}</Text>
                 </View>
-                <Text style={[styles.newsDesc, { fontSize: FS_BODY }]} numberOfLines={2}>{item.desc}</Text>
+                <View>
+                  <Text style={styles.newsTitle}>{item.title}</Text>
+                  <Text style={styles.newsDesc} numberOfLines={2}>{item.desc}</Text>
+                </View>
                 <View style={styles.newsFooter}>
-                  <Text style={[styles.readMoreText, { fontSize: FS_BODY }]}>Read update</Text>
-                  <Ionicons name="arrow-forward-circle" size={24} color="#111" />
+                  <Text style={styles.readMoreText}>Open module</Text>
+                  <Ionicons name="arrow-forward" size={20} color={palette.ink} />
                 </View>
               </TouchableOpacity>
             )}
@@ -217,58 +314,111 @@ export default function HomePage() {
             scrollEventThrottle={16}
           />
           <View style={styles.dots}>
-            {NEWS_CARDS.map((_, i) => <View key={i} style={[styles.dot, i === page && styles.dotActive]} />)}
+            {NEWS_CARDS.map((card, i) => (
+              <View key={card.id} style={[styles.dot, i === page && styles.dotActive]} />
+            ))}
           </View>
         </View>
 
-        <Text style={[styles.sectionTitle, { fontSize: FS_H2 }]}>Weekly summary</Text>
+        <Text style={styles.sectionTitle}>Weekly summary</Text>
 
         <SummaryCard
           title="Health insights"
-          desc="Monitor health trends for loved ones"
-          iconRight={<Ionicons name="pie-chart-outline" size={20} color="#111" />}
-          metaText={loadingInsights ? "Syncing..." : insightsMeta.text}
+          desc="Trend review across glucose, blood pressure, and ECG."
+          iconRight={<Ionicons name="pie-chart-outline" size={22} color={palette.ink} />}
+          metaText={loadingInsights ? "Syncing latest score" : insightsMeta.text}
           metaTone={insightsMeta.tone}
           metaIcon={insightsMeta.icon}
           onPress={() => router.push("/Home/Insights")}
-                  />
+        />
 
         <SummaryCard
           title="Medication reminders"
-          desc="Keep track of your daily medications."
-          iconRight={<Ionicons name="notifications-outline" size={20} color="#111" />}
-          metaText="Enable reminders to maintain your medication schedule."
+          desc="Daily adherence check and medication schedule."
+          iconRight={<Ionicons name="notifications-outline" size={22} color={palette.ink} />}
+          metaText="Reminder setup keeps the care loop visible."
           onPress={() => router.push("/Home/Medication")}
-                  />
+        />
 
         <View style={styles.familyHeaderRow}>
-          <Text style={[styles.sectionTitle, { fontSize: FS_H2 }]}>Family connections</Text>
-          <TouchableOpacity style={styles.roundAction} onPress={() => router.push("/Home/Caregivers")}>
-            <Ionicons name="add" size={18} color="#fff" />
+          <Text style={styles.sectionTitle}>Family connections</Text>
+          <TouchableOpacity style={styles.roundAction} onPress={() => router.push("/Home/Caregivers")} activeOpacity={0.84}>
+            <Ionicons name="add" size={20} color={palette.surface} />
           </TouchableOpacity>
         </View>
 
-        <FamilyRow icon={<Ionicons name="people-outline" size={20} color="#111" />} label="Caregivers" avatarIds={caregiverAvatarIds} onPress={() => router.push("/Home/Caregivers")} />
-        <FamilyRow icon={<Ionicons name="call-outline" size={20} color="#111" />} label="Emergency contacts" avatarIds={caregiverAvatarIds} showDivider={false} onPress={() => router.push("/Home/Emergency")} />
-
+        <View style={styles.familyPanel}>
+          <FamilyRow
+            icon={<Ionicons name="people-outline" size={21} color={palette.primaryDark} />}
+            label="Caregivers"
+            avatarIds={caregiverAvatarIds}
+            onPress={() => router.push("/Home/Caregivers")}
+          />
+          <FamilyRow
+            icon={<Ionicons name="call-outline" size={21} color={palette.rescue} />}
+            label="Emergency contacts"
+            avatarIds={caregiverAvatarIds}
+            showDivider={false}
+            onPress={() => router.push("/Home/Emergency")}
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-/* ---------- Sub Components ---------- */
+function MetricTile({
+  label,
+  value,
+  icon,
+  color,
+}: {
+  label: string;
+  value: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+}) {
+  return (
+    <View style={styles.metricTile}>
+      <View style={[styles.metricIcon, { backgroundColor: `${color}18` }]}>
+        <Ionicons name={icon} size={18} color={color} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.metricLabel} numberOfLines={1}>{label}</Text>
+        <Text style={styles.metricValue} numberOfLines={1}>{value}</Text>
+      </View>
+    </View>
+  );
+}
 
-function SummaryCard({ title, desc, iconRight, onPress, metaText, metaTone = "neutral", metaIcon = "calendar-outline" }: any) {
-  const metaColor = metaTone === "good" ? "#059669" : metaTone === "warn" ? "#d97706" : metaTone === "bad" ? "#dc2626" : "#4b5563";
+function SummaryCard({
+  title,
+  desc,
+  iconRight,
+  onPress,
+  metaText,
+  metaTone = "neutral",
+  metaIcon = "calendar-outline",
+}: {
+  title: string;
+  desc: string;
+  iconRight: React.ReactNode;
+  onPress: () => void;
+  metaText?: string;
+  metaTone?: MetaTone;
+  metaIcon?: keyof typeof Ionicons.glyphMap;
+}) {
+  const metaColor = getToneColor(metaTone);
   return (
     <TouchableOpacity style={styles.summaryCard} onPress={onPress} activeOpacity={0.9}>
-      <View style={{ flex: 1, gap: 5 }}>
-        <Text style={[styles.cardTitle, { fontSize: FS_H2 }]}>{title}</Text>
-        <Text style={[styles.cardDesc, { fontSize: FS_BODY }]}>{desc}</Text>
+      <View style={[styles.summaryAccent, { backgroundColor: metaColor }]} />
+      <View style={styles.summaryBody}>
+        <Text style={styles.cardTitle}>{title}</Text>
+        <Text style={styles.cardDesc}>{desc}</Text>
         {!!metaText && (
-          <View style={styles.timeRow}>
-            <Ionicons name={metaIcon as any} size={16} color={metaColor} />
-            <Text style={[styles.timeText, { color: metaColor, fontSize: FS_SUB }]} numberOfLines={2}>{metaText}</Text>
+          <View style={[styles.timeRow, { backgroundColor: `${metaColor}12` }]}>
+            <Ionicons name={metaIcon} size={16} color={metaColor} />
+            <Text style={[styles.timeText, { color: metaColor }]} numberOfLines={2}>{metaText}</Text>
           </View>
         )}
       </View>
@@ -277,98 +427,227 @@ function SummaryCard({ title, desc, iconRight, onPress, metaText, metaTone = "ne
   );
 }
 
-function FamilyRow({ icon, label, avatarIds, showDivider = true, onPress }: any) {
+function FamilyRow({
+  icon,
+  label,
+  avatarIds,
+  showDivider = true,
+  onPress,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  avatarIds: number[];
+  showDivider?: boolean;
+  onPress: () => void;
+}) {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[styles.familyRow, !showDivider && { borderBottomWidth: 0 }]}>
-      <View style={styles.familyLeft}>{icon}<Text style={[styles.familyText, { fontSize: FS_BODY }]}>{label}</Text></View>
-      <View style={styles.avatarStack}>
-        {avatarIds.slice(0, 3).map((id: number, idx: number) => (
-          <Image key={idx} source={pickAvatarSource(id)} style={[styles.avatar, { left: idx * AVATAR_SHIFT, zIndex: 10 - idx }]} />
-        ))}
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      style={[styles.familyRow, !showDivider && styles.familyRowLast]}
+    >
+      <View style={styles.familyLeft}>
+        <View style={styles.familyIcon}>{icon}</View>
+        <Text style={styles.familyText}>{label}</Text>
       </View>
+      {avatarIds.length > 0 ? (
+        <View style={styles.avatarStack}>
+          {avatarIds.slice(0, 3).map((id, idx) => (
+            <Image
+              key={`${id}-${idx}`}
+              source={pickAvatarSource(id)}
+              style={[styles.avatar, { left: idx * 24, zIndex: 10 - idx }]}
+            />
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.emptyConnection}>Not linked</Text>
+      )}
     </TouchableOpacity>
   );
 }
 
-/* ---------- Styles ---------- */
-
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#ffffff" },
-  container: { flex: 1, paddingHorizontal: HP },
-
-  header: {
+  safe: {
+    flex: 1,
+    backgroundColor: palette.canvas,
+  },
+  container: {
+    flex: 1,
+  },
+  content: {
+    ...webShell,
+    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingBottom: 34,
+  },
+  statusPanel: {
+    backgroundColor: palette.surface,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    padding: spacing.lg,
+    gap: spacing.md,
+    ...shadow,
+  },
+  heroTop: {
     flexDirection: "row",
     alignItems: "center",
-    gap: GAP,
-    marginTop: H * 0.01,
-    marginBottom: H * 0.015,
+    gap: spacing.md,
+  },
+  profileWrap: {
+    position: "relative",
   },
   profile: {
-    width: PROFILE,
-    height: PROFILE,
-    borderRadius: PROFILE / 2,
+    width: 58,
+    height: 58,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
   },
   profileLoadingOverlay: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    width: PROFILE,
-    height: PROFILE,
-    borderRadius: PROFILE / 2,
-    backgroundColor: "rgba(255,255,255,0.55)",
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: radius.card,
+    backgroundColor: "rgba(255,255,255,0.68)",
     alignItems: "center",
     justifyContent: "center",
   },
+  heroCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  kicker: {
+    color: palette.primary,
+    fontSize: typeScale.caption,
+    fontWeight: "900",
+  },
   headerTitle: {
-    fontSize: FS_H1,
-    fontWeight: "700",
-    color: "#111827",
+    marginTop: 2,
+    color: palette.ink,
+    fontSize: typeScale.title,
+    lineHeight: 31,
+    fontWeight: "900",
   },
-  subtle: {
-    marginTop: H * 0.002,
-    color: "#6b7280",
-    fontSize: FS_SUB,
+  signalGrid: {
+    flexDirection: "row",
+    gap: spacing.sm,
   },
-  seeAll: {
-    fontSize: FS_CAP,
-    fontWeight: "600",
-    color: "#111827",
-    letterSpacing: W * 0.0008,
+  metricTile: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 76,
+    borderRadius: radius.card,
+    backgroundColor: palette.surfaceMuted,
+    borderWidth: 1,
+    borderColor: palette.line,
+    padding: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
-
+  metricIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  metricLabel: {
+    color: palette.muted,
+    fontSize: typeScale.caption,
+    fontWeight: "800",
+  },
+  metricValue: {
+    marginTop: 2,
+    color: palette.ink,
+    fontSize: typeScale.body,
+    fontWeight: "900",
+  },
+  scoreTrack: {
+    height: 8,
+    borderRadius: radius.pill,
+    backgroundColor: palette.canvasDeep,
+    overflow: "hidden",
+  },
+  scoreFill: {
+    height: "100%",
+    borderRadius: radius.pill,
+  },
+  statusFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: palette.success,
+  },
+  statusText: {
+    flex: 1,
+    color: palette.muted,
+    fontSize: typeScale.meta,
+    fontWeight: "800",
+  },
+  statusLink: {
+    color: palette.primaryDark,
+    fontSize: typeScale.meta,
+    fontWeight: "900",
+  },
+  sectionHeader: {
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    color: palette.ink,
+    fontSize: typeScale.section,
+    fontWeight: "900",
+  },
+  sectionMeta: {
+    color: palette.muted,
+    fontSize: typeScale.meta,
+    fontWeight: "800",
+  },
+  carouselContent: {
+    paddingRight: HORIZONTAL_PADDING,
+  },
   newsCard: {
-    backgroundColor: "#e7e9ee",
-    borderRadius: RADIUS_L,
-    padding: PAD_CARD,
-    minHeight: CARD_MIN_H,
+    minHeight: 190,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    padding: spacing.lg,
     justifyContent: "space-between",
   },
   newsHeader: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: H * 0.01,
-  },
-  newsTitle: {
-    fontSize: FS_H1,
-    fontWeight: "700",
-    color: "#111827",
-    flex: 1,
-    marginRight: W * 0.03,
   },
   iconCircle: {
-    width: ICON_CIRCLE,
-    height: ICON_CIRCLE,
-    borderRadius: ICON_CIRCLE / 2,
-    backgroundColor: "#ffffff",
+    width: 42,
+    height: 42,
+    borderRadius: radius.card,
     alignItems: "center",
     justifyContent: "center",
   },
+  newsLabel: {
+    fontSize: typeScale.caption,
+    fontWeight: "900",
+  },
+  newsTitle: {
+    color: palette.ink,
+    fontSize: typeScale.section,
+    fontWeight: "900",
+  },
   newsDesc: {
-    fontSize: FS_BODY,
-    color: "#4b5563",
-    lineHeight: FS_BODY * 1.45,
-    marginBottom: H * 0.012,
+    marginTop: spacing.xs,
+    color: palette.muted,
+    fontSize: typeScale.body,
+    lineHeight: 23,
+    fontWeight: "600",
   },
   newsFooter: {
     flexDirection: "row",
@@ -376,101 +655,159 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   readMoreText: {
-    fontSize: FS_BODY,
-    fontWeight: "600",
-    color: "#111827",
+    color: palette.ink,
+    fontSize: typeScale.meta,
+    fontWeight: "900",
   },
-
   dots: {
     flexDirection: "row",
     alignSelf: "center",
-    gap: W * 0.015,
-    marginVertical: H * 0.015,
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
   },
   dot: {
-    width: DOT,
-    height: DOT,
-    borderRadius: DOT / 2,
-    backgroundColor: "#d1d5db",
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: palette.line,
   },
-  dotActive: { backgroundColor: "#60a5fa" },
-
-  sectionTitle: {
-    fontSize: FS_H2,
-    fontWeight: "700",
-    color: "#111827",
-    marginTop: H * 0.01,
-    marginBottom: H * 0.01,
+  dotActive: {
+    width: 22,
+    backgroundColor: palette.primary,
   },
-
   summaryCard: {
-    backgroundColor: "#e5e7eb",
-    borderRadius: RADIUS_M,
-    padding: PAD_CARD,
+    marginTop: spacing.sm,
+    backgroundColor: palette.surface,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    padding: spacing.md,
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: H * 0.015,
+    gap: spacing.md,
+    ...pressShadow,
+  },
+  summaryAccent: {
+    width: 5,
+    alignSelf: "stretch",
+    borderRadius: radius.pill,
+  },
+  summaryBody: {
+    flex: 1,
+    minWidth: 0,
+    gap: spacing.xs,
   },
   cardTitle: {
-    fontSize: FS_H2,
-    fontWeight: "700",
-    color: "#111827",
+    color: palette.ink,
+    fontSize: typeScale.cardTitle,
+    fontWeight: "900",
   },
-  cardDesc: { fontSize: FS_BODY, color: "#374151" },
+  cardDesc: {
+    color: palette.muted,
+    fontSize: typeScale.body,
+    lineHeight: 22,
+    fontWeight: "600",
+  },
   timeRow: {
-    marginTop: H * 0.008,
+    alignSelf: "flex-start",
+    marginTop: spacing.xs,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     flexDirection: "row",
     alignItems: "center",
-    gap: W * 0.015,
+    gap: spacing.xs,
+    maxWidth: "100%",
   },
-  timeText: { color: "#4b5563", fontSize: FS_SUB, flexShrink: 1 },
-  rightIcon: { marginLeft: W * 0.03 },
-
-  familyHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: H * 0.01,
+  timeText: {
+    flexShrink: 1,
+    fontSize: typeScale.meta,
+    lineHeight: 19,
+    fontWeight: "900",
   },
-  roundAction: {
-    width: ROUND_ACTION,
-    height: ROUND_ACTION,
-    borderRadius: ROUND_ACTION / 2,
-    backgroundColor: "#22d3ee",
+  rightIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: radius.card,
+    backgroundColor: palette.surfaceMuted,
+    borderWidth: 1,
+    borderColor: palette.line,
     alignItems: "center",
     justifyContent: "center",
   },
-  familyRow: {
-    backgroundColor: "#e5e7eb",
-    borderRadius: RADIUS_M,
-    paddingHorizontal: PAD_CARD,
-    paddingVertical: PAD_ROW_V,
-    marginBottom: H * 0.012,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#d1d5db",
+  familyHeaderRow: {
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  familyLeft: {
+  roundAction: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.card,
+    backgroundColor: palette.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  familyPanel: {
+    backgroundColor: palette.surface,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: palette.line,
+    overflow: "hidden",
+  },
+  familyRow: {
+    minHeight: 70,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: palette.line,
     flexDirection: "row",
     alignItems: "center",
-    gap: W * 0.025,
+    justifyContent: "space-between",
   },
-  familyText: { fontSize: FS_BODY, color: "#111827", fontWeight: "600" },
-  avatarStack: {
-    width: AV_STACK_W,
-    height: AV_STACK_H,
+  familyRowLast: {
+    borderBottomWidth: 0,
+  },
+  familyLeft: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  familyIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.card,
+    backgroundColor: palette.surfaceMuted,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  familyText: {
+    flex: 1,
+    minWidth: 0,
+    color: palette.ink,
+    fontSize: typeScale.body,
+    fontWeight: "900",
+  },
+  avatarStack: {
+    width: 94,
+    height: 36,
     position: "relative",
   },
   avatar: {
     position: "absolute",
-    width: AVATAR,
-    height: AVATAR,
-    borderRadius: AVATAR / 2,
-    borderWidth: W * 0.004,
-    borderColor: "#e5e7eb",
+    width: 34,
+    height: 34,
+    borderRadius: radius.card,
+    borderWidth: 2,
+    borderColor: palette.surface,
+  },
+  emptyConnection: {
+    color: palette.faint,
+    fontSize: typeScale.meta,
+    fontWeight: "800",
   },
 });
-

@@ -24,7 +24,7 @@ import { authFetch } from "../../../utils/api";
 
 const { width: W, height: H } = Dimensions.get("window");
 
-/* ---------- ✅ 로컬 아바타 (1~12) ---------- */
+/* ---------- ??濡쒖뺄 ?꾨컮? (1~12) ---------- */
 const AVATAR_LIST = [
   { id: 1, source: require("../../../assets/avatar/avatar1.png") },
   { id: 2, source: require("../../../assets/avatar/avatar2.png") },
@@ -49,7 +49,7 @@ const CAREGIVERS_STORAGE_KEY = "caregivers:list";
 const CAREGIVERS_AVATAR_KEY = "caregivers:avatars"; // { [userId]: avatarId }
 const HP = W * 0.05;
 
-/* ---------- ✅ 가독성 개선용 폰트 사이즈 상향 ---------- */
+/* ---------- ??媛?낆꽦 媛쒖꽑???고듃 ?ъ씠利??곹뼢 ---------- */
 const FS_NAME = W * 0.042;
 const FS_PHONE = W * 0.035;
 const FS_TITLE = W * 0.048;
@@ -70,7 +70,7 @@ const BTN_PH = W * 0.04;
 const GAP_CARD = H * 0.016;
 const GAP_ACTIONS = W * 0.03;
 const MODAL_PAD = W * 0.05;
-const BORDER = Math.max(1, W * 0.003); // 테두리 두께 보강
+const BORDER = Math.max(1, W * 0.003); // ?뚮몢由??먭퍡 蹂닿컯
 
 type Caregiver = {
   id: string;
@@ -87,7 +87,6 @@ type UserProfileResponse = {
   profileImageId: number;
 };
 
-// GET /api/guardian/my-guardians/{id} 응답 타입
 type GuardianListItem = {
   userId: string;
   name: string;
@@ -131,11 +130,11 @@ export default function CaregiversScreen() {
           const myUserId = await AsyncStorage.getItem("userId");
           if (!myUserId) return;
 
-          // 서버에서 보호자 목록 로드 (항상 최신 name/phone)
+          // ?쒕쾭?먯꽌 蹂댄샇??紐⑸줉 濡쒕뱶 (??긽 理쒖떊 name/phone)
           const res = await authFetch(`/api/guardian/my-guardians/${encodeURIComponent(myUserId)}`);
           if (res.ok) {
             const serverList = await res.json(); // ConnectedPatientResponseDto[]
-            // avatarId는 로컬 캐시에서 복원
+            // avatarId??濡쒖뺄 罹먯떆?먯꽌 蹂듭썝
             const avatarRaw = await AsyncStorage.getItem(CAREGIVERS_AVATAR_KEY);
             const avatarMap: Record<string, number> = avatarRaw ? JSON.parse(avatarRaw) : {};
 
@@ -148,10 +147,10 @@ export default function CaregiversScreen() {
             }));
 
             setList(mapped);
-            // AsyncStorage 캐시 갱신 (오프라인 fallback용)
+            // AsyncStorage 罹먯떆 媛깆떊 (?ㅽ봽?쇱씤 fallback??
             await AsyncStorage.setItem(CAREGIVERS_STORAGE_KEY, JSON.stringify(mapped));
           } else {
-            // 서버 실패 시 로컬 캐시 사용 (오프라인 대응)
+            // ?쒕쾭 ?ㅽ뙣 ??濡쒖뺄 罹먯떆 ?ъ슜 (?ㅽ봽?쇱씤 ???
             const raw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
             if (raw) {
               const parsed = JSON.parse(raw);
@@ -159,7 +158,7 @@ export default function CaregiversScreen() {
             }
           }
         } catch (e) {
-          // 네트워크 오류 시 로컬 캐시 사용
+          // ?ㅽ듃?뚰겕 ?ㅻ쪟 ??濡쒖뺄 罹먯떆 ?ъ슜
           try {
             const raw = await AsyncStorage.getItem(CAREGIVERS_STORAGE_KEY);
             if (raw) {
@@ -258,7 +257,7 @@ export default function CaregiversScreen() {
       return;
     }
 
-    // ✅ 새로 추가할 때만 백엔드에 Guardian 연결 등록
+    // ???덈줈 異붽????뚮쭔 諛깆뿏?쒖뿉 Guardian ?곌껐 ?깅줉
     if (!editing) {
       try {
         const myUserId = await AsyncStorage.getItem("userId");
@@ -268,7 +267,7 @@ export default function CaregiversScreen() {
             body: JSON.stringify({ patientId: myUserId, guardianId: userId, contactPhone: phone.trim() }),
           });
           if (!res.ok && res.status !== 409) {
-            // 409 = 이미 연결됨 (중복) → 무시하고 진행
+            // 409 = ?대? ?곌껐??(以묐났) ??臾댁떆?섍퀬 吏꾪뻾
             const msg = await res.text().catch(() => "");
             Alert.alert("Connection Failed", msg || "Failed to link guardian. Please try again.");
             return;
@@ -280,7 +279,7 @@ export default function CaregiversScreen() {
       }
     }
 
-    // avatarId를 userId 기준으로 로컬 캐시에 저장 (서버 응답에 avatarId 없음)
+    // avatarId瑜?userId 湲곗??쇰줈 濡쒖뺄 罹먯떆?????(?쒕쾭 ?묐떟??avatarId ?놁쓬)
     const avatarRaw = await AsyncStorage.getItem(CAREGIVERS_AVATAR_KEY);
     const avatarMap: Record<string, number> = avatarRaw ? JSON.parse(avatarRaw) : {};
     avatarMap[userId] = avatarId;
@@ -299,13 +298,15 @@ export default function CaregiversScreen() {
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: H * 0.05 }} showsVerticalScrollIndicator={false}>
         {loadingList ? (
           <View style={styles.emptyBox}>
-            <ActivityIndicator size="large" color="#26B4E5" />
+            <ActivityIndicator size="large" color="#0F766E" />
           </View>
         ) : list.length === 0 ? (
           <View style={styles.emptyBox}>
             <Ionicons name="people-outline" size={W * 0.12} color="#CBD5E1" />
             <Text style={styles.emptyTitle}>No caregivers yet.</Text>
-            <Text style={styles.emptySub}>Tap "Add Caregiver" to link someone who can support you.</Text>
+            <Text style={styles.emptySub}>
+              {'Tap "Add Caregiver" to link someone who can support you.'}
+            </Text>
           </View>
         ) : null}
 
@@ -323,7 +324,7 @@ export default function CaregiversScreen() {
                   <Ionicons name="call" size={W * 0.05} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => openEdit(c)} style={styles.iconBtn}>
-                  <Ionicons name="pencil" size={W * 0.05} color="#26B4E5" />
+                  <Ionicons name="pencil" size={W * 0.05} color="#0F766E" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => remove(c.id)} style={styles.iconBtn}>
                   <Ionicons name="trash" size={W * 0.05} color="#ef4444" />
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: R_CARD,
     borderWidth: BORDER,
-    borderColor: "#94A3B8", // 테두리 선명하게
+    borderColor: "#94A3B8", // ?뚮몢由??좊챸?섍쾶
     padding: PAD_CARD,
     shadowColor: "#000",
     shadowOpacity: 0.08,
@@ -405,8 +406,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   avatar: { width: W * 0.14, height: W * 0.14, borderRadius: W * 0.07 },
-  name: { fontSize: FS_NAME, fontWeight: "900", color: "#000000" }, // 완전 검정
-  idText: { fontSize: FS_PHONE, color: "#475569", fontWeight: "600" },
+  name: { fontSize: FS_NAME, fontWeight: "900", color: "#000000" },
+  idText: { fontSize: FS_PHONE, color: "#66736F", fontWeight: "600" },
   phoneText: { fontSize: FS_PHONE, color: "#000000", fontWeight: "700", marginTop: 2 },
 
   actions: { flexDirection: "row", alignItems: "center", gap: GAP_ACTIONS },
@@ -417,7 +418,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#26B4E5",
+    backgroundColor: "#0F766E",
     borderRadius: R_BTN,
     paddingVertical: BTN_PV,
     paddingHorizontal: BTN_PH,
@@ -459,6 +460,6 @@ const styles = StyleSheet.create({
   modalActions: { flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 25 },
   btn: { borderRadius: R_BTN, paddingVertical: 14, paddingHorizontal: 20 },
   btnGhost: { backgroundColor: "#F1F5F9" },
-  btnPrimary: { backgroundColor: "#26B4E5" },
+  btnPrimary: { backgroundColor: "#0F766E" },
   btnText: { fontWeight: "900", fontSize: W * 0.038 },
 });

@@ -19,10 +19,10 @@ async function aiFetch(path: string, options: RequestInit = {}) {
   return res;
 }
 
-// ✅ 앱에 고정으로 박아둘 thresholds
+// ???깆뿉 怨좎젙?쇰줈 諛뺤븘??thresholds
 const DEFAULT_THRESHOLDS = [0.6, 0.45, 0.5, 0.6, 0.7];
 
-// ✅ 입력 소스 타입
+// ???낅젰 ?뚯뒪 ???
 type Source = "SIM_CLEAN" | "SIM_NOISY" | "SERVER_SAMPLE";
 
 const SOURCE_CONFIG: Record<Source, { label: string }> = {
@@ -31,7 +31,7 @@ const SOURCE_CONFIG: Record<Source, { label: string }> = {
   SERVER_SAMPLE: { label: "SERVER Sample" },
 };
 
-// ✅ 서버 응답 타입
+// ???쒕쾭 ?묐떟 ???
 type PredictResponse = {
   probs: number[];
   thresholds?: number[];
@@ -41,7 +41,7 @@ type PredictResponse = {
   top_confidence?: number;
 };
 
-// ✅ 서버 샘플 응답 타입
+// ???쒕쾭 ?섑뵆 ?묐떟 ???
 type SampleResponse = {
   x: number[][];
   fs: number;
@@ -173,11 +173,11 @@ export default function ECGSimulatorScreen() {
   const targetL = fs * viewSec;
   const AUTO_RELOAD_SAMPLE_MS = 6000;
 
-  // ✅ 화면 크기 반응형
+  // ???붾㈃ ?ш린 諛섏쓳??
   const { height: winH } = useWindowDimensions();
   const chartH = Math.round(winH * 0.27);
 
-  // ✅ chartBox 실제 너비(패딩/여백 포함한 실제 렌더 폭)
+  // ??chartBox ?ㅼ젣 ?덈퉬(?⑤뵫/?щ갚 ?ы븿???ㅼ젣 ?뚮뜑 ??
   const [chartW, setChartW] = useState<number>(0);
 
   const [source, setSource] = useState<Source>("SIM_CLEAN");
@@ -302,7 +302,7 @@ export default function ECGSimulatorScreen() {
     return () => clearInterval(id);
   }, [source, isRunning, loadSample]);
 
-  // ✅ 반응형 points: chartW/chartH 기준으로 계산
+  // ??諛섏쓳??points: chartW/chartH 湲곗??쇰줈 怨꾩궛
   const points = useMemo(() => {
     if (!chartW || !chartH) return "";
 
@@ -336,13 +336,13 @@ export default function ECGSimulatorScreen() {
   const top = probs ? top1(probs) : null;
 
   const badge = (() => {
-    if (!probs) return { bg: "#f3f4f6", txt: "#111827", label: "Analyzing..." };
+    if (!probs) return { bg: "#f3f4f6", txt: "#13201C", label: "Analyzing..." };
     const labelStr = activeLabels.length ? activeLabels.join(", ") : top?.label ?? "UNCERTAIN";
     if (activeLabels.includes("NORM") && activeLabels.length === 1)
       return { bg: "#d1fae5", txt: "#065f46", label: "NORMAL" };
     if (risk === "high") return { bg: "#fee2e2", txt: "#991b1b", label: labelStr };
     if (risk === "medium") return { bg: "#ffedd5", txt: "#9a3412", label: labelStr };
-    return { bg: "#e0f2fe", txt: "#075985", label: labelStr };
+    return { bg: "#D9F2EC", txt: "#115E59", label: labelStr };
   })();
 
   return (
@@ -361,13 +361,13 @@ export default function ECGSimulatorScreen() {
       {netErr && <Text style={styles.err}>Error: {netErr}</Text>}
       {!!sampleMeta && source === "SERVER_SAMPLE" && <Text style={styles.meta}>{sampleMeta}</Text>}
 
-      {/* ✅ chartBox 실제 width를 onLayout으로 받고, Svg도 동일 width 사용 */}
+      {/* ??chartBox ?ㅼ젣 width瑜?onLayout?쇰줈 諛쏄퀬, Svg???숈씪 width ?ъ슜 */}
       <View
         style={[styles.chartBox, { height: chartH }]}
         onLayout={(e) => setChartW(e.nativeEvent.layout.width)}
       >
         <Svg width={chartW || 1} height={chartH}>
-          <Polyline points={points} fill="none" stroke="#2563eb" strokeWidth="2" />
+          <Polyline points={points} fill="none" stroke="#0F766E" strokeWidth="2" />
         </Svg>
         <Text style={styles.chartLabel}>Lead II (Display)</Text>
       </View>
@@ -412,7 +412,7 @@ export default function ECGSimulatorScreen() {
         {probs ? (
           ["NORM", "STTC", "MI", "CD", "HYP"].map((name, i) => (
             <Text key={name} style={styles.infoText}>
-              • {name}: {(probs[i] * 100).toFixed(1)}% (Threshold: {thresholds[i]})
+              ??{name}: {(probs[i] * 100).toFixed(1)}% (Threshold: {thresholds[i]})
             </Text>
           ))
         ) : (
@@ -420,9 +420,9 @@ export default function ECGSimulatorScreen() {
         )}
         <View style={styles.divider} />
         <Text style={styles.infoTitle}>System Status</Text>
-        <Text style={styles.infoText}>• Source: {SOURCE_CONFIG[source].label}</Text>
+        <Text style={styles.infoText}>??Source: {SOURCE_CONFIG[source].label}</Text>
         <Text style={styles.infoText}>
-          • Status: {isRunning ? "Real-time Monitoring Active" : "Paused"}
+          ??Status: {isRunning ? "Real-time Monitoring Active" : "Paused"}
         </Text>
       </ScrollView>
     </View>
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "800",
     marginBottom: 14,
-    color: "#111827",
+    color: "#13201C",
   },
 
   badge: {
@@ -452,10 +452,10 @@ const styles = StyleSheet.create({
   subBadge: { marginTop: 4, fontSize: 12, fontWeight: "700" },
 
   err: { color: "red", textAlign: "center", marginBottom: 6 },
-  meta: { color: "#334155", textAlign: "center", marginBottom: 6, fontSize: 12 },
+  meta: { color: "#13201C", textAlign: "center", marginBottom: 6, fontSize: 12 },
 
   chartBox: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#F8FBF9",
     borderRadius: 16,
     overflow: "hidden",
     marginBottom: 14,
@@ -466,16 +466,16 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
     fontSize: 12,
-    color: "#64748b",
+    color: "#66736F",
   },
   infoBox: {
-    flex: 1,                 // ⭐ 이게 핵심 (남는 공간을 ScrollView가 차지)
+    flex: 1,                 // 狩??닿쾶 ?듭떖 (?⑤뒗 怨듦컙??ScrollView媛 李⑥?)
     padding: 14,
-    backgroundColor: "#f0f9ff",
+    backgroundColor: "#F4FAF6",
     borderRadius: 10,
   },
   infoBoxContent: {
-    paddingBottom: 24,       // ⭐ 맨 아래 잘림/터치여유 방지
+    paddingBottom: 24,       // 狩?留??꾨옒 ?섎┝/?곗튂?ъ쑀 諛⑹?
   },
 
 
@@ -484,11 +484,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     borderRadius: 10,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#F8FBF9",
     alignItems: "center",
   },
-  btnActive: { backgroundColor: "#111827" },
-  btnText: { fontWeight: "700", color: "#64748b", fontSize: 12 },
+  btnActive: { backgroundColor: "#13201C" },
+  btnText: { fontWeight: "700", color: "#66736F", fontSize: 12 },
   btnTextActive: { color: "#fff" },
 
   controls2: { flexDirection: "row", gap: 10, marginBottom: 10 },
@@ -496,13 +496,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     borderRadius: 10,
-    backgroundColor: "#e2e8f0",
+    backgroundColor: "#DBE7E1",
     alignItems: "center",
   },
   smallBtnActive: { backgroundColor: "#0f172a" },
   smallBtnText: { fontWeight: "800", color: "#0f172a", fontSize: 12 },
   smallBtnTextActive: { color: "#fff" },
-  infoTitle: { fontWeight: "900", color: "#075985", marginBottom: 6, marginTop: 6 },
-  infoText: { color: "#0369a1", marginBottom: 4, fontSize: 13 },
+  infoTitle: { fontWeight: "900", color: "#115E59", marginBottom: 6, marginTop: 6 },
+  infoText: { color: "#115E59", marginBottom: 4, fontSize: 13 },
   divider: { height: 10 },
 });

@@ -20,7 +20,7 @@ import Svg, { Polyline, Circle, Line, Text as SvgText } from "react-native-svg";
 type IconName = keyof typeof Ionicons.glyphMap;
 type Card = { id: string; key: string; icon: IconName; flipped: boolean; matched: boolean };
 
-// ---- 연출 파라미터 ----
+// ---- ?곗텧 ?뚮씪誘명꽣 ----
 const FLIP_MS = 900;
 const MISMATCH_HOLD_MS = 900;
 const REVEAL_STAGGER_MS = 70;
@@ -38,14 +38,14 @@ const PERSPECTIVE = 800;
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const CARD_SIZE = Math.floor((SCREEN_W - H_PADDING * 2 - CARD_MARGIN * (COLS - 1)) / COLS);
 
-// ✅ status 글씨 크게(반응형)
+// ??status 湲???ш쾶(諛섏쓳??
 const FS_STATUS = Math.max(14, SCREEN_W * 0.048);
 
-// ✅ 버튼 크기/글씨 반응형 토큰 추가
-const BTN_PV = Math.max(12, SCREEN_H * 0.016);        // 세로 패딩 (기존 10보다 큼)
-const BTN_PH = Math.max(18, SCREEN_W * 0.06);         // 가로 패딩 (기존 16보다 큼)
-const BTN_R = Math.max(10, SCREEN_W * 0.03);          // radius 약간 키움
-const FS_BTN = Math.max(15, SCREEN_W * 0.045);        // 버튼 글씨 크게
+// ??踰꾪듉 ?ш린/湲??諛섏쓳???좏겙 異붽?
+const BTN_PV = Math.max(12, SCREEN_H * 0.016);        // ?몃줈 ?⑤뵫 (湲곗〈 10蹂대떎 ??
+const BTN_PH = Math.max(18, SCREEN_W * 0.06);         // 媛濡??⑤뵫 (湲곗〈 16蹂대떎 ??
+const BTN_R = Math.max(10, SCREEN_W * 0.03);          // radius ?쎄컙 ?ㅼ?
+const FS_BTN = Math.max(15, SCREEN_W * 0.045);        // 踰꾪듉 湲???ш쾶
 
 function pickRandom<T>(arr: T[], n: number): T[] {
   const src = [...arr], out: T[] = [];
@@ -72,14 +72,14 @@ function buildDeck(): Card[] {
 
 type ScoreEntry = { score: number; createdAt: string };
 
-// ── 추세 차트 컴포넌트 ──────────────────────────────────────
+// ?? 異붿꽭 李⑦듃 而댄룷?뚰듃 ??????????????????????????????????????
 const CHART_W = SCREEN_W - H_PADDING * 2;
 const CHART_H = 100;
 const CHART_PAD = { top: 12, bottom: 20, left: 28, right: 8 };
 
 function ScoreTrendChart({ data }: { data: ScoreEntry[] }) {
   if (data.length < 2) return null;
-  const scores = [...data].reverse().map(d => d.score); // 오래된 순 → 최신 순
+  const scores = [...data].reverse().map(d => d.score);
   const n = scores.length;
   const minS = Math.max(0, Math.min(...scores) - 5);
   const maxS = Math.min(100, Math.max(...scores) + 5);
@@ -95,17 +95,17 @@ function ScoreTrendChart({ data }: { data: ScoreEntry[] }) {
     <View style={{ marginTop: 6, marginBottom: 4 }}>
       <Text style={styles.chartTitle}>Score Trend (last {n} games)</Text>
       <Svg width={CHART_W} height={CHART_H}>
-        {/* 기준선 */}
+        {/* 湲곗???*/}
         <Line x1={CHART_PAD.left} y1={CHART_PAD.top} x2={CHART_PAD.left} y2={CHART_PAD.top + innerH} stroke="#cbd5e1" strokeWidth={1} />
         <Line x1={CHART_PAD.left} y1={CHART_PAD.top + innerH} x2={CHART_W - CHART_PAD.right} y2={CHART_PAD.top + innerH} stroke="#cbd5e1" strokeWidth={1} />
-        {/* Y축 레이블 */}
-        <SvgText x={CHART_PAD.left - 4} y={CHART_PAD.top + 4} fontSize={9} fill="#94a3b8" textAnchor="end">{Math.round(maxS)}</SvgText>
-        <SvgText x={CHART_PAD.left - 4} y={CHART_PAD.top + innerH + 4} fontSize={9} fill="#94a3b8" textAnchor="end">{Math.round(minS)}</SvgText>
-        {/* 꺾은선 */}
-        <Polyline points={points} fill="none" stroke="#26B4E5" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
-        {/* 점 */}
+        {/* Y異??덉씠釉?*/}
+        <SvgText x={CHART_PAD.left - 4} y={CHART_PAD.top + 4} fontSize={9} fill="#8A9692" textAnchor="end">{Math.round(maxS)}</SvgText>
+        <SvgText x={CHART_PAD.left - 4} y={CHART_PAD.top + innerH + 4} fontSize={9} fill="#8A9692" textAnchor="end">{Math.round(minS)}</SvgText>
+        {/* 爰얠???*/}
+        <Polyline points={points} fill="none" stroke="#0F766E" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+        {/* ??*/}
         {scores.map((s, i) => (
-          <Circle key={i} cx={px(i)} cy={py(s)} r={3.5} fill="#26B4E5" />
+          <Circle key={i} cx={px(i)} cy={py(s)} r={3.5} fill="#0F766E" />
         ))}
       </Svg>
     </View>
@@ -252,7 +252,6 @@ export default function BrainTraining() {
           const finalMoves = moves + 1;
           const score = Math.max(0, 100 - finalMoves);
 
-          // 점수 백엔드 저장
           AsyncStorage.getItem("userId").then(userId => {
             if (!userId) return;
             authFetch(`/api/brain-training/${userId}`, {
@@ -263,7 +262,7 @@ export default function BrainTraining() {
                 res.json().then(data => {
                   const best = data.bestScore ?? score;
                   setBestScore(best);
-                  // 추세 차트 히스토리 갱신 (최신 기록 prepend, 최대 10개)
+                  // 異붿꽭 李⑦듃 ?덉뒪?좊━ 媛깆떊 (理쒖떊 湲곕줉 prepend, 理쒕? 10媛?
                   setScoreHistory(prev => [
                     { score, createdAt: new Date().toISOString() },
                     ...prev,
@@ -360,7 +359,7 @@ export default function BrainTraining() {
                       { transform: [{ perspective: PERSPECTIVE }, { rotateY: frontRotateY }] },
                     ]}
                   >
-                    <Ionicons name="help" size={24} color="#94a3b8" />
+                    <Ionicons name="help" size={24} color="#8A9692" />
                   </Animated.View>
 
                   <Animated.View
@@ -370,7 +369,7 @@ export default function BrainTraining() {
                       { transform: [{ perspective: PERSPECTIVE }, { rotateY: backRotateY }] },
                     ]}
                   >
-                    <Ionicons name={card.icon} size={30} color="#111827" />
+                    <Ionicons name={card.icon} size={30} color="#13201C" />
                   </Animated.View>
                 </View>
               </TouchableOpacity>
@@ -406,16 +405,16 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff", paddingHorizontal: H_PADDING },
 
   statusRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
-  status: { color: "#334155", fontWeight: "700", fontSize: FS_STATUS },
+  status: { color: "#13201C", fontWeight: "700", fontSize: FS_STATUS },
   bestRow: { alignItems: "center", marginBottom: 8 },
-  bestText: { color: "#0ea5e9", fontWeight: "700", fontSize: FS_STATUS * 0.85 },
+  bestText: { color: "#0F766E", fontWeight: "700", fontSize: FS_STATUS * 0.85 },
 
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   card: {
     width: CARD_SIZE,
     height: CARD_SIZE,
     borderRadius: 12,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#F8FBF9",
     marginBottom: CARD_MARGIN,
     alignItems: "center",
     justifyContent: "center",
@@ -430,22 +429,22 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
 
-  // ✅ 버튼 크기 키움
+  // ??踰꾪듉 ?ш린 ?ㅼ?
   btn: {
     paddingVertical: BTN_PV,
     paddingHorizontal: BTN_PH,
     borderRadius: BTN_R,
     backgroundColor: "#eef2f7",
-    minWidth: SCREEN_W * 0.32,     // ✅ 버튼 최소 너비(확실히 커 보이게)
+    minWidth: SCREEN_W * 0.32,     // ??踰꾪듉 理쒖냼 ?덈퉬(?뺤떎??而?蹂댁씠寃?
     alignItems: "center",
   },
-  btnPrimary: { backgroundColor: "#26B4E5" },
+  btnPrimary: { backgroundColor: "#0F766E" },
 
-  // ✅ 버튼 글씨 키움
-  btnText: { color: "#111827", fontWeight: "800", fontSize: FS_BTN },
+  // ??踰꾪듉 湲???ㅼ?
+  btnText: { color: "#13201C", fontWeight: "800", fontSize: FS_BTN },
   btnTextPrimary: { color: "#fff", fontWeight: "900", fontSize: FS_BTN },
 
-  chartTitle: { fontSize: Math.max(13, SCREEN_W * 0.034), color: "#475569", fontWeight: "600", marginBottom: 2, textAlign: "center" },
+  chartTitle: { fontSize: Math.max(13, SCREEN_W * 0.034), color: "#66736F", fontWeight: "600", marginBottom: 2, textAlign: "center" },
 
   flipWrap: { width: "100%", height: "100%", position: "relative" },
   face: {

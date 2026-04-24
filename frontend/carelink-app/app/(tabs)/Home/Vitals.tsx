@@ -22,9 +22,9 @@ const { width: W, height: H } = Dimensions.get("window");
 const HP = W * 0.05;
 const VSP = H * 0.014;
 
-const FS_TITLE = W * 0.045; // 살짝 키움
-const FS_LABEL = W * 0.034; // 살짝 키움
-const FS_INPUT = W * 0.04;  // 입력창 글씨 키움
+const FS_TITLE = W * 0.045; // ?댁쭩 ?ㅼ?
+const FS_LABEL = W * 0.034; // ?댁쭩 ?ㅼ?
+const FS_INPUT = W * 0.04;  // ?낅젰李?湲???ㅼ?
 const FS_BTN = W * 0.04;
 const FS_RESULT = W * 0.038;
 
@@ -33,11 +33,11 @@ const R_INPUT = W * 0.03;
 const R_BTN = W * 0.035;
 
 const PAD_CARD = W * 0.045;
-const PAD_INPUT_V = Platform.OS === "ios" ? H * 0.015 : H * 0.012; // 아이폰 패딩 소폭 증가
+const PAD_INPUT_V = Platform.OS === "ios" ? H * 0.015 : H * 0.012; // ?꾩씠???⑤뵫 ?뚰룺 利앷?
 const PAD_INPUT_H = W * 0.035;
 
 const BTN_PV = H * 0.018;
-const BORDER = Math.max(1, W * 0.003); // 테두리 가독성 상향
+const BORDER = Math.max(1, W * 0.003); // ?뚮몢由?媛?낆꽦 ?곹뼢
 
 type StatusType = "normal" | "warning" | "danger" | "info" | null;
 
@@ -138,8 +138,8 @@ export default function VitalsScreen() {
       case "normal": return "#10b981";
       case "warning": return "#f59e0b";
       case "danger": return "#ef4444";
-      case "info": return "#3b82f6";
-      default: return "#6b7280";
+      case "info": return "#0F766E";
+      default: return "#66736F";
     }
   };
 
@@ -163,7 +163,7 @@ export default function VitalsScreen() {
                 onChangeText={setSys}
                 keyboardType="number-pad"
                 placeholder="120"
-                placeholderTextColor="#94A3B8" // 아이폰 흐릿함 방지
+                placeholderTextColor="#94A3B8" // ?꾩씠???먮┸??諛⑹?
                 style={styles.input}
               />
             </View>
@@ -174,7 +174,7 @@ export default function VitalsScreen() {
                 onChangeText={setDia}
                 keyboardType="number-pad"
                 placeholder="80"
-                placeholderTextColor="#94A3B8" // 아이폰 흐릿함 방지
+                placeholderTextColor="#94A3B8" // ?꾩씠???먮┸??諛⑹?
                 style={styles.input}
               />
             </View>
@@ -218,7 +218,7 @@ export default function VitalsScreen() {
             onChangeText={setGlu}
             keyboardType="number-pad"
             placeholder="e.g. 100"
-            placeholderTextColor="#94A3B8" // 아이폰 흐릿함 방지
+            placeholderTextColor="#94A3B8" // ?꾩씠???먮┸??諛⑹?
             style={styles.input}
           />
 
@@ -260,27 +260,23 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: FS_TITLE,
     fontWeight: "800",
-    color: "#000000", // 확실한 검정
-    marginBottom: VSP,
+    color: "#000000", // ?뺤떎??寃??    marginBottom: VSP,
   },
   row: { flexDirection: "row", justifyContent: "space-between" },
 
   label: {
     fontSize: FS_LABEL,
-    color: "#475569", // 라벨도 조금 더 진하게
-    marginBottom: H * 0.008,
+    color: "#66736F", // ?쇰꺼??議곌툑 ??吏꾪븯寃?    marginBottom: H * 0.008,
     fontWeight: "700",
   },
   input: {
     borderWidth: BORDER,
-    borderColor: "#94A3B8", // 테두리를 조금 더 진하게
-    backgroundColor: "#fff",
+    borderColor: "#94A3B8", // ?뚮몢由щ? 議곌툑 ??吏꾪븯寃?    backgroundColor: "#fff",
     borderRadius: R_INPUT,
     paddingVertical: PAD_INPUT_V,
     paddingHorizontal: PAD_INPUT_H,
     fontSize: FS_INPUT,
-    color: "#000000", // 아이폰 선명도를 위한 완전 검정
-    fontWeight: "600", // 폰트 두께 보강
+    color: "#000000", // ?꾩씠???좊챸?꾨? ?꾪븳 ?꾩쟾 寃??    fontWeight: "600", // ?고듃 ?먭퍡 蹂닿컯
   },
 
   toggleRow: {
@@ -300,14 +296,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   toggleText: { fontSize: FS_LABEL, color: "#64748B", fontWeight: "600" },
-  toggleTextActive: { color: "#26B4E5", fontWeight: "800" },
+  toggleTextActive: { color: "#0F766E", fontWeight: "800" },
 
   resultBox: { marginTop: VSP, padding: 14, borderRadius: R_INPUT, alignItems: "center" },
   resultText: { fontSize: FS_RESULT, fontWeight: "800" },
 
   saveBtn: {
     marginTop: H * 0.02,
-    backgroundColor: "#26B4E5",
+    backgroundColor: "#0F766E",
     borderRadius: R_BTN,
     paddingVertical: BTN_PV,
     alignItems: "center",

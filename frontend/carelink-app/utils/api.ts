@@ -9,7 +9,7 @@ async function clearSessionAndRedirect() {
   if (isRedirecting) return;
   isRedirecting = true;
   await AsyncStorage.multiRemove(["token", "refreshToken", "userId"]);
-  router.replace("/(tabs)/auth/login");
+  router.replace("/");
   setTimeout(() => { isRedirecting = false; }, 5000);
 }
 

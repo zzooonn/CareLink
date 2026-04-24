@@ -24,7 +24,7 @@ export function AuthProvider({
         if (expired) {
             onSessionExpired();
         }
-        router.replace("/(tabs)");
+        router.replace("/");
     };
 
     return (
