@@ -183,7 +183,9 @@ boolean overallAbnormal = bpAbnormal || glucoseAbnormal || ecgAbnormal;
 1. 在`user_health_alert`表中为患者本人创建HEALTH_ANOMALY类型报警记录；
 2. 查询`user_guardian_links`表获取该患者的所有绑定照护者；
 3. 为每位照护者分别创建报警记录，接收方（receiver_id）设置为照护者userId；
-4. （可选）通过FCM/APNs向照护者设备推送实时推送通知。
+4. 照护者下次打开App时，通过轮询`GET /api/notification/{userId}`接口查看报警通知。
+
+> **当前实现范围与限制说明：** 当前版本中，异常检测报警信息持久化至`user_health_alert`表，照护者须主动打开App、查询通知列表方可获知。通过FCM（Firebase Cloud Messaging）/APNs（Apple Push Notification service）实现后台推送通知超出本课题实现范围，未在当前版本中实现。未来改进方向为借助Expo Push Notification API向照护者设备发送实时推送通知，为此需在注册流程中收集Expo Push Token并存储至后端。药物提醒（Medication Reminder）采用`expo-notifications`本地通知实现，直接在设备端进行计划调度，不受本限制影响。
 
 ### 4.2.4 ECG数据处理与AI调用
 

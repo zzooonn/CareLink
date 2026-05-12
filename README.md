@@ -194,9 +194,46 @@ PostgreSQL
 - `GET /sample_window`
 - `POST /predict_window`
 
+## API Authentication Example
+
+모든 인증이 필요한 엔드포인트는 `Authorization: Bearer <token>` 헤더가 필요합니다.
+
+```bash
+# 1. 로그인 → 토큰 발급
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "patient001", "password": "pass1234"}'
+
+# 응답:
+# {
+#   "success": true,
+#   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+#   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+#   "role": "PATIENT"
+# }
+
+# 2. 인증된 요청
+curl http://localhost:8080/api/users/patient001 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+### API Error Codes
+
+| HTTP 상태 | 상황 | 예시 |
+|-----------|------|------|
+| `400 Bad Request` | 필수 파라미터 누락 또는 형식 오류 | userId가 공백인 회원가입 |
+| `401 Unauthorized` | 존재하지 않는 계정 또는 비밀번호 불일치 | 로그인 실패 |
+| `403 Forbidden` | 권한 없음 (타인 데이터 접근 시도) | 보호자가 환자 ID로 조회 |
+| `409 Conflict` | 중복 userId 회원가입 시도 | 기존 계정과 동일한 userId |
+| `422 Unprocessable Entity` | ECG 입력 데이터 검증 실패 | NaN 포함, lead 수 오류, 빈 배열 |
+| `429 Too Many Requests` | 로그인 5회 연속 실패 (Rate Limiting) | 15분 내 5회 초과 |
+| `500 Internal Server Error` | 예상치 못한 서버 오류 | DB 연결 실패 등 |
+
 ## Performance Snapshot
 
 아래 수치는 2026-03-21 기준 로컬 실측 및 부하 테스트 결과입니다.
+
+> **참고 (측정 조건):** 여기 수치는 AWS EC2 인스턴스가 충분히 웜업된 상태에서 측정한 값입니다. 콜드 스타트 직후 첫 번째 부하 테스트 시에는 TCP 연결 풀 초기화 과정에서 10-concurrent 구간에서 평균 응답시간이 일시적으로 500~600ms대로 상승하는 현상이 관찰됩니다. 이는 AWS EC2의 정상적인 JVM JIT 컴파일 및 연결 풀 예열 효과이며, 웜업 이후에는 아래 수치로 안정화됩니다. 논문 5장의 Table 5.3 수치는 별도 측정 회차(콜드 스타트 환경)에서 채취된 값으로 이 README와 차이가 있을 수 있습니다.
 
 ### API Load Test
 
@@ -259,8 +296,7 @@ PostgreSQL
 
 참고:
 
-- `NaN` 입력은 현재 validation 보강 작업이 진행 중입니다.
-- 목표는 `NaN/Inf` 입력에 대해 명확한 `422 Unprocessable Entity` 응답을 반환하는 것입니다.
+- `NaN`/`Inf` 입력에 대한 validation이 구현 완료되었습니다. `ai/src/server.py`의 `validate_request_matrix()` 함수에서 NaN/Inf 포함 입력을 감지하여 `422 Unprocessable Entity`를 반환합니다.
 
 ## Running the Project
 
@@ -336,6 +372,43 @@ gradlew.bat bootRun
 cd ai
 python src/server.py
 ```
+
+## Running Tests
+
+### Backend Unit Tests
+
+```bash
+cd backend/healthcare-server
+./gradlew test
+```
+
+테스트 결과 리포트: `backend/healthcare-server/build/reports/tests/test/index.html`
+
+주요 테스트 클래스:
+- `AuthServiceTest` — 로그인/회원가입 시나리오 (성공, 401, 409, 400)
+- `UserHealthServiceTest` — 혈압·혈당 이상 감지 로직
+- `LoginAttemptServiceTest` — Rate Limiting (5회 실패 → 429)
+
+### AI Server Tests
+
+```bash
+cd ai
+pip install -r requirements.txt
+pytest src/ -v
+```
+
+### Database Migration (Flyway)
+
+초기 DB 세팅 또는 마이그레이션 적용:
+
+```bash
+cd backend/healthcare-server
+./gradlew flywayMigrate
+```
+
+마이그레이션 파일 위치: `backend/healthcare-server/src/main/resources/db/migration/`
+- `V1__add_contact_phone.sql` — 긴급 연락처 컬럼 추가
+- `V2__add_medical_info.sql` — 혈액형·알레르기·병력 컬럼 추가
 
 ## Benchmark Scripts
 
