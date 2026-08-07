@@ -219,6 +219,77 @@ class ECGDatasetMulti(Dataset):
 
 
 # =============================================================================
+# CNN-CBAM-GRU 및 w/o CBAM 변형 모델 정의
+# (CBAM 소거 실험용 — run_single_experiment의 use_cbam 플래그로 선택)
+# =============================================================================
+class ChannelAttention(nn.Module):
+    def __init__(self, c, r=8):
+        super().__init__()
+        self.fc = nn.Sequential(nn.AdaptiveAvgPool1d(1), nn.Flatten(),
+                                nn.Linear(c, max(c // r, 1)), nn.ReLU(),
+                                nn.Linear(max(c // r, 1), c), nn.Sigmoid())
+    def forward(self, x):
+        return x * self.fc(x).unsqueeze(-1)
+
+class SpatialAttention(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv = nn.Conv1d(2, 1, 7, padding=3, bias=False)
+        self.sig  = nn.Sigmoid()
+    def forward(self, x):
+        avg = x.mean(1, keepdim=True); mx = x.max(1, keepdim=True).values
+        return x * self.sig(self.conv(torch.cat([avg, mx], 1)))
+
+class ConvBlock(nn.Module):
+    """CBAM 포함 ConvBlock (Full / use_cbam=True 일 때 사용)"""
+    def __init__(self, ci, co):
+        super().__init__()
+        self.main = nn.Sequential(nn.Conv1d(ci, co, 7, padding=3), nn.BatchNorm1d(co),
+                                  nn.ReLU(True), nn.MaxPool1d(2))
+        self.skip = nn.Sequential(nn.Conv1d(ci, co, 1, bias=False), nn.MaxPool1d(2))
+        self.ca   = ChannelAttention(co)
+        self.sa   = SpatialAttention()
+        self.relu = nn.ReLU(True)
+    def forward(self, x):
+        out = self.relu(self.main(x) + self.skip(x))
+        return self.sa(self.ca(out))
+
+class ConvBlockNoCBAM(nn.Module):
+    """CBAM 없는 ConvBlock (w/o CBAM 소거 실험용)"""
+    def __init__(self, ci, co):
+        super().__init__()
+        self.main = nn.Sequential(nn.Conv1d(ci, co, 7, padding=3), nn.BatchNorm1d(co),
+                                  nn.ReLU(True), nn.MaxPool1d(2))
+        self.skip = nn.Sequential(nn.Conv1d(ci, co, 1, bias=False), nn.MaxPool1d(2))
+        self.relu = nn.ReLU(True)
+    def forward(self, x):
+        return self.relu(self.main(x) + self.skip(x))
+
+class CNN_CBAM_GRU(nn.Module):
+    """본 과제 제안 모델: CNN + CBAM + BiGRU + Amplitude Feature Injection"""
+    def __init__(self, num_classes=5, amp_dim=36, use_cbam=True):
+        super().__init__()
+        Block = ConvBlock if use_cbam else ConvBlockNoCBAM
+        self.c1 = Block(12, 32)
+        self.c2 = Block(32, 64)
+        self.c3 = Block(64, 128)
+        self.gru = nn.GRU(128, 64, 2, batch_first=True, bidirectional=True, dropout=0.5)
+        self.fc  = nn.Sequential(
+            nn.Linear(128 + amp_dim, 128), nn.ReLU(), nn.Dropout(0.5),
+            nn.Linear(128, num_classes))
+        self.amp_dim = amp_dim
+
+    def forward(self, x, amp=None):
+        x = self.c3(self.c2(self.c1(x))).permute(0, 2, 1)
+        self.gru.flatten_parameters()
+        x, _ = self.gru(x)
+        x = x.mean(1)
+        if amp is not None and self.amp_dim > 0:
+            x = torch.cat([x, amp], 1)
+        return self.fc(x)
+
+
+# =============================================================================
 # EVALUATION
 # =============================================================================
 LABELS = ["NORM", "STTC", "MI", "CD", "HYP"]
@@ -289,7 +360,7 @@ def run_single_experiment(config, data_dir, device):
     print(f"  ABLATION: {name}")
     print(f"  ASL={config['use_asl']}, Amp={config['use_amp']}, "
           f"Filter={config['use_filter']}, Sampler={config['use_sampler']}, "
-          f"Aug={config['use_augment']}")
+          f"Aug={config['use_augment']}, CBAM={config.get('use_cbam', True)}")
     print(f"{'='*60}")
 
     amp_dim = 36 if config["use_amp"] else 0
@@ -333,8 +404,9 @@ def run_single_experiment(config, data_dir, device):
     pos_weight[4] = min(pos_weight[4] * 1.5, 5.0)
     pos_weight = pos_weight.to(device)
 
-    # Model (amp_dim=0이면 amp 무시)
-    model = ResNet1D(num_classes=5, amp_dim=amp_dim).to(device)
+    # Model: CNN-CBAM-GRU 기반 소거 실험 (use_cbam=False면 CBAM 없는 변형 사용)
+    use_cbam = config.get("use_cbam", True)
+    model = CNN_CBAM_GRU(num_classes=5, amp_dim=amp_dim, use_cbam=use_cbam).to(device)
 
     # Loss
     if config["use_asl"]:
@@ -446,32 +518,37 @@ def main():
     experiments = [
         {
             "name": "Full (All techniques)",
-            "use_asl": True, "use_amp": True, "use_filter": True,
+            "use_cbam": True, "use_asl": True, "use_amp": True, "use_filter": True,
+            "use_sampler": True, "use_augment": True,
+        },
+        {
+            "name": "w/o CBAM (CNN-GRU only)",
+            "use_cbam": False, "use_asl": True, "use_amp": True, "use_filter": True,
             "use_sampler": True, "use_augment": True,
         },
         {
             "name": "w/o ASL (use BCE)",
-            "use_asl": False, "use_amp": True, "use_filter": True,
+            "use_cbam": True, "use_asl": False, "use_amp": True, "use_filter": True,
             "use_sampler": True, "use_augment": True,
         },
         {
             "name": "w/o Amp Features",
-            "use_asl": True, "use_amp": False, "use_filter": True,
+            "use_cbam": True, "use_asl": True, "use_amp": False, "use_filter": True,
             "use_sampler": True, "use_augment": True,
         },
         {
             "name": "w/o Bandpass Filter",
-            "use_asl": True, "use_amp": True, "use_filter": False,
+            "use_cbam": True, "use_asl": True, "use_amp": True, "use_filter": False,
             "use_sampler": True, "use_augment": True,
         },
         {
             "name": "w/o WeightedSampler",
-            "use_asl": True, "use_amp": True, "use_filter": True,
+            "use_cbam": True, "use_asl": True, "use_amp": True, "use_filter": True,
             "use_sampler": False, "use_augment": True,
         },
         {
             "name": "w/o Augmentation",
-            "use_asl": True, "use_amp": True, "use_filter": True,
+            "use_cbam": True, "use_asl": True, "use_amp": True, "use_filter": True,
             "use_sampler": True, "use_augment": False,
         },
     ]
