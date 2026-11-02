@@ -1,10 +1,13 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.PushTokenRequest;
 import com.example.demo.dto.auth.UserProfileResponse;
 import com.example.demo.dto.auth.UserUpdateRequest;
 import com.example.demo.entity.User;
+import com.example.demo.push.PushTokenService;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.AccessControlService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,21 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final AccessControlService accessControlService;
+    private final PushTokenService pushTokenService;
+
+    /** 로그인한 기기의 Expo 푸시 토큰 등록 (사용자는 JWT에서 꺼냄) */
+    @PutMapping("/me/push-token")
+    public ResponseEntity<Void> registerPushToken(@Valid @RequestBody PushTokenRequest req) {
+        pushTokenService.register(accessControlService.currentUserId(), req.token());
+        return ResponseEntity.noContent().build();
+    }
+
+    /** 로그아웃 시 푸시 토큰 해제 */
+    @DeleteMapping("/me/push-token")
+    public ResponseEntity<Void> unregisterPushToken() {
+        pushTokenService.unregister(accessControlService.currentUserId());
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfileResponse> getUser(@PathVariable String userId) {

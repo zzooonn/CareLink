@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { registerPushTokenAsync } from "../../../utils/pushNotifications";
 import { ScaledText as Text } from "../../../components/ScaledText";
 import { palette, pressShadow, radius, shadow, spacing, typeScale, webShell } from "../../../constants/design";
 
@@ -82,6 +83,9 @@ export default function Login() {
       await AsyncStorage.setItem("userId", userId);
       if (data?.token) await AsyncStorage.setItem("token", data.token);
       if (data?.refreshToken) await AsyncStorage.setItem("refreshToken", data.refreshToken);
+
+      // 원격 푸시 토큰 등록 (실패해도 로그인은 계속)
+      void registerPushTokenAsync();
 
       Alert.alert("Welcome", "Login successful!", [
         { text: "OK", onPress: () => router.replace("/Home/HomePage") },

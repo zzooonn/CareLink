@@ -64,6 +64,10 @@ public class User {
     private String allergies;         // "Penicillin, Pollen" 등
     private String medicalConditions; // "Asthma, Diabetes" 등
 
+    // 원격 푸시 알림용 Expo 푸시 토큰 (마지막으로 로그인한 기기 1대)
+    @Column(name = "expo_push_token")
+    private String expoPushToken;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
